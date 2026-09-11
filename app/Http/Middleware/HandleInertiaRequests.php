@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Models\Invitation;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -36,6 +37,11 @@ final class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'auth' => [
                 'user' => $request->user(),
+            ],
+            // Server-derived abilities. The frontend only hides UI with these; every
+            // route is still guarded by its policy (ARCH-04).
+            'abilities' => [
+                'canInvite' => $request->user()?->can('create', Invitation::class) ?? false,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];

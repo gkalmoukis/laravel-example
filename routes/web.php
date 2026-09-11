@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\InvitationAcceptanceController;
+use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\InvitationResendController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserEmailResetNotificationController;
@@ -15,11 +18,12 @@ use Inertia\Inertia;
 
 Route::get('/', fn () => Inertia::render('welcome'))->name('home');
 
+// Application routes. Every one of these requires a verified email address (VER-01);
+// the only authenticated routes outside this group are the ones a user must be able to
+// reach *before* verifying, plus logout.
 Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::get('dashboard', fn () => Inertia::render('dashboard'))->name('dashboard');
-});
 
-Route::middleware('auth')->group(function (): void {
     // User...
     Route::delete('user', [UserController::class, 'destroy'])->name('user.destroy');
 
@@ -40,15 +44,24 @@ Route::middleware('auth')->group(function (): void {
     // User Two-Factor Authentication...
     Route::get('settings/two-factor', [UserTwoFactorAuthenticationController::class, 'show'])
         ->name('two-factor.show');
+
+    // Invitations (admins only, enforced by InvitationPolicy)...
+    Route::get('settings/invitations', [InvitationController::class, 'index'])->name('invitations.index');
+    Route::post('settings/invitations', [InvitationController::class, 'store'])->name('invitations.store');
+    Route::delete('settings/invitations/{invitation}', [InvitationController::class, 'destroy'])->name('invitations.destroy');
+    Route::post('settings/invitations/{invitation}/resend', [InvitationResendController::class, 'store'])->name('invitation-resend.store');
+});
+
+// Invitation acceptance. Rate limited because the token is the only secret, and every
+// failure renders the same neutral page (INV-07).
+Route::middleware(['guest', 'throttle:10,1'])->group(function (): void {
+    Route::get('invitations/{token}', [InvitationAcceptanceController::class, 'create'])
+        ->name('invitation-acceptance.create');
+    Route::post('invitations/{token}', [InvitationAcceptanceController::class, 'store'])
+        ->name('invitation-acceptance.store');
 });
 
 Route::middleware('guest')->group(function (): void {
-    // User...
-    Route::get('register', [UserController::class, 'create'])
-        ->name('register');
-    Route::post('register', [UserController::class, 'store'])
-        ->name('register.store');
-
     // User Password...
     Route::get('reset-password/{token}', [UserPasswordController::class, 'create'])
         ->name('password.reset');
@@ -68,6 +81,7 @@ Route::middleware('guest')->group(function (): void {
         ->name('login.store');
 });
 
+// Reachable while unverified, by necessity.
 Route::middleware('auth')->group(function (): void {
     // User Email Verification...
     Route::get('verify-email', [UserEmailVerificationNotificationController::class, 'create'])

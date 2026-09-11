@@ -8,6 +8,7 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Laravel\Fortify\Fortify;
 
@@ -21,6 +22,7 @@ final class FortifyServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->bootFortifyDefaults();
+        $this->bootPasswordDefaults();
         $this->bootRateLimitingDefaults();
     }
 
@@ -28,6 +30,22 @@ final class FortifyServiceProvider extends ServiceProvider
     {
         Fortify::twoFactorChallengeView(fn () => Inertia::render('user-two-factor-authentication-challenge/show'));
         Fortify::confirmPasswordView(fn () => Inertia::render('user-password-confirmation/create'));
+    }
+
+    /**
+     * Password rules for every place a password is set: invitation acceptance, password
+     * reset and password change (AUTH-04). Breach checking calls an external API, so it
+     * runs in production only.
+     */
+    private function bootPasswordDefaults(): void
+    {
+        Password::defaults(function (): Password {
+            $password = Password::min(12)->mixedCase()->numbers();
+
+            return $this->app->isProduction()
+                ? $password->uncompromised()
+                : $password;
+        });
     }
 
     private function bootRateLimitingDefaults(): void

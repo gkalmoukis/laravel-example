@@ -32,15 +32,15 @@ it('may reset password', function (): void {
     $response = $this->fromRoute('password.reset', ['token' => $token])
         ->post(route('password.store'), [
             'email' => 'test@example.com',
-            'password' => 'new-password',
-            'password_confirmation' => 'new-password',
+            'password' => 'NewPassword1234',
+            'password_confirmation' => 'NewPassword1234',
             'token' => $token,
         ]);
 
     $response->assertRedirectToRoute('login')
         ->assertSessionHas('status');
 
-    expect(Hash::check('new-password', $user->refresh()->password))->toBeTrue();
+    expect(Hash::check('NewPassword1234', $user->refresh()->password))->toBeTrue();
 
     Event::assertDispatched(PasswordReset::class);
 });
@@ -53,8 +53,8 @@ it('fails with invalid token', function (): void {
     $response = $this->fromRoute('password.reset', ['token' => 'invalid-token'])
         ->post(route('password.store'), [
             'email' => 'test@example.com',
-            'password' => 'new-password',
-            'password_confirmation' => 'new-password',
+            'password' => 'NewPassword1234',
+            'password_confirmation' => 'NewPassword1234',
             'token' => 'invalid-token',
         ]);
 
@@ -66,8 +66,8 @@ it('fails with non-existent email', function (): void {
     $response = $this->fromRoute('password.reset', ['token' => 'fake-token'])
         ->post(route('password.store'), [
             'email' => 'nonexistent@example.com',
-            'password' => 'new-password',
-            'password_confirmation' => 'new-password',
+            'password' => 'NewPassword1234',
+            'password_confirmation' => 'NewPassword1234',
             'token' => 'fake-token',
         ]);
 
@@ -78,8 +78,8 @@ it('fails with non-existent email', function (): void {
 it('requires email', function (): void {
     $response = $this->fromRoute('password.reset', ['token' => 'fake-token'])
         ->post(route('password.store'), [
-            'password' => 'new-password',
-            'password_confirmation' => 'new-password',
+            'password' => 'NewPassword1234',
+            'password_confirmation' => 'NewPassword1234',
             'token' => 'fake-token',
         ]);
 
@@ -102,7 +102,7 @@ it('requires password confirmation', function (): void {
     $response = $this->fromRoute('password.reset', ['token' => 'fake-token'])
         ->post(route('password.store'), [
             'email' => 'test@example.com',
-            'password' => 'new-password',
+            'password' => 'NewPassword1234',
             'token' => 'fake-token',
         ]);
 
@@ -114,8 +114,8 @@ it('requires matching password confirmation', function (): void {
     $response = $this->fromRoute('password.reset', ['token' => 'fake-token'])
         ->post(route('password.store'), [
             'email' => 'test@example.com',
-            'password' => 'new-password',
-            'password_confirmation' => 'different-password',
+            'password' => 'NewPassword1234',
+            'password_confirmation' => 'DifferentPassword1234',
             'token' => 'fake-token',
         ]);
 
@@ -143,8 +143,8 @@ it('may update password', function (): void {
         ->fromRoute('password.edit')
         ->put(route('password.update'), [
             'current_password' => 'old-password',
-            'password' => 'new-password',
-            'password_confirmation' => 'new-password',
+            'password' => 'NewPassword1234',
+            'password_confirmation' => 'NewPassword1234',
         ]);
 
     $response->assertRedirectToRoute('password.edit')
@@ -155,7 +155,7 @@ it('may update password', function (): void {
             ],
         ]);
 
-    expect(Hash::check('new-password', $user->refresh()->password))->toBeTrue();
+    expect(Hash::check('NewPassword1234', $user->refresh()->password))->toBeTrue();
 });
 
 it('requires current password to update', function (): void {
@@ -164,8 +164,8 @@ it('requires current password to update', function (): void {
     $response = $this->actingAs($user)
         ->fromRoute('password.edit')
         ->put(route('password.update'), [
-            'password' => 'new-password',
-            'password_confirmation' => 'new-password',
+            'password' => 'NewPassword1234',
+            'password_confirmation' => 'NewPassword1234',
         ]);
 
     $response->assertRedirectToRoute('password.edit')
@@ -181,8 +181,8 @@ it('requires correct current password to update', function (): void {
         ->fromRoute('password.edit')
         ->put(route('password.update'), [
             'current_password' => 'wrong-password',
-            'password' => 'new-password',
-            'password_confirmation' => 'new-password',
+            'password' => 'NewPassword1234',
+            'password_confirmation' => 'NewPassword1234',
         ]);
 
     $response->assertRedirectToRoute('password.edit')
