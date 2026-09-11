@@ -22,7 +22,7 @@ final class DatabaseSeeder extends Seeder
     public function run(): void
     {
         if (app()->isProduction()) {
-            $this->command?->error('Refusing to seed in production. Use app:invite instead.');
+            $this->command->error('Refusing to seed in production. Use app:invite instead.');
 
             return;
         }
