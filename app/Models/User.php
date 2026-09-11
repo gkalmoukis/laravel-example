@@ -20,6 +20,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property-read string $name
  * @property-read string $email
  * @property-read CarbonInterface|null $email_verified_at
+ * @property-read bool $is_admin
  * @property-read string $password
  * @property-read string|null $remember_token
  * @property-read string|null $two_factor_secret
@@ -61,6 +62,7 @@ final class User extends Authenticatable implements MustVerifyEmail
             'name' => 'string',
             'email' => 'string',
             'email_verified_at' => 'datetime',
+            'is_admin' => 'boolean',
             'password' => 'hashed',
             'remember_token' => 'string',
             'two_factor_secret' => 'string',

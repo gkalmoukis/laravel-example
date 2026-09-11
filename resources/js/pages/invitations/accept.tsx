@@ -41,7 +41,8 @@ export default function AcceptInvitation({ token, email }: Props) {
                                     type="email"
                                     value={email}
                                     readOnly
-                                    disabled
+                                    aria-readonly="true"
+                                    className="bg-muted"
                                     autoComplete="username"
                                 />
                             </div>
