@@ -1,0 +1,24 @@
+name: Strip AI attribution from PR body
+
+on:
+  pull_request:
+    types: [opened, edited, reopened]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  sanitize:
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          PATTERN='co-authored-by:.*(claude|anthropic)|noreply@anthropic\.com|generated with.*claude|claude-session:|claude\.ai/code/session_'
+          body="$(gh pr view "$PR" --repo "$REPO" --json body -q .body)"
+          clean="$(printf '%s\n' "$body" | grep -viE "$PATTERN" || true)"
+          if [ "$body" != "$clean" ]; then
+            gh pr edit "$PR" --repo "$REPO" --body "$clean"
+          fi

@@ -1,0 +1,26 @@
+name: deploy
+
+# Forge's own "deploy on push" is disabled on purpose. Only commits that passed the full
+# gate reach production, so deployment is triggered from a green run of the tests
+# workflow on main (CI-04, DEPLOY-07).
+on:
+  workflow_run:
+    workflows: [tests]
+    branches: [main]
+    types: [completed]
+
+jobs:
+  forge:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger the Forge deployment
+        env:
+          FORGE_DEPLOY_HOOK_URL: ${{ secrets.FORGE_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$FORGE_DEPLOY_HOOK_URL" ]; then
+            echo "FORGE_DEPLOY_HOOK_URL is not set, so there is nothing to deploy to yet."
+            echo "Add the secret once the Forge site exists; see docs/deployment.md."
+            exit 0
+          fi
+          curl --fail --silent --show-error -X POST "$FORGE_DEPLOY_HOOK_URL"

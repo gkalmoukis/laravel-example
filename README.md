@@ -1,101 +1,93 @@
-- Inertia & React (this project) version: **[github.com/nunomaduro/laravel-starter-kit-inertia-react](https://github.com/nunomaduro/laravel-starter-kit-inertia-react)**
-- Blade version: **[github.com/nunomaduro/laravel-starter-kit](https://github.com/nunomaduro/laravel-starter-kit)**
-- Inertia & Vue version: **[github.com/nunomaduro/laravel-starter-kit-inertia-vue](https://github.com/nunomaduro/laravel-starter-kit-inertia-vue)**
+# Fin
 
-<p align="center">
-    <a href="https://youtu.be/VhzP0XWGTC4" target="_blank">
-        <img src="https://github.com/nunomaduro/laravel-starter-kit/blob/main/art/banner.png" alt="Overview Laravel Starter Kit" style="width:70%;">
-    </a>
-</p>
+A private personal finance planner and tracker. Invitation-only, English UI, Greek-style number
+and date formatting by default.
 
-<p>
-    <a href="https://github.com/nunomaduro/laravel-starter-kit-inertia-react/actions"><img src="https://github.com/nunomaduro/laravel-starter-kit-inertia-react/actions/workflows/tests.yml/badge.svg" alt="Build Status"></a>
-    <a href="https://packagist.org/packages/nunomaduro/laravel-starter-kit-inertia-react"><img src="https://img.shields.io/packagist/dt/nunomaduro/laravel-starter-kit-inertia-react" alt="Total Downloads"></a>
-    <a href="https://packagist.org/packages/nunomaduro/laravel-starter-kit-inertia-react"><img src="https://img.shields.io/packagist/v/nunomaduro/laravel-starter-kit-inertia-react" alt="Latest Stable Version"></a>
-    <a href="https://packagist.org/packages/nunomaduro/laravel-starter-kit-inertia-react"><img src="https://img.shields.io/packagist/l/nunomaduro/laravel-starter-kit-inertia-react" alt="License"></a>
-    <a href="https://youtube.com/@nunomaduro?sub_confirmation=1"><img alt="YouTube Channel Subscribers" src="https://img.shields.io/youtube/channel/subscribers/UCO_hYZF2gb_CyG5sA7ArlGg?style=flat&label=youtube&color=brightgreen"></a>
-</p>
+- **Product requirements:** [`docs/prd.md`](docs/prd.md)
+- **Foundation requirements:** [`docs/laravel-foundation-requirements.md`](docs/laravel-foundation-requirements.md)
+- **Deployment:** [`docs/deployment.md`](docs/deployment.md)
+- **Agent instructions:** [`CLAUDE.md`](CLAUDE.md), compiled from [`.ai/guidelines`](.ai/guidelines)
 
-**Laravel Starter Kit (Inertia & React)** is an ultra-strict, type-safe [Laravel](https://laravel.com) skeleton engineered for developers who refuse to compromise on code quality. This opinionated starter kit enforces rigorous development standards through meticulous tooling configuration and architectural decisions that prioritize type safety, immutability, and fail-fast principles.
+## Stack
 
-## Why This Starter Kit?
+Laravel 13 · Inertia v3 · React 19 · TypeScript · shadcn/ui · Tailwind 4 · MySQL 8.4 · Redis ·
+Laravel Sail · Pest 5 with Playwright · PHPStan at max · deployed to Laravel Forge.
 
-Modern PHP has evolved into a mature, type-safe language, yet many Laravel projects still operate with loose conventions and optional typing. This starter kit changes that paradigm by enforcing:
+## Getting started
 
-- **Fully Actions-Oriented Architecture**: Every operation is encapsulated in a single-action class
-- **Cruddy by Design**: Standardized CRUD operations for all controllers, actions, and Inertia & React pages
-- **100% Type Coverage**: Every method, property, and parameter is explicitly typed
-- **Zero Tolerance for Code Smells**: Rector, PHPStan, OxLint, and Oxfmt at maximum strictness catch issues before they become bugs
-- **Immutable-First Architecture**: Data structures favor immutability to prevent unexpected mutations
-- **Fail-Fast Philosophy**: Errors are caught at compile-time, not runtime
-- **Automated Code Quality**: Pre-configured tools ensure consistent, pristine code across your entire team
-- **Just Better Laravel Defaults**: Thanks to **[Essentials](https://github.com/nunomaduro/essentials)** / strict models, auto eager loading, immutable dates, and more...
-- **AI Guidelines**: Integrated AI Guidelines to assist in maintaining code quality and consistency
-- **Full Testing Suite**: More than 150 tests with 100% code coverage using Pest
-- 
-This isn't just another Laravel boilerplate—it's a statement that PHP applications can and should be built with the same rigor as strongly-typed languages like Rust or TypeScript.
-
-## Getting Started
-
-> **Requires [PHP 8.5+](https://php.net/releases/) and a code coverage driver like [xdebug](https://xdebug.org/docs/install)**.
-
-Create your type-safe Laravel application using [Composer](https://getcomposer.org):
+Everything runs in Docker through Laravel Sail. You need Docker with Compose v2 and nothing
+else — no host PHP, Composer, Node or Bun.
 
 ```bash
-composer create-project nunomaduro/laravel-starter-kit-inertia-react --prefer-dist example-app
+git clone git@github.com:gkalmoukis/laravel-example.git fin && cd fin
+cp .env.example .env
+git config core.hooksPath .githooks          # attribution stripping + pre-commit lint
+
+# Install PHP dependencies without host PHP. The image runs PHP 8.4 while this project
+# needs 8.5, so platform requirements are ignored for this one bootstrap step; every
+# later command runs on 8.5 inside the container.
+docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd):/var/www/html" -w /var/www/html \
+  laravelsail/php84-composer:latest composer install --ignore-platform-reqs
+
+./vendor/bin/sail build                       # includes Playwright's Chromium
+sail up -d
+sail composer setup                           # key, migrate, bun install, build
+sail artisan db:seed                          # local admin + sample invitations
+sail composer dev                             # queue + logs + Vite with HMR
 ```
 
-### Initial Setup
+The app is at <http://localhost> and every outgoing email is captured by Mailpit at
+<http://localhost:8025>.
 
-Navigate to your project and complete the setup:
+Add `alias sail='sh $([ -f sail ] && echo sail || echo vendor/bin/sail)'` to your shell so the
+commands below work as written.
+
+### Local sign-in
+
+The seeder creates one account. **Local only** — the seeder refuses to run in production.
+
+| Email | Password |
+|---|---|
+| `admin@fin.test` | `Password1234` |
+
+### Inviting people
+
+There is no public registration; `/register` does not exist. The first account in any
+environment is created from the console:
 
 ```bash
-cd example-app
-
-# Setup the project
-composer setup
-
-# Start the development server
-composer dev
+sail artisan app:invite someone@example.com --admin
 ```
 
-### Optional: Browser Testing Setup
+The command prints the invitation link and emails it. `--admin` lets the new account invite
+others, which is the only thing the admin flag grants. Admins signed in to the app can invite
+from **Settings → Invitations**.
 
-If you plan to use Pest's browser testing capabilities:
+Invitation links are single-use and expire after seven days
+(`config/invitations.php`).
 
-```bash
-bun add playwright
-bunx playwright install
-```
+## Commands
 
-### Verify Installation
+| Command | What it does |
+|---|---|
+| `sail up -d` / `sail down` | Start / stop the stack |
+| `sail down -v` | Stop **and delete** the database and Redis volumes |
+| `sail composer setup` | Key, migrate, install and build. Safe to re-run; never rotates an existing `APP_KEY` |
+| `sail composer dev` | Queue listener, logs and the Vite dev server together |
+| `sail composer test` | **The gate.** Lint, 100% type coverage, PHPStan max, `tsc`, 100% line coverage, browser tests |
+| `sail composer lint` | Apply Rector, Pint and the frontend formatter |
+| `sail artisan test --compact --filter=X` | Run one slice while iterating |
+| `sail artisan app:invite {email} [--admin]` | Create an invitation and print the link |
+| `sail bunx shadcn@latest add <component>` | Add a UI primitive |
+| `sail artisan wayfinder:generate --with-form` | Regenerate typed routes (the flag is required) |
 
-Run the test suite to ensure everything is configured correctly:
+`sail composer test` must be green before every commit and is enforced again in CI.
 
-```bash
-composer test
-```
+## Conventions
 
-You should see 100% test coverage and all quality checks passing.
+Actions hold the business logic, controllers stay cruddy and thin, validation lives in form
+requests, authorization lives in policies, and a record belonging to another user returns 404
+rather than 403. Money is integer cents. Commit messages follow Conventional Commits.
 
-## Available Tooling
-
-### Development
-- `composer dev` - Starts Laravel server, queue worker, log monitoring, and Vite+ dev server concurrently
-
-### Code Quality
-- `composer lint` - Runs Rector (refactoring), Pint (PHP formatting), and Oxfmt (JS/TS formatting)
-- `composer test:lint` - Dry-run mode for CI/CD pipelines
-
-### Testing
-- `composer test:type-coverage` - Ensures 100% type coverage with Pest
-- `composer test:types` - Runs PHPStan at level 9 (maximum strictness)
-- `composer test:unit` - Runs Pest tests with 100% code coverage requirement
-- `composer test` - Runs the complete test suite (type coverage, unit tests, linting, static analysis)
-
-### Maintenance
-- `composer update:requirements` - Updates all PHP and Bun dependencies to latest versions
-
-## License
-
-**Laravel Starter Kit Inertia React** was created by **[Nuno Maduro](https://x.com/enunomaduro)** under the **[MIT license](https://opensource.org/licenses/MIT)**.
+The full rules are in [`.ai/guidelines`](.ai/guidelines) and are compiled into `CLAUDE.md`;
+decisions that should not be reverted are recorded in [`.ai/rules`](.ai/rules).
