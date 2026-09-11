@@ -1,0 +1,8 @@
+#!/bin/sh
+# Strip AI attribution lines from every commit message.
+set -eu
+PATTERN='co-authored-by:.*(claude|anthropic)|noreply@anthropic\.com|generated with.*claude|claude-session:|claude\.ai/code/session_'
+tmp="$(mktemp)"
+grep -viE "$PATTERN" "$1" > "$tmp" || true
+cat "$tmp" > "$1"
+rm -f "$tmp"

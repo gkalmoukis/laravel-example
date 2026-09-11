@@ -1,0 +1,18 @@
+#!/bin/sh
+# Run the lint gate before committing, but only when Sail is already running.
+set -eu
+
+sail="./vendor/bin/sail"
+
+if [ ! -x "$sail" ]; then
+  echo "pre-commit: Sail is not installed yet, skipping lint." >&2
+  exit 0
+fi
+
+if ! "$sail" ps --status running 2>/dev/null | grep -q .; then
+  echo "pre-commit: Sail containers are not running, skipping lint." >&2
+  echo "pre-commit: start them with 'sail up -d' to lint before committing." >&2
+  exit 0
+fi
+
+exec "$sail" composer test:lint
