@@ -7,6 +7,7 @@ namespace App\Models;
 use Carbon\CarbonInterface;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -32,6 +33,14 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
     'remember_token',
     'two_factor_secret',
     'two_factor_recovery_codes',
+])]
+// Mass-assignment protection is on (D-08), so the attributes that may be filled from request
+// data are listed explicitly. Verification and privilege columns are written with forceFill()
+// by the Actions that own them, never from user input.
+#[Fillable([
+    'name',
+    'email',
+    'password',
 ])]
 final class User extends Authenticatable implements MustVerifyEmail
 {

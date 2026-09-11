@@ -6,6 +6,14 @@ import laravel from 'laravel-vite-plugin';
 import {defineConfig} from 'vite-plus';
 
 export default defineConfig({
+    server: {
+        host: '0.0.0.0',
+        port: Number(process.env.VITE_PORT ?? 5173),
+        strictPort: true,
+        hmr: {
+            host: 'localhost',
+        },
+    },
     lint: {
         options: {
             typeAware: true,
@@ -54,7 +62,6 @@ export default defineConfig({
     plugins: [
         laravel({
             input: ['resources/css/app.css', 'resources/js/app.tsx'],
-            ssr: 'resources/js/ssr.tsx',
             refresh: true,
         }),
         react(),

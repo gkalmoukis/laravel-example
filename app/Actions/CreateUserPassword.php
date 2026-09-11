@@ -21,10 +21,10 @@ final readonly class CreateUserPassword
         return DB::transaction(fn (): mixed => Password::reset(
             $credentials,
             function (User $user) use ($password): void {
-                $user->update([
+                $user->forceFill([
                     'password' => $password,
                     'remember_token' => Str::random(60),
-                ]);
+                ])->save();
 
                 event(new PasswordReset($user));
             }

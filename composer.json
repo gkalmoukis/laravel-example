@@ -22,11 +22,12 @@
         "larastan/larastan": "^3.10.0",
         "laravel/boost": "^2.4.11",
         "laravel/pail": "^1.2.7",
+        "laravel/pao": "^1.1.2",
         "laravel/pint": "^1.29.3",
+        "laravel/sail": "^1.67",
         "laravel/tinker": "^3.0.2",
         "mockery/mockery": "^1.6.12",
         "nunomaduro/collision": "^8.9.4",
-        "laravel/pao": "^1.1.2",
         "pestphp/pest": "^5.0",
         "pestphp/pest-plugin-browser": "^5.0",
         "pestphp/pest-plugin-laravel": "^5.0",
@@ -50,14 +51,14 @@
         "setup": [
             "composer install",
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
-            "@php artisan key:generate",
-            "@php artisan migrate --force",
+            "grep -qE '^APP_KEY=.+$' .env && echo 'APP_KEY already set, leaving it alone.' || php artisan key:generate --ansi",
+            "n=0; until php artisan migrate --force --no-interaction; do n=$((n+1)); if [ $n -ge 30 ]; then echo 'Database did not become available in time.'; exit 1; fi; echo 'Waiting for the database to accept connections...'; sleep 2; done",
             "bun install",
             "bun run build"
         ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",
-            "bunx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"bun run dev\" --names=server,queue,logs,vite --kill-others"
+            "bunx concurrently -c \"#c4b5fd,#fb7185,#fdba74\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"bun run dev\" --names=queue,logs,vite --kill-others"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
@@ -72,7 +73,6 @@
         ],
         "post-create-project-cmd": [
             "@php artisan key:generate --ansi",
-            "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
             "@php artisan migrate --graceful --ansi"
         ],
         "update:requirements": [

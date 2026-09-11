@@ -15,10 +15,13 @@ final readonly class UpdateUser
     {
         $emailChanged = isset($attributes['email']) && $user->email !== $attributes['email'];
 
-        $user->update([
-            ...$attributes,
-            ...($emailChanged ? ['email_verified_at' => null] : []),
-        ]);
+        $user->fill($attributes);
+
+        if ($emailChanged) {
+            $user->forceFill(['email_verified_at' => null]);
+        }
+
+        $user->save();
 
         if ($emailChanged) {
             $user->sendEmailVerificationNotification();
