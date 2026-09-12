@@ -12,6 +12,8 @@ use SensitiveParameter;
 
 final readonly class AcceptInvitation
 {
+    public function __construct(private ProvisionUserDefaults $provisionDefaults) {}
+
     /**
      * Creates the account and consumes the invitation in one transaction (INV-06).
      *
@@ -35,6 +37,10 @@ final readonly class AcceptInvitation
             ])->save();
 
             $invitation->forceFill(['accepted_at' => now()])->save();
+
+            // Same transaction as the account itself, so a new user never exists without
+            // their categories, preferences and emergency fund goal (USR-04).
+            $this->provisionDefaults->handle($user);
 
             event(new Registered($user));
 
