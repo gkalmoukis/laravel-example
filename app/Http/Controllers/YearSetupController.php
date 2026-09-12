@@ -12,6 +12,7 @@ use App\Models\Category;
 use App\Models\FinancialYear;
 use App\Models\NetWorthSnapshot;
 use App\Models\PlanItem;
+use App\Models\PlanItemAmount;
 use App\Models\SalaryModel;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
@@ -59,7 +60,7 @@ final readonly class YearSetupController
             'opening' => $this->openingProps($year),
             'income' => $this->incomeProps($year),
             'review' => $this->reviewProps($year),
-            default => $this->planProps($year),
+            default => $this->planProps($year, $step),
         };
     }
 
@@ -96,26 +97,24 @@ final readonly class YearSetupController
      */
     private function incomeProps(FinancialYear $year): array
     {
-        $salaryModel = $year->salaryModel()->first();
-
         return [
-            'salaryModel' => $salaryModel instanceof SalaryModel ? [
-                'name' => $salaryModel->name,
-                'baseAmountCents' => $salaryModel->base_amount_cents->cents,
-                'payments' => $salaryModel->payments,
-            ] : null,
+            'salaryModel' => $this->presentSalaryModel($year),
             'defaultPayments' => SalaryModel::defaultPayments(),
             // Preselected from the user's own preference (INC-03).
             'salaryPayments' => $year->user->preference->salary_payments ?? 14,
-            ...$this->planProps($year),
+            ...$this->planProps($year, 'income'),
         ];
     }
 
     /**
      * @return array<string, mixed>
      */
-    private function planProps(FinancialYear $year): array
+    private function planProps(FinancialYear $year, string $step): array
     {
+        // Only categories of the step's own type: an expense step must not offer income
+        // categories, or a cost could be filed under Salary.
+        $type = $step === 'income' ? TransactionType::Income : TransactionType::Expense;
+
         return [
             'planItems' => $year->planItems()
                 ->with(['amounts', 'category'])
@@ -126,6 +125,7 @@ final readonly class YearSetupController
             'categories' => $year->user->categories()
                 ->where('is_active', true)
                 ->whereNull('parent_id')
+                ->where('type', $type)
                 ->orderBy('sort_order')
                 ->get()
                 ->map(fn (Category $category): array => [
@@ -168,9 +168,9 @@ final readonly class YearSetupController
             'isManual' => $item->isManual(),
             'months' => $item->amounts
                 ->sortBy('month')
-                ->mapWithKeys(fn ($amount): array => [$amount->month => $amount->amount_cents->cents])
+                ->mapWithKeys(fn (PlanItemAmount $amount): array => [$amount->month => $amount->amount_cents->cents])
                 ->all(),
-            'annualCents' => $item->amounts->sum(fn ($amount): int => $amount->amount_cents->cents),
+            'annualCents' => $item->amounts->sum(fn (PlanItemAmount $amount): int => $amount->amount_cents->cents),
         ];
     }
 
@@ -201,5 +201,25 @@ final readonly class YearSetupController
         }
 
         return $done;
+    }
+
+    /**
+     * The salary arrangement, or nothing when the year has none.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function presentSalaryModel(FinancialYear $year): ?array
+    {
+        $salaryModel = $year->salaryModel()->first();
+
+        if (! $salaryModel instanceof SalaryModel) {
+            return null;
+        }
+
+        return [
+            'name' => $salaryModel->name,
+            'baseAmountCents' => $salaryModel->base_amount_cents->cents,
+            'payments' => $salaryModel->payments,
+        ];
     }
 }

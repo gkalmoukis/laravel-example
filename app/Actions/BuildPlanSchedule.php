@@ -67,13 +67,23 @@ final readonly class BuildPlanSchedule
      */
     private function monthsFor(Frequency $frequency, int $startMonth, array $customMonths): array
     {
-        return match ($frequency) {
-            Frequency::Once, Frequency::Annual => [$startMonth],
-            Frequency::Monthly => $this->everyNthMonth($startMonth, 1),
-            Frequency::Quarterly => $this->everyNthMonth($startMonth, 3),
-            Frequency::SemiAnnual => $this->everyNthMonth($startMonth, 6),
-            Frequency::Custom => $this->validCustomMonths($customMonths),
-        };
+        if ($frequency === Frequency::Once || $frequency === Frequency::Annual) {
+            return [$startMonth];
+        }
+
+        if ($frequency === Frequency::Monthly) {
+            return $this->everyNthMonth($startMonth, 1);
+        }
+
+        if ($frequency === Frequency::Quarterly) {
+            return $this->everyNthMonth($startMonth, 3);
+        }
+
+        if ($frequency === Frequency::SemiAnnual) {
+            return $this->everyNthMonth($startMonth, 6);
+        }
+
+        return $this->validCustomMonths($customMonths);
     }
 
     /**

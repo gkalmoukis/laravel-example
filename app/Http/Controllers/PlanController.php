@@ -13,6 +13,7 @@ use App\Models\Category;
 use App\Models\FinancialYear;
 use App\Models\NetWorthSnapshot;
 use App\Models\PlanItem;
+use App\Models\PlanItemAmount;
 use App\Models\SalaryModel;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -73,16 +74,10 @@ final readonly class PlanController
      */
     private function incomeProps(FinancialYear $year): array
     {
-        $salaryModel = $year->salaryModel()->first();
-
         return [
-            'salaryModel' => $salaryModel instanceof SalaryModel ? [
-                'name' => $salaryModel->name,
-                'baseAmountCents' => $salaryModel->base_amount_cents->cents,
-                'payments' => $salaryModel->payments,
-            ] : null,
+            'salaryModel' => $this->presentSalaryModel($year),
             'defaultPayments' => SalaryModel::defaultPayments(),
-            'items' => $this->items($year, fn ($query) => $query->where('type', TransactionType::Income)),
+            'items' => $this->items($year, fn (HasMany $query): HasMany => $query->where('type', TransactionType::Income)),
             'categories' => $this->categories($year, TransactionType::Income),
             'summary' => $this->baseline->build($year),
         ];
@@ -147,7 +142,7 @@ final readonly class PlanController
     private function irregularProps(FinancialYear $year): array
     {
         return [
-            'items' => $this->items($year, fn ($query) => $query->where('kind', PlanItemKind::Irregular)),
+            'items' => $this->items($year, fn (HasMany $query): HasMany => $query->where('kind', PlanItemKind::Irregular)),
             'categories' => $this->categories($year, TransactionType::Expense),
         ];
     }
@@ -203,9 +198,9 @@ final readonly class PlanController
                 'isManual' => $item->isManual(),
                 'months' => $item->amounts
                     ->sortBy('month')
-                    ->mapWithKeys(fn ($amount): array => [$amount->month => $amount->amount_cents->cents])
+                    ->mapWithKeys(fn (PlanItemAmount $amount): array => [$amount->month => $amount->amount_cents->cents])
                     ->all(),
-                'annualCents' => $item->amounts->sum(fn ($amount): int => $amount->amount_cents->cents),
+                'annualCents' => $item->amounts->sum(fn (PlanItemAmount $amount): int => $amount->amount_cents->cents),
             ])
             ->all();
     }
@@ -232,7 +227,7 @@ final readonly class PlanController
     /**
      * @return Collection<int, Category>
      */
-    private function expenseCategories(FinancialYear $year)
+    private function expenseCategories(FinancialYear $year): Collection
     {
         return $year->user->categories()
             ->where('is_active', true)
@@ -240,5 +235,25 @@ final readonly class PlanController
             ->where('type', TransactionType::Expense)
             ->orderBy('sort_order')
             ->get();
+    }
+
+    /**
+     * The salary arrangement, or nothing when the year has none.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function presentSalaryModel(FinancialYear $year): ?array
+    {
+        $salaryModel = $year->salaryModel()->first();
+
+        if (! $salaryModel instanceof SalaryModel) {
+            return null;
+        }
+
+        return [
+            'name' => $salaryModel->name,
+            'baseAmountCents' => $salaryModel->base_amount_cents->cents,
+            'payments' => $salaryModel->payments,
+        ];
     }
 }

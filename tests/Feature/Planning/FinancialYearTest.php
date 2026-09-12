@@ -7,7 +7,6 @@ use App\Actions\CompleteYearSetup;
 use App\Actions\CopyFinancialYear;
 use App\Actions\CreateFinancialYear;
 use App\Actions\CreatePlanItem;
-use App\Actions\ProvisionUserDefaults;
 use App\Actions\RemoveSalaryModel;
 use App\Actions\SaveSalaryModel;
 use App\Actions\UpdateOpeningPosition;
@@ -24,22 +23,13 @@ use App\Models\User;
 use App\ValueObjects\Money;
 use Illuminate\Database\QueryException;
 
-function provisionedUserForYears(): User
-{
-    $user = User::factory()->create();
-
-    resolve(ProvisionUserDefaults::class)->handle($user);
-
-    return $user;
-}
-
 function holding(User $user, NetWorthItemKind $kind): NetWorthItem
 {
     return $user->netWorthItems()->where('kind', $kind)->firstOrFail();
 }
 
 it('seeds the opening position with one holding per group', function (): void {
-    $user = provisionedUserForYears();
+    $user = planningUser();
 
     $year = resolve(CreateFinancialYear::class)->handle($user, 2027);
 
@@ -49,7 +39,7 @@ it('seeds the opening position with one holding per group', function (): void {
 });
 
 it('reuses the same holdings for a second year', function (): void {
-    $user = provisionedUserForYears();
+    $user = planningUser();
 
     resolve(CreateFinancialYear::class)->handle($user, 2027);
     resolve(CreateFinancialYear::class)->handle($user, 2028);
@@ -58,7 +48,7 @@ it('reuses the same holdings for a second year', function (): void {
 });
 
 it('records the opening position and reports the liquid balance', function (): void {
-    $user = provisionedUserForYears();
+    $user = planningUser();
     $year = resolve(CreateFinancialYear::class)->handle($user, 2027);
 
     resolve(UpdateOpeningPosition::class)->handle($year, [
@@ -74,7 +64,7 @@ it('records the opening position and reports the liquid balance', function (): v
 });
 
 it('reports a negative net worth when debts exceed what is owned', function (): void {
-    $user = provisionedUserForYears();
+    $user = planningUser();
     $year = resolve(CreateFinancialYear::class)->handle($user, 2027);
 
     resolve(UpdateOpeningPosition::class)->handle($year, [
@@ -86,7 +76,7 @@ it('reports a negative net worth when debts exceed what is owned', function (): 
 });
 
 it('ignores holdings belonging to someone else', function (): void {
-    $user = provisionedUserForYears();
+    $user = planningUser();
     $year = resolve(CreateFinancialYear::class)->handle($user, 2027);
 
     $someoneElses = NetWorthItem::factory()->create();
@@ -102,7 +92,7 @@ it('ignores holdings belonging to someone else', function (): void {
 });
 
 it('captures the plan as a baseline when setup finishes', function (): void {
-    $user = provisionedUserForYears();
+    $user = planningUser();
     $year = resolve(CreateFinancialYear::class)->handle($user, 2027);
 
     resolve(UpdateOpeningPosition::class)->handle($year, [
@@ -143,7 +133,7 @@ it('captures the plan as a baseline when setup finishes', function (): void {
 });
 
 it('records a closing balance that goes below zero', function (): void {
-    $user = provisionedUserForYears();
+    $user = planningUser();
     $year = resolve(CreateFinancialYear::class)->handle($user, 2027);
 
     $housing = $user->categories()->where('name', 'Housing')->firstOrFail();
@@ -163,7 +153,7 @@ it('records a closing balance that goes below zero', function (): void {
 });
 
 it('copies the plan forward into a new year', function (): void {
-    $user = provisionedUserForYears();
+    $user = planningUser();
     $source = resolve(CreateFinancialYear::class)->handle($user, 2027);
 
     $housing = $user->categories()->where('name', 'Housing')->firstOrFail();
@@ -188,7 +178,7 @@ it('copies the plan forward into a new year', function (): void {
 });
 
 it('rebuilds the salary arrangement in the copied year rather than duplicating it', function (): void {
-    $user = provisionedUserForYears();
+    $user = planningUser();
     $source = resolve(CreateFinancialYear::class)->handle($user, 2027);
 
     resolve(SaveSalaryModel::class)->handle($source, Money::fromCents(180_000), SalaryModel::defaultPayments());
@@ -200,7 +190,7 @@ it('rebuilds the salary arrangement in the copied year rather than duplicating i
 });
 
 it('does not copy items generated from subscriptions', function (): void {
-    $user = provisionedUserForYears();
+    $user = planningUser();
     $source = resolve(CreateFinancialYear::class)->handle($user, 2027);
 
     $category = $user->categories()->where('name', 'Subscriptions')->firstOrFail();
@@ -216,7 +206,7 @@ it('does not copy items generated from subscriptions', function (): void {
 });
 
 it('opens the new year where the old one closed', function (): void {
-    $user = provisionedUserForYears();
+    $user = planningUser();
     $source = resolve(CreateFinancialYear::class)->handle($user, 2027);
 
     $cash = holding($user, NetWorthItemKind::Cash);
@@ -234,7 +224,7 @@ it('opens the new year where the old one closed', function (): void {
 });
 
 it('removes the salary arrangement and only what it generated', function (): void {
-    $user = provisionedUserForYears();
+    $user = planningUser();
     $year = resolve(CreateFinancialYear::class)->handle($user, 2027);
 
     $housing = $user->categories()->where('name', 'Housing')->firstOrFail();
@@ -266,13 +256,13 @@ it('accepts only years inside the offered span', function (int $year, bool $expe
 ]);
 
 it('keeps one year per user but allows the same year for different users', function (): void {
-    $user = provisionedUserForYears();
+    $user = planningUser();
     resolve(CreateFinancialYear::class)->handle($user, 2027);
 
     expect(fn (): FinancialYear => resolve(CreateFinancialYear::class)->handle($user, 2027))
         ->toThrow(QueryException::class);
 
-    $other = provisionedUserForYears();
+    $other = planningUser();
 
     expect(resolve(CreateFinancialYear::class)->handle($other, 2027)->year)->toBe(2027);
 });

@@ -8,6 +8,7 @@ use App\Enums\NetWorthItemKind;
 use App\Models\FinancialYear;
 use App\Models\NetWorthSnapshot;
 use App\ValueObjects\Money;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -55,7 +56,7 @@ final readonly class UpdateOpeningPosition
         $cents = NetWorthSnapshot::query()
             ->where('financial_year_id', $financialYear->id)
             ->where('month', NetWorthSnapshot::OPENING_MONTH)
-            ->whereHas('netWorthItem', function ($query) use ($financialYear): void {
+            ->whereHas('netWorthItem', function (Builder $query) use ($financialYear): void {
                 $query->where('user_id', $financialYear->user_id)
                     ->where('is_active', true)
                     ->whereIn('kind', CreateFinancialYear::liquidKinds());

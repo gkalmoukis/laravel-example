@@ -55,7 +55,7 @@ final readonly class UpdateBudgetCell
     /**
      * @return Collection<int, PlanItem>
      */
-    private function editableItems(FinancialYear $financialYear, Category $category)
+    private function editableItems(FinancialYear $financialYear, Category $category): Collection
     {
         return $financialYear->planItems()
             ->where('category_id', $category->id)

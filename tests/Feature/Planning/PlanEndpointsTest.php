@@ -1,23 +1,12 @@
 <?php
 
 declare(strict_types=1);
-
-use App\Actions\CreateFinancialYear;
 use App\Actions\ProvisionUserDefaults;
 use App\Enums\NetWorthItemKind;
 use App\Enums\PlanItemSource;
 use App\Models\PlanItem;
 use App\Models\SalaryModel;
 use App\Models\User;
-
-function userWithYear(int $year = 2027): array
-{
-    $user = User::factory()->create();
-
-    resolve(ProvisionUserDefaults::class)->handle($user);
-
-    return [$user, resolve(CreateFinancialYear::class)->handle($user, $year)];
-}
 
 it('creates an empty year and lands on the first wizard step', function (): void {
     $user = User::factory()->create();

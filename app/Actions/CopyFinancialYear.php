@@ -8,6 +8,7 @@ use App\Enums\PlanItemSource;
 use App\Models\FinancialYear;
 use App\Models\NetWorthSnapshot;
 use App\Models\PlanItem;
+use App\Models\PlanItemAmount;
 use App\Models\User;
 use App\ValueObjects\Money;
 use Illuminate\Support\Facades\DB;
@@ -77,7 +78,7 @@ final readonly class CopyFinancialYear
     private function copyAmounts(PlanItem $from, PlanItem $to): void
     {
         $rows = $from->amounts
-            ->map(fn ($amount): array => [
+            ->map(fn (PlanItemAmount $amount): array => [
                 'plan_item_id' => $to->id,
                 'month' => $amount->month,
                 'amount_cents' => $amount->amount_cents->cents,

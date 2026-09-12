@@ -1,8 +1,6 @@
 <?php
 
 declare(strict_types=1);
-
-use App\Actions\ProvisionUserDefaults;
 use App\Actions\SaveSalaryModel;
 use App\Enums\PlanItemSource;
 use App\Models\Category;
@@ -10,17 +8,7 @@ use App\Models\FinancialYear;
 use App\Models\PlanItem;
 use App\Models\PlanItemAmount;
 use App\Models\SalaryModel;
-use App\Models\User;
 use App\ValueObjects\Money;
-
-function planningYear(): FinancialYear
-{
-    $user = User::factory()->create();
-
-    resolve(ProvisionUserDefaults::class)->handle($user);
-
-    return FinancialYear::factory()->for($user)->create();
-}
 
 /**
  * The monthly amounts as plain cents, since the column casts to a Money object.

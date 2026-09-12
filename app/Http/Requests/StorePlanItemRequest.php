@@ -8,6 +8,7 @@ use App\Enums\Allocation;
 use App\Enums\Frequency;
 use App\Enums\PlanItemKind;
 use App\Enums\TransactionType;
+use App\Models\Category;
 use App\ValueObjects\Money;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -86,6 +87,19 @@ final class StorePlanItemRequest extends FormRequest
                     $validator->errors()->add('amount', 'Enter an amount like 1.234,56.');
                 }
             },
+
+            function (Validator $validator): void {
+                $category = $this->chosenCategory();
+
+                // An expense filed under an income category would be counted in the
+                // wrong direction for the rest of the year.
+                if ($category instanceof Category && $category->type->value !== $this->string('type')->value()) {
+                    $validator->errors()->add(
+                        'category_id',
+                        sprintf('Choose a category for %s.', $this->string('type')->value()),
+                    );
+                }
+            },
         ];
     }
 
@@ -125,5 +139,19 @@ final class StorePlanItemRequest extends FormRequest
         }
 
         return $attributes;
+    }
+
+    private function chosenCategory(): ?Category
+    {
+        $categoryId = $this->integer('category_id');
+
+        if ($categoryId === 0) {
+            return null;
+        }
+
+        return Category::query()
+            ->where('user_id', $this->user()?->id)
+            ->whereKey($categoryId)
+            ->first();
     }
 }
