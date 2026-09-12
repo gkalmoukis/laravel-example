@@ -70,14 +70,17 @@ jobs:
         uses: actions/cache@v6
         with:
           path: vendor
-          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock', 'composer.json') }}
           restore-keys: ${{ runner.os }}-composer-
 
       - name: Cache Bun Dependencies
         uses: actions/cache@v6
         with:
           path: node_modules
-          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          # Hashed on the manifest as well as the lockfile. Keyed on the lockfile alone,
+          # a dependency bump that edits only package.json restores a stale node_modules,
+          # and `bun install --frozen-lockfile` reports "no changes" instead of failing.
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock', 'package.json') }}
           restore-keys: ${{ runner.os }}-bun-
 
       - name: Install Dependencies
