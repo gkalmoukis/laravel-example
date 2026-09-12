@@ -41,10 +41,17 @@ In this order, following sibling files for structure:
 
 migration → model + factory → enum → `app/Data` DTO → Action → Policy → Form Request →
 Controller → route → `vendor/bin/sail artisan wayfinder:generate --with-form` → React page and
-components → tests.
+components → `vendor/bin/sail bun run build` → tests.
 
 - Generate files with `vendor/bin/sail artisan make:*  --no-interaction`.
-- Add shadcn primitives only with `vendor/bin/sail bunx shadcn@latest add <component>`.
+- Add shadcn primitives with `printf 'n\n' | vendor/bin/sail bunx shadcn@latest add <component> --yes`
+  — it prompts before overwriting an existing file, and an unanswered prompt hangs the loop.
+  Answering `n` keeps the project's own version of anything it already has.
+- **Run `vendor/bin/sail bun run build` after adding or renaming any page**, before running
+  feature tests. Inertia resolves pages through the Vite manifest, so a page that has not been
+  built makes every test touching it fail with `Unable to locate file in Vite manifest`.
+- Enum *values* are lowercase (`income`, `expense`); the TitleCase names are the PHP cases. Use
+  `TransactionType::Income->value` in tests and the lowercase string in TypeScript.
 - Every command runs through `vendor/bin/sail`. There is no host PHP, Composer, Node or Bun.
 
 ## 5. Test
@@ -111,5 +118,8 @@ One line, nothing else:
   (a path change or visible text) before asserting anything else.
 - **Coverage is scoped to `app/` and must be exactly 100%.** Never land a class in `app/` ahead
   of the code that exercises it, and test every `match` arm.
+- **Browser tests flake under parallel load.** A `Timeout 5000ms exceeded` in a browser test
+  you did not touch is usually load, not a regression: re-run that test on its own before
+  treating it as one. A real failure reproduces in isolation.
 - **Three failed attempts** at getting a check green → mark the item `[!]` with the failure
   summarised in one line, commit only that backlog edit as `chore: block <id>`, and stop.

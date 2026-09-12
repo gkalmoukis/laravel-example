@@ -235,6 +235,35 @@ final class Transaction extends Model
         return $issues;
     }
 
+    /**
+     * The issues on a row that was loaded through withIssues().
+     *
+     * Reads the flags the query already worked out, so a page of fifty rows costs no
+     * extra queries. Use issues() for a transaction loaded without them.
+     *
+     * @return list<TransactionIssue>
+     */
+    public function loadedIssues(): array
+    {
+        $attributes = $this->getAttributes();
+
+        $issues = [];
+
+        if ((bool) ($attributes['has_no_financial_year'] ?? false)) {
+            $issues[] = TransactionIssue::NoFinancialYear;
+        }
+
+        if ((bool) ($attributes['has_category_type_mismatch'] ?? false)) {
+            $issues[] = TransactionIssue::CategoryTypeMismatch;
+        }
+
+        if ((bool) ($attributes['has_subcategory_parent_mismatch'] ?? false)) {
+            $issues[] = TransactionIssue::SubcategoryParentMismatch;
+        }
+
+        return $issues;
+    }
+
     public function isFlagged(): bool
     {
         return $this->issues() !== [];

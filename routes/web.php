@@ -102,6 +102,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
 
     // Transactions. Not scoped to a year: a transaction belongs to whichever year
     // contains its date, and may be recorded before that year exists (TXQ-08).
+    Route::get('transactions', [TransactionController::class, 'index'])->name('transactions.index');
     Route::post('transactions', [TransactionController::class, 'store'])->name('transactions.store');
     Route::patch('transactions/{transaction}', [TransactionController::class, 'update'])->name('transactions.update');
     Route::delete('transactions/{transaction}', [TransactionController::class, 'destroy'])->name('transactions.destroy');

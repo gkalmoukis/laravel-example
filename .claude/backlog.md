@@ -57,7 +57,7 @@ Conventions for every item:
     `tests/Feature/Domain/CategoryControllerTest.php` for the new in-use clauses
   - Commit: `feat: transaction write actions`
 
-- [ ] **m3-transaction-list-and-filters** — The transaction list, filters and totals
+- [x] **m3-transaction-list-and-filters** — The transaction list, filters and totals
   - Refs: TXL-01, TXL-02, TXL-03, TXL-05, TXV-05, EDGE-01, EDGE-04
   - Build: `TransactionController@index` — newest first, 50 per page, `Transaction::withIssues()`,
     filter state from the query string, footer totals from a **grouped aggregate over the whole

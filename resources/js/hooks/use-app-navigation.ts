@@ -1,8 +1,9 @@
 import { usePage } from '@inertiajs/react';
-import { LayoutGrid, Settings, Wallet } from 'lucide-react';
+import { LayoutGrid, Receipt, Settings, Wallet } from 'lucide-react';
 import { dashboard } from '@/routes';
 import { show as showPlan } from '@/routes/plan';
 import { edit as preferences } from '@/routes/preferences';
+import { index as transactions } from '@/routes/transactions';
 import type { NavItem } from '@/types';
 
 /**
@@ -16,6 +17,7 @@ export function useAppNavigation(): NavItem[] {
 
     const items: NavItem[] = [
         { title: 'Dashboard', href: dashboard(), icon: LayoutGrid },
+        { title: 'Transactions', href: transactions(), icon: Receipt },
     ];
 
     if (selectedYear !== null) {

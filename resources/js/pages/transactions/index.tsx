@@ -1,0 +1,225 @@
+import { Head, Link } from '@inertiajs/react';
+import { Receipt } from 'lucide-react';
+import Heading from '@/components/heading';
+import TransactionFilters from '@/components/transactions/transaction-filters';
+import {
+    TransactionCard,
+    TransactionTableRow,
+} from '@/components/transactions/transaction-row';
+import { Button } from '@/components/ui/button';
+import {
+    Table,
+    TableBody,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
+import { usePreferences } from '@/hooks/use-preferences';
+import AppLayout from '@/layouts/app-layout';
+import { index as transactionsIndex } from '@/routes/transactions';
+import type { BreadcrumbItem } from '@/types';
+import type {
+    PaginationState,
+    TransactionFilters as Filters,
+    TransactionOptions,
+    TransactionRow,
+    TransactionTotals,
+} from '@/types/transactions';
+
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Transactions', href: transactionsIndex() },
+];
+
+function Totals({ totals }: { totals: TransactionTotals }) {
+    const { formatMoney } = usePreferences();
+
+    return (
+        <dl
+            className="grid grid-cols-3 gap-4 rounded-lg border p-4 text-sm"
+            data-testid="list-totals"
+        >
+            <div>
+                <dt className="text-muted-foreground">Income</dt>
+                <dd className="mt-1 font-medium tabular-nums">
+                    {formatMoney(totals.incomeCents)}
+                </dd>
+            </div>
+            <div>
+                <dt className="text-muted-foreground">Expenses</dt>
+                <dd className="mt-1 font-medium tabular-nums">
+                    {formatMoney(totals.expenseCents)}
+                </dd>
+            </div>
+            <div>
+                <dt className="text-muted-foreground">Net</dt>
+                <dd className="mt-1 font-medium tabular-nums">
+                    {formatMoney(totals.netCents)}
+                </dd>
+            </div>
+        </dl>
+    );
+}
+
+function Pager({
+    pagination,
+    filters,
+}: {
+    pagination: PaginationState;
+    filters: Filters;
+}) {
+    if (pagination.lastPage <= 1) {
+        return null;
+    }
+
+    const query = (page: number) => {
+        const params: Record<string, string> = { page: String(page) };
+
+        if (filters.q) {
+            params.q = filters.q;
+        }
+
+        if (filters.type) {
+            params.type = filters.type;
+        }
+
+        if (filters.categoryId) {
+            params.category_id = String(filters.categoryId);
+        }
+
+        if (filters.onlyIssues) {
+            params.issues = '1';
+        }
+
+        return transactionsIndex.url({ query: params });
+    };
+
+    const hasPrevious = pagination.currentPage > 1;
+    const hasNext = pagination.currentPage < pagination.lastPage;
+
+    return (
+        <nav
+            className="flex items-center justify-between gap-2"
+            aria-label="Pagination"
+        >
+            {hasPrevious ? (
+                <Button variant="outline" size="sm" asChild>
+                    <Link href={query(pagination.currentPage - 1)}>
+                        Previous
+                    </Link>
+                </Button>
+            ) : (
+                <Button variant="outline" size="sm" disabled>
+                    Previous
+                </Button>
+            )}
+
+            <span className="text-sm text-muted-foreground">
+                Page {pagination.currentPage} of {pagination.lastPage} ·{' '}
+                {pagination.total} transactions
+            </span>
+
+            {hasNext ? (
+                <Button variant="outline" size="sm" asChild>
+                    <Link href={query(pagination.currentPage + 1)}>Next</Link>
+                </Button>
+            ) : (
+                <Button variant="outline" size="sm" disabled>
+                    Next
+                </Button>
+            )}
+        </nav>
+    );
+}
+
+export default function TransactionsIndex({
+    transactions,
+    pagination,
+    totals,
+    filters,
+    options,
+}: {
+    transactions: TransactionRow[];
+    pagination: PaginationState;
+    totals: TransactionTotals;
+    filters: Filters;
+    options: TransactionOptions;
+}) {
+    const { today } = usePreferences();
+    const todayIso = today();
+
+    return (
+        <AppLayout breadcrumbs={breadcrumbs}>
+            <Head title="Transactions" />
+
+            <div className="space-y-6 px-4 py-6">
+                <Heading
+                    title="Transactions"
+                    description="Everything you have recorded, newest first."
+                />
+
+                <TransactionFilters filters={filters} options={options} />
+
+                {transactions.length === 0 ? (
+                    <div
+                        className="flex flex-col items-center gap-3 rounded-lg border border-dashed p-10 text-center"
+                        data-testid="empty-state"
+                    >
+                        <Receipt
+                            className="size-8 text-muted-foreground"
+                            aria-hidden="true"
+                        />
+                        <p className="text-muted-foreground">
+                            Nothing matches these filters yet.
+                        </p>
+                        <Button variant="secondary" asChild>
+                            <Link href={transactionsIndex()}>
+                                Clear the filters
+                            </Link>
+                        </Button>
+                    </div>
+                ) : (
+                    <>
+                        <div className="hidden md:block">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Date</TableHead>
+                                        <TableHead>Description</TableHead>
+                                        <TableHead>Category</TableHead>
+                                        <TableHead>Account</TableHead>
+                                        <TableHead className="text-right">
+                                            Amount
+                                        </TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {transactions.map((row) => (
+                                        <TransactionTableRow
+                                            key={row.id}
+                                            row={row}
+                                            today={todayIso}
+                                        />
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
+
+                        <div className="space-y-2 md:hidden">
+                            {transactions.map((row) => (
+                                <TransactionCard
+                                    key={row.id}
+                                    row={row}
+                                    today={todayIso}
+                                />
+                            ))}
+                        </div>
+
+                        <Totals totals={totals} />
+
+                        <Pager pagination={pagination} filters={filters} />
+                    </>
+                )}
+            </div>
+        </AppLayout>
+    );
+}
