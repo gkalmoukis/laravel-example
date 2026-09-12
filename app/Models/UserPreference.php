@@ -51,6 +51,27 @@ final class UserPreference extends Model
      */
     public const array SALARY_PAYMENTS = [12, 14];
 
+    public const string DEFAULT_CURRENCY = 'EUR';
+
+    public const string DEFAULT_FORMAT_LOCALE = 'el-GR';
+
+    public const string DEFAULT_TIMEZONE = 'Europe/Athens';
+
+    /**
+     * Mirrors the column defaults, so a row created without explicit values carries them
+     * in memory too rather than only after a reload.
+     *
+     * @var array<string, string|int>
+     */
+    protected $attributes = [
+        'currency' => self::DEFAULT_CURRENCY,
+        'format_locale' => self::DEFAULT_FORMAT_LOCALE,
+        'timezone' => self::DEFAULT_TIMEZONE,
+        'salary_payments' => 14,
+        'emergency_fund_months' => 6,
+        'budget_warning_threshold_percent' => 10,
+    ];
+
     /**
      * @return array<string, string>
      */
