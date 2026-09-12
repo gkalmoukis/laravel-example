@@ -60,3 +60,25 @@ losing month, a closing balance that goes below zero (which the forecast alerts 
 
 Those are returned as plain signed `int` cents, not `Money`. Do not clamp them at zero to
 fit them into `Money`; that would silently report a negative net worth as nothing.
+
+## Commit messages are a subject line only
+
+Earlier guidance asked for Conventional Commits with a scope, a body explaining why, and the
+requirement IDs touched — and the first milestones were written that way. The project owner
+asked for the opposite: one line, at most 60 characters, a plain type prefix without scope
+parentheses, no body, no IDs. `feat: quick add transactions`, not
+`feat(transactions): quick add [TXQ-01..TXQ-10]`.
+
+Requirement IDs have not gone anywhere; they stay in code PHPDoc, where they sit next to the
+logic they justify rather than in a log nobody greps. The same restraint applies to PR titles
+and descriptions.
+
+## The remaining work is driven by a backlog and a loop
+
+`.claude/backlog.md` holds every remaining v1 item in dependency order, and
+`.claude/commands/next-item.md` implements exactly one of them per invocation — read the PRD for
+its requirement IDs, build, test, commit, tick. The last item of each milestone carries
+`<!-- gate -->`, which is where the full `sail composer test` runs; other items run targeted
+Pest plus `test:lint` and `test:types`.
+
+All of it stays local on one branch. The loop never pushes and never opens a pull request.
