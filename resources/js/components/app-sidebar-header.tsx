@@ -1,5 +1,6 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import YearSwitcher from '@/components/finance/year-switcher';
+import { NewTransactionButton } from '@/components/transactions/new-transaction-button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import type { BreadcrumbItem as BreadcrumbItemType } from '@/types';
 
@@ -17,6 +18,7 @@ export function AppSidebarHeader({
 
             <div className="ml-auto flex items-center gap-2">
                 <YearSwitcher />
+                <NewTransactionButton />
             </div>
         </header>
     );

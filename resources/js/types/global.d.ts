@@ -1,5 +1,6 @@
 import type { Abilities, Auth } from '@/types/auth';
 import type { Preferences } from '@/types/preferences';
+import type { QuickAddOptions } from '@/types/quick-add';
 import type { FlashToast } from '@/types/ui';
 import type { FinancialYearOption } from '@/types/years';
 
@@ -15,6 +16,7 @@ declare module '@inertiajs/core' {
             preferences: Preferences | null;
             years: FinancialYearOption[];
             selectedYear: number | null;
+            quickAdd?: QuickAddOptions;
             sidebarOpen: boolean;
             [key: string]: unknown;
         };

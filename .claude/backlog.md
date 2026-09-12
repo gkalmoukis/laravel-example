@@ -70,7 +70,7 @@ Conventions for every item:
     totals over the filter, issue badges, future-date badge, empty state)
   - Commit: `feat: transaction list and filters`
 
-- [ ] **m3-quick-add-dialog** — Quick add on every page
+- [x] **m3-quick-add-dialog** — Quick add on every page
   - Refs: TXQ-01, TXQ-02, TXQ-03, TXQ-04, TXQ-06, TXQ-07, TXQ-08, TXQ-10, UX-11, UX-12, UX-14, ACC-02
   - Build: `sail bunx shadcn@latest add command popover` (cmdk, approved by PRD §3.3; popover is
     what the combobox needs) · `resources/js/components/transactions/quick-add-sheet.tsx`

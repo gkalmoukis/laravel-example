@@ -118,8 +118,14 @@ One line, nothing else:
   (a path change or visible text) before asserting anything else.
 - **Coverage is scoped to `app/` and must be exactly 100%.** Never land a class in `app/` ahead
   of the code that exercises it, and test every `match` arm.
-- **Browser tests flake under parallel load.** A `Timeout 5000ms exceeded` in a browser test
-  you did not touch is usually load, not a regression: re-run that test on its own before
-  treating it as one. A real failure reproduces in isolation.
+- **Browser test selectors go through `GuessLocator`**, which understands `@testid`, `#id`,
+  `[name=…]` and visible text — but not a bare `[data-attr="…"]`, which silently falls through
+  and can type into whatever is focused. Give anything a test needs to reach an `id` or a
+  `data-testid`. When a browser test fails, **read the screenshot under
+  `tests/Browser/Screenshots` before changing the selector** — it usually shows the real cause.
+- **A Radix Popover inside the quick-add Dialog needs `modal`**, or it portals outside the
+  dialog and the dialog's `pointer-events: none` leaves its options visible but unclickable.
+- The browser timeout is raised to 30s in `tests/Pest.php`. If browser tests start failing in
+  the full run but passing alone, that is parallel contention, not a regression.
 - **Three failed attempts** at getting a check green → mark the item `[!]` with the failure
   summarised in one line, commit only that backlog edit as `chore: block <id>`, and stop.

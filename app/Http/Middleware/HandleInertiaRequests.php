@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Actions\BuildQuickAddOptions;
 use App\Actions\ResolveSelectedYear;
 use App\Models\FinancialYear;
 use App\Models\Invitation;
@@ -11,6 +12,7 @@ use App\Models\User;
 use App\Models\UserPreference;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Inertia\Middleware;
 
 final class HandleInertiaRequests extends Middleware
@@ -22,7 +24,10 @@ final class HandleInertiaRequests extends Middleware
      */
     protected $rootView = 'app';
 
-    public function __construct(private readonly ResolveSelectedYear $resolveSelectedYear) {}
+    public function __construct(
+        private readonly ResolveSelectedYear $resolveSelectedYear,
+        private readonly BuildQuickAddOptions $quickAddOptions,
+    ) {}
 
     /**
      * @see https://inertiajs.com/asset-versioning
@@ -61,6 +66,12 @@ final class HandleInertiaRequests extends Middleware
                 ])
                 ->all(),
             'selectedYear' => $this->selectedYear($user, $years, $request),
+            // Quick add is reachable from every page (TXQ-01), but most page loads never
+            // open it. Sent only when the sheet asks for it by partial reload, so the
+            // category and account queries cost nothing until they are wanted.
+            'quickAdd' => Inertia::optional(fn (): ?array => $user instanceof User
+                ? $this->quickAddOptions->handle($user)
+                : null),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

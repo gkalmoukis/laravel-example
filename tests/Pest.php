@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Sleep;
 use Illuminate\Support\Str;
+use Pest\Browser\Playwright\Playwright;
 use Tests\TestCase;
 
 pest()->extend(TestCase::class)
@@ -25,6 +26,17 @@ pest()->extend(TestCase::class)
         $this->freezeTime();
     })
     ->in('Browser', 'Feature', 'Unit');
+
+/*
+ * Browser tests share one machine with the rest of the parallel suite, and each one drives
+ * a real Chromium. The plugin's five-second ceiling is comfortable for a browser on its own
+ * and far too tight for eight of them at once, which showed up as tests failing in the full
+ * run and passing in isolation. Raising the ceiling changes no assertion: a test that is
+ * genuinely wrong still fails, it just no longer fails for being queued behind seven others.
+ */
+pest()->beforeEach(function (): void {
+    Playwright::setTimeout(30_000);
+})->in('Browser');
 
 expect()->extend('toBeOne', fn () => $this->toBe(1));
 
