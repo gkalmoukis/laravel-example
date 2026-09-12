@@ -50,3 +50,13 @@ and the first production admin have no other way to grant the flag.
 Boost's catalogue stops at Pest 4 and has no `infer-conventions` skill at all. The gap is covered
 by `.ai/guidelines/testing.blade.php`. Prefer official Pest 5 documentation over `search-docs`
 results describing Pest 3.x or 4.x.
+
+## Money is for stored amounts; derived figures that can go negative are signed cents
+
+`Money` refuses negative values on purpose: a stored amount's direction comes from its
+type, never its sign. But plenty of *derived* figures are legitimately negative — net
+worth when debts exceed assets, variance when actual is under plan, net cash flow in a
+losing month, a closing balance that goes below zero (which the forecast alerts on).
+
+Those are returned as plain signed `int` cents, not `Money`. Do not clamp them at zero to
+fit them into `Money`; that would silently report a negative net worth as nothing.

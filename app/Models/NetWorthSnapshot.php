@@ -30,7 +30,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read NetWorthItem $netWorthItem
  * @property-read FinancialYear $financialYear
  */
+// The two keys identify which holding, in which year, this value belongs to. They are
+// structural rather than user input: the action that writes snapshots checks the holding
+// belongs to the user before touching anything.
 #[Fillable([
+    'net_worth_item_id',
+    'financial_year_id',
     'month',
     'value_cents',
 ])]
