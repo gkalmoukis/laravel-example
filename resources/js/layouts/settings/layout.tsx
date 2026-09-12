@@ -5,9 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { cn, toUrl } from '@/lib/utils';
+import { index as accountsIndex } from '@/routes/accounts';
 import { edit as editAppearance } from '@/routes/appearance';
+import { index as categoriesIndex } from '@/routes/categories';
 import { index as invitationsIndex } from '@/routes/invitations';
 import { edit as editPassword } from '@/routes/password';
+import { edit as editPreferences } from '@/routes/preferences';
 import { show as showTwoFactor } from '@/routes/two-factor';
 import { edit } from '@/routes/user-profile';
 import type { NavItem } from '@/types';
@@ -31,6 +34,21 @@ const sidebarNavItems: NavItem[] = [
     {
         title: 'Appearance',
         href: editAppearance(),
+        icon: null,
+    },
+    {
+        title: 'Preferences',
+        href: editPreferences(),
+        icon: null,
+    },
+    {
+        title: 'Categories',
+        href: categoriesIndex(),
+        icon: null,
+    },
+    {
+        title: 'Accounts',
+        href: accountsIndex(),
         icon: null,
     },
 ];
