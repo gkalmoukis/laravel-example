@@ -1,0 +1,31 @@
+/**
+ * Dates arrive as plain calendar dates (YYYY-MM-DD) and are formatted with the viewer's
+ * locale. Parsing is done from the parts rather than with `new Date(iso)`, which would
+ * read the string as UTC midnight and can shift the day backwards west of Greenwich.
+ */
+export function formatDate(isoDate: string, locale: string): string {
+    const [year, month, day] = isoDate.slice(0, 10).split('-').map(Number);
+
+    if (!year || !month || !day) {
+        return isoDate;
+    }
+
+    return new Intl.DateTimeFormat(locale, {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+    }).format(new Date(year, month - 1, day));
+}
+
+/**
+ * Today in the user's timezone, as a calendar date. "Today" has to follow the user, not
+ * the server, or a late-evening transaction lands on the wrong day.
+ */
+export function todayIn(timezone: string): string {
+    return new Intl.DateTimeFormat('en-CA', {
+        timeZone: timezone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+    }).format(new Date());
+}
