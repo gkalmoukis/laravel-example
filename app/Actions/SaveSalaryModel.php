@@ -11,7 +11,6 @@ use App\Enums\PlanItemSource;
 use App\Enums\TransactionType;
 use App\Models\Category;
 use App\Models\FinancialYear;
-use App\Models\PlanItem;
 use App\Models\SalaryModel;
 use App\ValueObjects\Money;
 use Illuminate\Support\Facades\DB;
@@ -25,7 +24,10 @@ use Illuminate\Support\Facades\DB;
  */
 final readonly class SaveSalaryModel
 {
-    public function __construct(private BuildPlanSchedule $schedule) {}
+    public function __construct(
+        private BuildPlanSchedule $schedule,
+        private SyncPlanItemAmounts $amounts,
+    ) {}
 
     /**
      * @param  array<string, mixed>  $payments
@@ -153,28 +155,7 @@ final readonly class SaveSalaryModel
             'sort_order' => $sortOrder,
         ]);
 
-        $this->writeAmounts($planItem, $this->schedule->handle($frequency, $amount, $startMonth));
-    }
-
-    /**
-     * @param  array<int, Money>  $schedule
-     */
-    private function writeAmounts(PlanItem $planItem, array $schedule): void
-    {
-        $rows = [];
-
-        foreach ($schedule as $month => $amount) {
-            $rows[] = [
-                'plan_item_id' => $planItem->id,
-                'month' => $month,
-                'amount_cents' => $amount->cents,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
-        }
-
-        // One insert rather than twelve, since every item writes a full year at once.
-        PlanItem::query()->getConnection()->table('plan_item_amounts')->insert($rows);
+        $this->amounts->handle($planItem, $this->schedule->handle($frequency, $amount, $startMonth));
     }
 
     /**
