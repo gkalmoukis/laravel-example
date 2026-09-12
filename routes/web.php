@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\BudgetCellController;
 use App\Http\Controllers\CategoryActivationController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\FinancialYearController;
@@ -11,6 +12,8 @@ use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\InvitationResendController;
 use App\Http\Controllers\OpeningPositionController;
 use App\Http\Controllers\PlanBaselineController;
+use App\Http\Controllers\PlanController;
+use App\Http\Controllers\PlanItemController;
 use App\Http\Controllers\PreferencesController;
 use App\Http\Controllers\SalaryModelController;
 use App\Http\Controllers\SessionController;
@@ -76,6 +79,11 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::patch('years/{year}/salary', [SalaryModelController::class, 'update'])->name('salary-model.update');
     Route::delete('years/{year}/salary', [SalaryModelController::class, 'destroy'])->name('salary-model.destroy');
     Route::post('years/{year}/baseline', [PlanBaselineController::class, 'store'])->name('plan-baseline.store');
+    Route::get('years/{year}/plan/{tab}', [PlanController::class, 'show'])->name('plan.show');
+    Route::post('years/{year}/plan-items', [PlanItemController::class, 'store'])->name('plan-items.store');
+    Route::patch('years/{year}/plan-items/{planItem}', [PlanItemController::class, 'update'])->name('plan-items.update');
+    Route::delete('years/{year}/plan-items/{planItem}', [PlanItemController::class, 'destroy'])->name('plan-items.destroy');
+    Route::patch('years/{year}/budget-cell', [BudgetCellController::class, 'update'])->name('budget-cell.update');
 
     // Preferences...
     Route::get('settings/preferences', [PreferencesController::class, 'edit'])->name('preferences.edit');
