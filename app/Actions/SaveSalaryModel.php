@@ -30,7 +30,7 @@ final readonly class SaveSalaryModel
     ) {}
 
     /**
-     * @param  array<string, mixed>  $payments
+     * @param  array<array-key, mixed>  $payments
      */
     public function handle(FinancialYear $financialYear, Money $baseAmount, array $payments, string $name = 'Salary'): SalaryModel
     {

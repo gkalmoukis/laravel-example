@@ -42,8 +42,9 @@ arch('models do not reach into the request lifecycle')
     ->not->toUse([Request::class, Auth::class]);
 
 it('exposes only resource methods on controllers', function (): void {
-    // The seven resource methods (ARCH-02), plus Laravel's own HasMiddleware hook.
-    $allowed = ['index', 'create', 'store', 'show', 'edit', 'update', 'destroy', 'middleware'];
+    // The seven resource methods (ARCH-02), plus Laravel's own HasMiddleware hook and
+    // the constructor, which is how dependencies arrive rather than an exposed action.
+    $allowed = ['index', 'create', 'store', 'show', 'edit', 'update', 'destroy', 'middleware', '__construct'];
 
     $controllers = collect(File::allFiles(app_path('Http/Controllers')))
         ->map(fn (SplFileInfo $file): string => 'App\\Http\\Controllers\\'.$file->getFilenameWithoutExtension());
