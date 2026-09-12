@@ -2,10 +2,15 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\AccountController;
+use App\Http\Controllers\CategoryActivationController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\InvitationAcceptanceController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\InvitationResendController;
+use App\Http\Controllers\PreferencesController;
 use App\Http\Controllers\SessionController;
+use App\Http\Controllers\SubcategoryParentController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserEmailResetNotificationController;
 use App\Http\Controllers\UserEmailVerificationController;
@@ -44,6 +49,24 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     // User Two-Factor Authentication...
     Route::get('settings/two-factor', [UserTwoFactorAuthenticationController::class, 'show'])
         ->name('two-factor.show');
+
+    // Accounts...
+    Route::get('settings/accounts', [AccountController::class, 'index'])->name('accounts.index');
+    Route::post('settings/accounts', [AccountController::class, 'store'])->name('accounts.store');
+    Route::patch('settings/accounts/{account}', [AccountController::class, 'update'])->name('accounts.update');
+    Route::delete('settings/accounts/{account}', [AccountController::class, 'destroy'])->name('accounts.destroy');
+
+    // Preferences...
+    Route::get('settings/preferences', [PreferencesController::class, 'edit'])->name('preferences.edit');
+    Route::patch('settings/preferences', [PreferencesController::class, 'update'])->name('preferences.update');
+
+    // Categories...
+    Route::get('settings/categories', [CategoryController::class, 'index'])->name('categories.index');
+    Route::post('settings/categories', [CategoryController::class, 'store'])->name('categories.store');
+    Route::patch('settings/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
+    Route::delete('settings/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+    Route::post('settings/categories/{category}/activation', [CategoryActivationController::class, 'store'])->name('category-activation.store');
+    Route::patch('settings/categories/{category}/parent', [SubcategoryParentController::class, 'update'])->name('subcategory-parent.update');
 
     // Invitations (admins only, enforced by InvitationPolicy)...
     Route::get('settings/invitations', [InvitationController::class, 'index'])->name('invitations.index');
