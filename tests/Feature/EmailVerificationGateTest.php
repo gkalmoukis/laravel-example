@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Models\FinancialYear;
 use App\Models\User;
 
 it('keeps unverified users out of every application route', function (string $method, string $route): void {
@@ -20,6 +21,8 @@ it('keeps unverified users out of every application route', function (string $me
 
 it('lets verified users through', function (): void {
     $user = User::factory()->create();
+
+    FinancialYear::factory()->for($user)->create();
 
     $this->actingAs($user)->get(route('dashboard'))->assertOk();
 });

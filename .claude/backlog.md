@@ -19,7 +19,7 @@ Conventions for every item:
 
 ## M3 — Transactions (finish)
 
-- [ ] **m3-app-shell-nav** — Navigation, the year switcher and the selected year
+- [x] **m3-app-shell-nav** — Navigation, the year switcher and the selected year
   - Refs: YEAR-07, YEAR-08, EDGE-02, UX-05, §9 navigation
   - Build: `app/Http/Middleware/HandleInertiaRequests.php` — share `years` (the user's financial
     years, newest first) and `selectedYear`, resolved route param → `?year=` → session →
@@ -123,7 +123,7 @@ Conventions for every item:
     `app/Actions/CalculateMonthlyFigures.php` — one grouped aggregate per series over
     `Transaction::valid()` and `plan_item_amounts`, subcategories rolling up into parents,
     **`today` injected as a `CarbonImmutable` parameter, never `now()`** ·
-    `App\Models\UserPreference::today(): CarbonImmutable` as the resolver ·
+    `App\Models\User::today(): CarbonImmutable` as the resolver ·
     extend `tests/Unit/ArchTest.php` — `App\Data` is final and readonly, and no
     `float`/`(float)`/`round(` in `app/Actions` or `app/ValueObjects` except
     `Money::multiplyByRatio`

@@ -1,8 +1,8 @@
 import { Head } from '@inertiajs/react';
 import type { PropsWithChildren } from 'react';
+import SetupBanner from '@/components/finance/setup-banner';
 import Heading from '@/components/heading';
 import YearNav from '@/components/planning/year-nav';
-import { Badge } from '@/components/ui/badge';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
@@ -53,19 +53,8 @@ export default function PlanLayout({
                 />
 
                 {!year.isSetupComplete && (
-                    <div className="mt-4 flex flex-wrap items-center gap-2 rounded-md border border-dashed p-4 text-sm">
-                        <Badge variant="outline">Setup unfinished</Badge>
-
-                        <span className="text-muted-foreground">
-                            You never finished setting {year.year} up.
-                        </span>
-
-                        <a
-                            className="underline underline-offset-4"
-                            href={`/years/${year.year}/setup/opening`}
-                        >
-                            Finish setting up {year.year}
-                        </a>
+                    <div className="mt-4">
+                        <SetupBanner year={year.year} />
                     </div>
                 )}
 

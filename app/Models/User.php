@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -112,6 +113,18 @@ final class User extends Authenticatable implements MustVerifyEmail
     public function goals(): HasMany
     {
         return $this->hasMany(Goal::class);
+    }
+
+    /**
+     * Today, where the user lives.
+     *
+     * A transaction dated "today" at 01:00 in Athens belongs to a day the server, running
+     * on UTC, still calls yesterday, so every calendar decision reads this rather than the
+     * server's clock (§6.1).
+     */
+    public function today(): CarbonImmutable
+    {
+        return CarbonImmutable::now($this->preference->timezone ?? UserPreference::DEFAULT_TIMEZONE);
     }
 
     /**
