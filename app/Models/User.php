@@ -37,6 +37,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property-read Collection<int, Category> $categories
  * @property-read Collection<int, Goal> $goals
  * @property-read Collection<int, FinancialYear> $financialYears
+ * @property-read Collection<int, Transaction> $transactions
  * @property-read Collection<int, NetWorthItem> $netWorthItems
  */
 #[Hidden([
@@ -133,6 +134,14 @@ final class User extends Authenticatable implements MustVerifyEmail
     public function financialYears(): HasMany
     {
         return $this->hasMany(FinancialYear::class);
+    }
+
+    /**
+     * @return HasMany<Transaction, $this>
+     */
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class);
     }
 
     /**

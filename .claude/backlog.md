@@ -33,7 +33,7 @@ Conventions for every item:
     new `tests/Browser/NavigationTest.php` at 1280px and 375px
   - Commit: `feat: app navigation and year switcher`
 
-- [ ] **m3-transaction-write-actions** — Recording, editing and deleting a transaction
+- [x] **m3-transaction-write-actions** — Recording, editing and deleting a transaction
   - Refs: TXV-01, TXV-02, TXV-03, TXV-05, TXF-03, MET-01, CAT-03, CAT-04, USR-02, USR-03
   - Build: `app/Actions/{CreateTransaction,UpdateTransaction,DeleteTransaction,ReopenMonth}.php` ·
     `app/Policies/TransactionPolicy.php` (other users' records 404 via
@@ -45,7 +45,12 @@ Conventions for every item:
     hold; add the plan-item and transaction clauses · routes
     `transactions.store/update/destroy`
   - Notes: TXV-02 — a write into a Complete month is rejected unless `reopen_month` is set, in
-    which case reopening and the write happen in one `DB::transaction()`.
+    which case reopening and the write happen in one `DB::transaction()`. The refusal carries
+    `month_complete` (the month number) beside the `occurred_on` message, which is what lets the
+    form offer "Reopen {month} and save".
+    CAT-03/CAT-04 were already satisfied — `type` is absent from `UpdateCategoryRequest` so it can
+    never change, and `destroy` is deactivation, so categories are never deleted. What this item
+    added was `isInUse()`'s plan-item and transaction clauses, which its own docblock deferred here.
   - Tests: `tests/Feature/Transactions/TransactionControllerTest.php` ·
     `tests/Feature/Transactions/CompleteMonthGuardTest.php` ·
     `tests/Feature/Isolation/TransactionIsolationTest.php` · extend

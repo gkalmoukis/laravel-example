@@ -7,6 +7,7 @@ namespace App\Models;
 use Carbon\CarbonInterface;
 use Database\Factories\MonthClosureFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -46,7 +47,7 @@ final class MonthClosure extends Model
         return self::query()
             ->whereNotNull('completed_at')
             ->where('month', $month)
-            ->whereHas('financialYear', fn ($query) => $query
+            ->whereHas('financialYear', fn (Builder $query): Builder => $query
                 ->where('user_id', $userId)
                 ->where('year', $year))
             ->exists();

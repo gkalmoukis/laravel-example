@@ -125,12 +125,23 @@ final class Category extends Model
     /**
      * Whether anything depends on this category.
      *
-     * Nothing references categories yet. Plan items arrive in milestone 2, transactions
-     * in milestone 3 and subscriptions in milestone 6; each adds its own clause here, and
-     * that is what makes the type immutable and deletion impossible (CAT-03, CAT-04).
+     * Subcategories, plan items and transactions all count, whether the category is their
+     * main one or their subcategory. Subscriptions add their clause in milestone 6.
+     *
+     * This is what keeps history readable: a category something already refers to may be
+     * deactivated and renamed, but never removed or repointed (CAT-03, CAT-04).
      */
     public function isInUse(): bool
     {
-        return $this->children()->exists();
+        if ($this->children()->exists()) {
+            return true;
+        }
+
+        $referencesThis = fn (Builder $query): Builder => $query
+            ->where('category_id', $this->id)
+            ->orWhere('subcategory_id', $this->id);
+
+        return PlanItem::query()->where($referencesThis)->exists()
+            || Transaction::query()->where($referencesThis)->exists();
     }
 }

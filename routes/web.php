@@ -18,6 +18,7 @@ use App\Http\Controllers\PreferencesController;
 use App\Http\Controllers\SalaryModelController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\SubcategoryParentController;
+use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserEmailResetNotificationController;
 use App\Http\Controllers\UserEmailVerificationController;
@@ -98,6 +99,12 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::patch('years/{year}/plan-items/{planItem}', [PlanItemController::class, 'update'])->name('plan-items.update');
     Route::delete('years/{year}/plan-items/{planItem}', [PlanItemController::class, 'destroy'])->name('plan-items.destroy');
     Route::patch('years/{year}/budget-cell', [BudgetCellController::class, 'update'])->name('budget-cell.update');
+
+    // Transactions. Not scoped to a year: a transaction belongs to whichever year
+    // contains its date, and may be recorded before that year exists (TXQ-08).
+    Route::post('transactions', [TransactionController::class, 'store'])->name('transactions.store');
+    Route::patch('transactions/{transaction}', [TransactionController::class, 'update'])->name('transactions.update');
+    Route::delete('transactions/{transaction}', [TransactionController::class, 'destroy'])->name('transactions.destroy');
 
     // Preferences...
     Route::get('settings/preferences', [PreferencesController::class, 'edit'])->name('preferences.edit');
