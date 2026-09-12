@@ -2,13 +2,19 @@
 
 declare(strict_types=1);
 
+use App\Models\SalaryModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 
 arch()->preset()->php();
 arch()->preset()->strict();
-arch()->preset()->laravel();
+// SalaryModel is exempt from the no-"Model"-suffix rule. The suffix is not redundant
+// there: a "salary model" is the domain's own term for the arrangement of payments
+// across the year, and the table is named for it too.
+arch()->preset()->laravel()->ignoring([
+    SalaryModel::class,
+]);
 arch()->preset()->security()->ignoring([
     'assert',
 ]);

@@ -1,12 +1,14 @@
 version: 2
+
+# The npm ecosystem is deliberately absent. Dependabot cannot update bun.lock, so its
+# JavaScript pull requests edit package.json alone and leave the lockfile behind. That
+# breaks `bun install --frozen-lockfile`, which is how CI and Forge install. Update
+# JavaScript dependencies by hand instead:
+#
+#   sail bunx npm-check-updates -u && sail bun install
+#
 updates:
   - package-ecosystem: composer
-    directory: /
-    schedule:
-      interval: weekly
-    open-pull-requests-limit: 5
-
-  - package-ecosystem: npm
     directory: /
     schedule:
       interval: weekly
