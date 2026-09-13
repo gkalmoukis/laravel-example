@@ -326,7 +326,7 @@ Conventions for every item:
     `tests/Feature/Isolation/NetWorthItemIsolationTest.php` · browser smoke at both widths
   - Commit: `feat: net worth screen`
 
-- [ ] **m5-golden-dataset-part-2** — The fixture year, forecast half <!-- gate -->
+- [x] **m5-golden-dataset-part-2** — The fixture year, forecast half <!-- gate -->
   - Refs: TST-02 (part)
   - Build: extend `tests/Fixtures/GoldenYear.php`
   - Tests: `tests/Feature/GoldenDataset/ForecastGoalsAndNetWorthTest.php`

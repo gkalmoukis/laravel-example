@@ -12,6 +12,7 @@ use App\Models\Goal;
 use App\Models\NetWorthSnapshot;
 use App\Models\PlanItemAmount;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Where the emergency fund stands, and when it will be there (§7.6).
@@ -117,7 +118,7 @@ final readonly class CalculateEmergencyFund
         $snapshots = NetWorthSnapshot::query()
             ->where('financial_year_id', $financialYear->id)
             ->where('month', '<=', $today->year < $financialYear->year ? NetWorthSnapshot::OPENING_MONTH : $upToMonth)
-            ->whereHas('netWorthItem', fn ($query) => $query
+            ->whereHas('netWorthItem', fn (Builder $query): Builder => $query
                 ->where('user_id', $financialYear->user_id)
                 ->where('is_active', true)
                 ->where('kind', NetWorthItemKind::EmergencyFund))

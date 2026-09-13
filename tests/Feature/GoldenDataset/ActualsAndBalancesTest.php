@@ -158,7 +158,8 @@ it('runs the balance through the whole year', function (): void {
 
     $flow = resolve(CalculateCashFlow::class)->handle($year, goldenToday());
 
-    expect($flow->openingBalanceCents)->toBe(GoldenYear::OPENING_BALANCE);
+    // The opening balance is cash plus the emergency fund, which is liquid (§7.2).
+    expect($flow->openingBalanceCents)->toBe(GoldenYear::OPENING_LIQUID);
 
     foreach (GoldenYear::PLANNED_CLOSING as $month => $cents) {
         expect($flow->month($month)->planned->closingCents)->toBe($cents);
@@ -204,13 +205,13 @@ it('reports what is available on the day', function (): void {
     // Everything that has actually happened by 15 March. The March salary is paid on the
     // 25th and the holiday on the 20th, so neither is money the user has yet — which is
     // the whole point of a figure called "available now".
-    $expected = GoldenYear::OPENING_BALANCE
+    $expected = GoldenYear::OPENING_LIQUID
         + GoldenYear::ACTUAL_INCOME[1] + GoldenYear::ACTUAL_INCOME[2]
         - array_sum(GoldenYear::ACTUAL_HOUSING)
         - array_sum(GoldenYear::ACTUAL_FOOD);
 
     expect($flow->currentAvailableCents)->toBe($expected)
-        ->and($expected)->toBe(316_000);
+        ->and($expected)->toBe(GoldenYear::CURRENT_AVAILABLE);
 });
 
 it('summarises the year', function (): void {

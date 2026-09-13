@@ -138,3 +138,16 @@ application.
 `useFlashToast` now honours both: a `toast` object where the tone matters, and a plain
 `status` string, which is always a success. Prefer `->with('status', …)`; it reads better at
 the call site and is what the rest of the framework expects.
+
+## The emergency fund is part of the liquid balance
+
+Adding an opening emergency fund to the golden fixture changed every balance figure in
+the year — including ones a previous milestone had already pinned. That is correct, not a
+regression: §7.2 defines the opening balance as Cash **plus** EmergencyFund, and Q-03
+settled that the fund is tracked as a separate holding precisely so the forecast can tell
+when it would be eaten into.
+
+So the fund counts twice over, in two different senses: once in net worth as a holding,
+and once in the liquid balance the cash flow runs from. `GoldenYear::OPENING_BALANCE` is
+the cash alone; `OPENING_LIQUID` is what the balance series actually starts at. Anything
+comparing against a balance wants the latter.

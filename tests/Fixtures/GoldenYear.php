@@ -9,6 +9,7 @@ use App\Actions\CreatePlanItem;
 use App\Actions\ProvisionUserDefaults;
 use App\Enums\Allocation;
 use App\Enums\Frequency;
+use App\Enums\GoalType;
 use App\Enums\NetWorthItemKind;
 use App\Enums\PlanItemKind;
 use App\Enums\TransactionType;
@@ -44,7 +45,14 @@ final readonly class GoldenYear
 {
     public const int YEAR = 2027;
 
+    /** Cash at the start of the year; the emergency fund is counted separately. */
     public const int OPENING_BALANCE = 250_000;
+
+    /**
+     * The money available at the start: cash plus the emergency fund, which is part of
+     * the liquid balance so the forecast can tell when it would be eaten into (§7.2).
+     */
+    public const int OPENING_LIQUID = 400_000;
 
     public const int SALARY_PLAN = 200_000;
 
@@ -94,16 +102,63 @@ final readonly class GoldenYear
     /**
      * @var array<int, int>
      */
-    public const array PLANNED_CLOSING = [1 => 330_000, 2 => 410_000, 3 => 550_000];
+    public const array PLANNED_CLOSING = [1 => 480_000, 2 => 560_000, 3 => 700_000];
 
-    public const int PLANNED_YEAR_END = 1_330_000;
+    public const int PLANNED_YEAR_END = 1_480_000;
 
     /**
      * @var array<int, int>
      */
-    public const array ACTUAL_CLOSING = [1 => 342_000, 2 => 427_000, 3 => 396_000];
+    public const array ACTUAL_CLOSING = [1 => 492_000, 2 => 577_000, 3 => 546_000];
 
-    public const int FORECAST_YEAR_END = 1_236_000;
+    public const int FORECAST_YEAR_END = 1_386_000;
+
+    /** Everything that has actually happened by 15 March (§7.2). */
+    public const int CURRENT_AVAILABLE = 466_000;
+
+    /*
+     * The M5 half: what the user owns and owes, and what they are saving towards.
+     *
+     * Only Housing and Food are marked essential by provisioning, so the emergency fund
+     * target is built from those two and not from the holiday.
+     */
+    public const int ESSENTIAL_MONTHLY = 110_000;
+
+    public const int EMERGENCY_TARGET = 660_000;
+
+    public const int EMERGENCY_CONTRIBUTION = 20_000;
+
+    /** Deliberately short of the target, so the projection is measured, not the cap. */
+    public const int EMERGENCY_PROJECTED_YEAR_END = 390_000;
+
+    public const int EMERGENCY_MONTHS_TO_TARGET = 23;
+
+    public const int OPENING_FUND = 150_000;
+
+    public const int OPENING_INVESTMENT = 800_000;
+
+    public const int OPENING_DEBT = 1_150_000;
+
+    /** 250.000 + 150.000 + 800.000 − 1.150.000, non-zero so a sign error cannot hide. */
+    public const int OPENING_NET_WORTH = 50_000;
+
+    public const int MARCH_CASH = 396_000;
+
+    public const int MARCH_FUND = 210_000;
+
+    public const int MARCH_INVESTMENT = 845_000;
+
+    public const int MARCH_DEBT = 1_140_000;
+
+    public const int MARCH_NET_WORTH = 311_000;
+
+    public const int NET_WORTH_CHANGE = 261_000;
+
+    public const int PURCHASE_TARGET = 500_000;
+
+    public const int PURCHASE_SAVED = 200_000;
+
+    public const int PURCHASE_CONTRIBUTION = 100_000;
 
     /**
      * Builds the year. Returns the user and the financial year, both fully populated.
@@ -122,6 +177,8 @@ final readonly class GoldenYear
         self::plan($user, $year);
         self::transactions($user);
         self::completeMonths($year);
+        self::holdings($user, $year);
+        self::goals($user, $year);
 
         return [$user, $year];
     }
@@ -129,6 +186,68 @@ final readonly class GoldenYear
     public static function category(User $user, string $name): Category
     {
         return $user->categories()->where('name', $name)->whereNull('parent_id')->firstOrFail();
+    }
+
+    /**
+     * What the user owns and owes, valued at the start of the year and again in March.
+     *
+     * February is deliberately left out, so a month with nothing recorded has to carry
+     * the opening figures forward (§7.8, NW-04).
+     */
+    private static function holdings(User $user, FinancialYear $year): void
+    {
+        $values = [
+            [NetWorthItemKind::Cash, self::OPENING_BALANCE, self::MARCH_CASH],
+            [NetWorthItemKind::EmergencyFund, self::OPENING_FUND, self::MARCH_FUND],
+            [NetWorthItemKind::Investment, self::OPENING_INVESTMENT, self::MARCH_INVESTMENT],
+            [NetWorthItemKind::Debt, self::OPENING_DEBT, self::MARCH_DEBT],
+        ];
+
+        foreach ($values as [$kind, $opening, $march]) {
+            $byMonth = [NetWorthSnapshot::OPENING_MONTH => $opening, 3 => $march];
+
+            $item = $user->netWorthItems()->where('kind', $kind)->firstOrFail();
+
+            foreach ($byMonth as $month => $cents) {
+                NetWorthSnapshot::query()->updateOrCreate(
+                    [
+                        'net_worth_item_id' => $item->id,
+                        'financial_year_id' => $year->id,
+                        'month' => $month,
+                    ],
+                    ['value_cents' => Money::fromCents($cents)],
+                );
+            }
+        }
+    }
+
+    /**
+     * One of each kind that behaves differently: a fund whose figure comes from what is
+     * set aside, a balance that comes from the forecast, and a purchase the user keeps up
+     * to date themselves (§7.7).
+     */
+    private static function goals(User $user, FinancialYear $year): void
+    {
+        $user->goals()
+            ->where('type', GoalType::EmergencyFund)
+            ->firstOrFail()
+            ->update(['monthly_contribution_cents' => Money::fromCents(self::EMERGENCY_CONTRIBUTION)]);
+
+        $user->goals()->create([
+            'type' => GoalType::YearEndBalance,
+            'name' => 'Money left at the end of 2027',
+            'financial_year_id' => $year->id,
+            'target_amount_cents' => Money::fromCents(1_000_000),
+            'current_amount_cents' => Money::zero(),
+        ]);
+
+        $user->goals()->create([
+            'type' => GoalType::Purchase,
+            'name' => 'New kitchen',
+            'target_amount_cents' => Money::fromCents(self::PURCHASE_TARGET),
+            'current_amount_cents' => Money::fromCents(self::PURCHASE_SAVED),
+            'monthly_contribution_cents' => Money::fromCents(self::PURCHASE_CONTRIBUTION),
+        ]);
     }
 
     private static function openingPosition(User $user, FinancialYear $year): void
