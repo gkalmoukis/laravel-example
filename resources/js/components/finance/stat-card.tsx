@@ -1,9 +1,13 @@
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
-type Tone = 'neutral' | 'plan' | 'actual' | 'forecast' | 'good' | 'bad';
+export type Tone = 'neutral' | 'plan' | 'actual' | 'forecast' | 'good' | 'bad';
 
-const toneClass: Record<Tone, string> = {
+/**
+ * What a tone looks like, in one place, so the dashboard's linked cards and the figure
+ * grids on every report cannot drift apart (§5.2).
+ */
+export const toneClass: Record<Tone, string> = {
     neutral: '',
     plan: 'text-series-plan',
     actual: 'text-series-actual',

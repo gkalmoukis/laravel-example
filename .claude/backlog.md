@@ -282,7 +282,7 @@ Conventions for every item:
     with no console errors at both widths
   - Commit: `feat: charts on comparison and forecast`
 
-- [ ] **dashboard-simplify** — Six cards, two charts, then drill down <!-- gate -->
+- [x] **dashboard-simplify** — Six cards, two charts, then drill down <!-- gate -->
   - Refs: DASH-01, DASH-02, DASH-03, DASH-04, UX-05, UX-09
   - Build: `pages/dashboard.tsx` — six cards above the fold and no more (UX-09), the secondary
     pill row folded into them, and of the five deferred charts only the two that answer "how is

@@ -1,6 +1,7 @@
 import { type InertiaLinkProps, Link } from '@inertiajs/react';
 import { ArrowRight } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { type Tone, toneClass } from '@/components/finance/stat-card';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
@@ -22,12 +23,15 @@ export default function MetricCard({
     label: string;
     value: string;
     href: NonNullable<InertiaLinkProps['href']>;
-    tone?: 'neutral' | 'good' | 'bad';
+    tone?: Tone;
     testId: string;
     children?: ReactNode;
 }) {
     return (
-        <Card className="relative transition-colors hover:border-foreground/20">
+        <Card
+            className="relative transition-colors hover:border-foreground/20"
+            data-testid="metric-card"
+        >
             <CardContent className="space-y-2">
                 <h2 className="flex items-center justify-between gap-2 text-sm font-medium text-muted-foreground">
                     <Link
@@ -47,8 +51,7 @@ export default function MetricCard({
                 <p
                     className={cn(
                         'font-display text-3xl font-normal tabular-nums',
-                        tone === 'good' && 'text-status-ok',
-                        tone === 'bad' && 'text-status-over',
+                        toneClass[tone],
                     )}
                     data-testid={`${testId}-value`}
                 >

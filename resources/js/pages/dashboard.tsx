@@ -1,4 +1,5 @@
-import { Deferred, Head, type InertiaLinkProps, Link } from '@inertiajs/react';
+import { Deferred, Head } from '@inertiajs/react';
+import { useState } from 'react';
 import { ChartSkeleton } from '@/components/dashboard/chart-card';
 import ClosingBalanceChart, {
     type ClosingBalancePoint,
@@ -22,6 +23,12 @@ import ProgressBar from '@/components/finance/progress-bar';
 import { SelectedYearSetupBanner } from '@/components/finance/setup-banner';
 import Heading from '@/components/heading';
 import PageShell from '@/components/page-shell';
+import { Button } from '@/components/ui/button';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { usePreferences } from '@/hooks/use-preferences';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
@@ -29,9 +36,6 @@ import { index as cashFlow } from '@/routes/cash-flow';
 import { index as comparison } from '@/routes/comparison';
 import { show as emergencyFund } from '@/routes/emergency-fund';
 import { index as forecast } from '@/routes/forecast';
-import { index as months } from '@/routes/months';
-import { index as netWorth } from '@/routes/net-worth';
-import { index as transactions } from '@/routes/transactions';
 import type { BreadcrumbItem } from '@/types';
 
 type Trio = {
@@ -101,7 +105,6 @@ export default function Dashboard({
     emergencyFund: fund,
     netWorth: worth,
     completedMonths,
-    transactionIssues,
     alerts,
     closingBalance,
     expensesByCategory,
@@ -110,6 +113,8 @@ export default function Dashboard({
     goalsProgress,
 }: Props) {
     const { formatMoney, formatLocale } = usePreferences();
+
+    const [moreCharts, setMoreCharts] = useState(false);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -169,6 +174,12 @@ export default function Dashboard({
                                     value: yearEnd.hasBaseline
                                         ? formatMoney(yearEnd.deviationCents)
                                         : 'No baseline yet',
+                                },
+                                // How much of the forecast is settled rather than
+                                // assumed, which is what makes it trustworthy (DASH-03).
+                                {
+                                    label: 'Months finished',
+                                    value: `${completedMonths} / 12`,
                                 },
                             ]}
                         />
@@ -266,44 +277,23 @@ export default function Dashboard({
                                         : (fund.monthsToTarget?.toString() ??
                                           'Not on this plan'),
                                 },
+                                {
+                                    label: 'Net worth',
+                                    value: formatMoney(worth.currentCents),
+                                },
                             ]}
                         />
                     </MetricCard>
                 </div>
 
-                {/* DASH-03: the compact row, for figures worth a glance but not a card. */}
-                <div className="flex flex-wrap gap-3">
-                    <SecondaryLink
-                        href={netWorth()}
-                        label="Net worth"
-                        value={formatMoney(worth.currentCents)}
-                        testId="secondary-net-worth"
-                    />
-
-                    <SecondaryLink
-                        href={months({ year })}
-                        label="Months finished"
-                        value={`${completedMonths} / 12`}
-                        testId="secondary-months"
-                    />
-
-                    {transactionIssues > 0 && (
-                        <SecondaryLink
-                            href={transactions.url({
-                                query: { year, issues: 1 },
-                            })}
-                            label="Need a look"
-                            value={
-                                transactionIssues === 1
-                                    ? '1 transaction'
-                                    : `${transactionIssues} transactions`
-                            }
-                            testId="secondary-issues"
-                        />
-                    )}
-                </div>
-
-                {/* DASH-04: each chart arrives on its own, behind its own skeleton. */}
+                {/*
+                 * DASH-04: each chart arrives on its own, behind its own skeleton.
+                 *
+                 * Two above the fold, because they are the two that answer "how is the
+                 * year going". The other three still load the same way, but behind a
+                 * disclosure rather than in front of a screen already carrying six
+                 * cards (UX-09).
+                 */}
                 <div className="grid gap-4 xl:grid-cols-2">
                     <Deferred
                         data="closingBalance"
@@ -316,21 +306,6 @@ export default function Dashboard({
                     </Deferred>
 
                     <Deferred
-                        data="expensesByCategory"
-                        fallback={
-                            <ChartSkeleton title="Where the money went" />
-                        }
-                    >
-                        <ExpensesByCategoryChart
-                            data={expensesByCategory ?? { month: 1, rows: [] }}
-                            monthLabel={monthName(
-                                expensesByCategory?.month ?? 1,
-                                formatLocale,
-                            )}
-                        />
-                    </Deferred>
-
-                    <Deferred
                         data="incomeAndExpenses"
                         fallback={<ChartSkeleton title="Month by month" />}
                     >
@@ -339,24 +314,51 @@ export default function Dashboard({
                             year={year}
                         />
                     </Deferred>
-
-                    <Deferred
-                        data="netWorthTrend"
-                        fallback={<ChartSkeleton title="Net worth" />}
-                    >
-                        <NetWorthTrendChart
-                            points={netWorthTrend ?? []}
-                            year={year}
-                        />
-                    </Deferred>
-
-                    <Deferred
-                        data="goalsProgress"
-                        fallback={<ChartSkeleton title="Goals" />}
-                    >
-                        <GoalsProgressChart goals={goalsProgress ?? []} />
-                    </Deferred>
                 </div>
+
+                <Collapsible open={moreCharts} onOpenChange={setMoreCharts}>
+                    <CollapsibleTrigger asChild>
+                        <Button variant="ghost" data-testid="more-charts">
+                            {moreCharts ? 'Fewer charts' : 'More charts'}
+                        </Button>
+                    </CollapsibleTrigger>
+
+                    <CollapsibleContent className="mt-4 grid gap-4 xl:grid-cols-2">
+                        <Deferred
+                            data="expensesByCategory"
+                            fallback={
+                                <ChartSkeleton title="Where the money went" />
+                            }
+                        >
+                            <ExpensesByCategoryChart
+                                data={
+                                    expensesByCategory ?? { month: 1, rows: [] }
+                                }
+                                monthLabel={monthName(
+                                    expensesByCategory?.month ?? 1,
+                                    formatLocale,
+                                )}
+                            />
+                        </Deferred>
+
+                        <Deferred
+                            data="netWorthTrend"
+                            fallback={<ChartSkeleton title="Net worth" />}
+                        >
+                            <NetWorthTrendChart
+                                points={netWorthTrend ?? []}
+                                year={year}
+                            />
+                        </Deferred>
+
+                        <Deferred
+                            data="goalsProgress"
+                            fallback={<ChartSkeleton title="Goals" />}
+                        >
+                            <GoalsProgressChart goals={goalsProgress ?? []} />
+                        </Deferred>
+                    </CollapsibleContent>
+                </Collapsible>
             </PageShell>
         </AppLayout>
     );
@@ -369,28 +371,5 @@ export default function Dashboard({
 function monthName(month: number, locale: string): string {
     return new Intl.DateTimeFormat(locale, { month: 'long' }).format(
         new Date(2000, month - 1, 1),
-    );
-}
-
-function SecondaryLink({
-    href,
-    label,
-    value,
-    testId,
-}: {
-    href: NonNullable<InertiaLinkProps['href']>;
-    label: string;
-    value: string;
-    testId: string;
-}) {
-    return (
-        <Link
-            href={href}
-            className="flex items-baseline gap-2 rounded-md border px-3 py-2 text-sm transition-colors hover:border-foreground/20"
-            data-testid={testId}
-        >
-            <span className="text-muted-foreground">{label}</span>
-            <span className="font-medium tabular-nums">{value}</span>
-        </Link>
     );
 }

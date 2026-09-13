@@ -50,13 +50,17 @@ it('shows the six figures and the charts behind them', function (): void {
         ->assertSee('Expenses so far')
         ->assertSee('Saved so far')
         ->assertSee('Emergency fund')
-        // DASH-03.
+        // DASH-03: these are rows inside the cards they belong to now, not a pill row.
         ->assertSee('Net worth')
         ->assertSee('Months finished')
-        // DASH-04: each chart arrives behind its own skeleton.
+        // DASH-04: each chart arrives behind its own skeleton. Two lead; the other
+        // three are one click away rather than in front of a screen already carrying
+        // six cards (UX-09).
         ->assertSee('Closing balance')
-        ->assertSee('Where the money went')
         ->assertSee('Month by month')
+        ->click('@more-charts')
+        ->assertSee('Where the money went')
+        ->assertSee('Net worth')
         ->assertSee('Goals')
         ->assertNoJavascriptErrors()
         ->assertNoConsoleLogs();
@@ -81,8 +85,25 @@ it('links every card to the screen that explains it', function (): void {
 
     $this->actingAs($user)
         ->visit('/dashboard')
-        ->click('@secondary-months')
-        ->assertPathIs('/years/'.$year.'/months')
+        ->click('@card-emergency-fund')
+        ->assertPathIs('/goals/emergency-fund')
+        ->assertNoJavascriptErrors();
+});
+
+it('keeps six cards above the fold and folds the rest away', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    // UX-09: six metric cards and no more. The three figures that used to sit in a pill
+    // row beneath them are now rows inside the cards they belong to, and three of the
+    // five charts are behind a disclosure.
+    $this->actingAs($user)
+        ->visit('/dashboard')
+        ->assertCount('@metric-card', 6)
+        ->assertSee('Months finished')
+        ->assertSee('Net worth')
+        ->assertDontSee('Where the money went')
+        ->click('@more-charts')
+        ->assertSee('Where the money went')
         ->assertNoJavascriptErrors();
 });
 
