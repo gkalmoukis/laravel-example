@@ -334,7 +334,7 @@ Conventions for every item:
 
 ## M6 — Subscriptions
 
-- [ ] **m6-subscription-schema-and-billing** — The subscription record and its billing sequence
+- [x] **m6-subscription-schema-and-billing** — The subscription record and its billing sequence
   - Refs: SUB-03, EDGE-05, §6.3
   - Build: migrations `create_subscriptions_table`,
     `add_subscription_id_to_plan_items_table`, `add_subscription_id_to_transactions_table`

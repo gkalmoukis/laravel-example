@@ -33,6 +33,7 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
  * @property-read int $category_id
  * @property-read int|null $subcategory_id
  * @property-read int|null $account_id
+ * @property-read int|null $subscription_id
  * @property-read string $description
  * @property-read string|null $notes
  * @property-read EntrySource $entry_source
@@ -43,6 +44,7 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
  * @property-read Category $category
  * @property-read Category|null $subcategory
  * @property-read Account|null $account
+ * @property-read Subscription|null $subscription
  */
 #[Fillable([
     'type',
@@ -51,6 +53,7 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
     'category_id',
     'subcategory_id',
     'account_id',
+    'subscription_id',
     'description',
     'notes',
     'entry_source',
@@ -164,6 +167,7 @@ final class Transaction extends Model
             'category_id' => 'integer',
             'subcategory_id' => 'integer',
             'account_id' => 'integer',
+            'subscription_id' => 'integer',
             'description' => 'string',
             'notes' => 'string',
             'entry_source' => EntrySource::class,
@@ -203,6 +207,16 @@ final class Transaction extends Model
     public function account(): BelongsTo
     {
         return $this->belongsTo(Account::class, 'account_id');
+    }
+
+    /**
+     * The subscription this paid for, when it is one (SUB-06).
+     *
+     * @return BelongsTo<Subscription, $this>
+     */
+    public function subscription(): BelongsTo
+    {
+        return $this->belongsTo(Subscription::class);
     }
 
     /**

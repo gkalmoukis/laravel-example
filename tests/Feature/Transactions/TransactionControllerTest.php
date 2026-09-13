@@ -6,6 +6,7 @@ use App\Enums\EntrySource;
 use App\Enums\TransactionType;
 use App\Models\Account;
 use App\Models\Category;
+use App\Models\Subscription;
 use App\Models\Transaction;
 use App\Models\User;
 
@@ -445,4 +446,22 @@ it('clears the subcategory when an edit drops it', function (): void {
         ->assertSessionHasNoErrors();
 
     expect($transaction->refresh()->subcategory_id)->toBeNull();
+});
+
+it('can be linked to the subscription it paid for', function (): void {
+    [$user] = userWithYear();
+
+    $subscriptions = $user->categories()->where('name', 'Subscriptions')->firstOrFail();
+
+    $subscription = Subscription::factory()->for($user)->create([
+        'category_id' => $subscriptions->id,
+    ]);
+
+    $transaction = Transaction::factory()->for($user)->create([
+        'category_id' => $subscriptions->id,
+        'subscription_id' => $subscription->id,
+        'occurred_on' => '2027-03-03',
+    ]);
+
+    expect($transaction->subscription?->id)->toBe($subscription->id);
 });

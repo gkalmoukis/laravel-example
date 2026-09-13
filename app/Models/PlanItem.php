@@ -35,6 +35,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Allocation $allocation
  * @property-read PlanItemSource $source
  * @property-read int|null $salary_model_id
+ * @property-read int|null $subscription_id
  * @property-read string|null $notes
  * @property-read int $sort_order
  * @property-read CarbonInterface $created_at
@@ -43,6 +44,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Category $category
  * @property-read Category|null $subcategory
  * @property-read SalaryModel|null $salaryModel
+ * @property-read Subscription|null $subscription
  * @property-read Collection<int, PlanItemAmount> $amounts
  */
 #[Fillable([
@@ -58,6 +60,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'allocation',
     'source',
     'salary_model_id',
+    'subscription_id',
     'notes',
     'sort_order',
 ])]
@@ -85,6 +88,7 @@ final class PlanItem extends Model
             'allocation' => Allocation::class,
             'source' => PlanItemSource::class,
             'salary_model_id' => 'integer',
+            'subscription_id' => 'integer',
             'notes' => 'string',
             'sort_order' => 'integer',
             'created_at' => 'datetime',
@@ -114,6 +118,16 @@ final class PlanItem extends Model
     public function subcategory(): BelongsTo
     {
         return $this->belongsTo(Category::class, 'subcategory_id');
+    }
+
+    /**
+     * The subscription this item was generated from, if it was (SUB-04).
+     *
+     * @return BelongsTo<Subscription, $this>
+     */
+    public function subscription(): BelongsTo
+    {
+        return $this->belongsTo(Subscription::class);
     }
 
     /**
