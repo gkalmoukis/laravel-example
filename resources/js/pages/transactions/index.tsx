@@ -46,7 +46,9 @@ function Totals({ totals }: { totals: TransactionTotals }) {
 
     return (
         <dl
-            className="grid grid-cols-3 gap-4 rounded-lg border p-4 text-sm"
+            // What the filter adds up to is the point of the screen, so it leads and
+            // stays put while the rows scroll under it (UX-05).
+            className="sticky top-0 z-10 grid grid-cols-3 gap-4 rounded-lg border bg-card p-4 text-sm shadow-card"
             data-testid="list-totals"
         >
             <div>
@@ -200,6 +202,8 @@ export default function TransactionsIndex({
                     onDone={() => setSelectedIds([])}
                 />
 
+                {transactions.length > 0 && <Totals totals={totals} />}
+
                 {transactions.length === 0 ? (
                     <EmptyState
                         title="Nothing matches these filters yet"
@@ -292,8 +296,6 @@ export default function TransactionsIndex({
                                 />
                             ))}
                         </div>
-
-                        <Totals totals={totals} />
 
                         <Pager pagination={pagination} filters={filters} />
                     </>

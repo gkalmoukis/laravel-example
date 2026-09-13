@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { usePreferences } from '@/hooks/use-preferences';
+import { useQuickAdd } from '@/hooks/use-quick-add';
 import { cn } from '@/lib/utils';
 import type { TransactionRow as Row } from '@/types/transactions';
 
@@ -68,11 +69,27 @@ export function TransactionTableRow({
     onSelect: (checked: boolean) => void;
 }) {
     const { formatDate } = usePreferences();
+    const { edit } = useQuickAdd();
 
     return (
         <TableRow
             data-testid="transaction-row"
             data-state={selected ? 'selected' : undefined}
+            // The row is a real stop on the way through the list, and Enter opens the
+            // same form the actions menu does — correcting a row no longer means
+            // finding a three-dot button first (NFR-06).
+            tabIndex={0}
+            aria-label={row.description}
+            className="cursor-pointer focus-visible:bg-accent focus-visible:outline-none"
+            onKeyDown={(event) => {
+                if (
+                    event.key === 'Enter' &&
+                    event.target === event.currentTarget
+                ) {
+                    event.preventDefault();
+                    edit(row);
+                }
+            }}
         >
             <TableCell className="w-10">
                 <Checkbox
@@ -126,7 +143,10 @@ export function TransactionCard({
     const { formatDate } = usePreferences();
 
     return (
-        <div className="rounded-lg border p-3" data-testid="transaction-card">
+        <div
+            className="rounded-lg border bg-card p-3 shadow-card"
+            data-testid="transaction-card"
+        >
             <div className="flex items-start justify-between gap-3">
                 <span className="flex items-center gap-2 font-medium">
                     <Checkbox

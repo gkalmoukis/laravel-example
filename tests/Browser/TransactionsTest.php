@@ -225,3 +225,68 @@ it('filters the list on a phone', function (): void {
         ->assertNoJavascriptErrors()
         ->assertNoConsoleLogs();
 });
+
+it('leads with what the filter adds up to', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    $housing = $user->categories()->where('name', 'Housing')->whereNull('parent_id')->firstOrFail();
+
+    Transaction::factory()->count(3)->for($user)->create([
+        'type' => TransactionType::Expense,
+        'category_id' => $housing->id,
+        'occurred_on' => date('Y-m-d'),
+        'amount_cents' => 5_000,
+        'description' => 'Groceries',
+    ]);
+
+    // The totals were below the list, which is backwards for the screen's primary
+    // block (UX-05).
+    $this->actingAs($user)
+        ->visit('/transactions')
+        ->assertSee('150,00')
+        ->assertSeeIn('@list-totals', 'Net')
+        ->assertNoJavascriptErrors();
+});
+
+it('opens a transaction for editing straight from the keyboard', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    $housing = $user->categories()->where('name', 'Housing')->whereNull('parent_id')->firstOrFail();
+
+    Transaction::factory()->for($user)->create([
+        'type' => TransactionType::Expense,
+        'category_id' => $housing->id,
+        'occurred_on' => date('Y-m-d'),
+        'amount_cents' => 4_200,
+        'description' => 'Reachable row',
+    ]);
+
+    // Correcting a row used to mean finding its three-dot menu first (NFR-06).
+    $this->actingAs($user)
+        ->visit('/transactions')
+        ->keys('@transaction-row', 'Enter')
+        ->assertSee('Reachable row')
+        ->assertSee('Save')
+        ->assertNoJavascriptErrors();
+});
+
+it('says the selection covers this page only', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    $housing = $user->categories()->where('name', 'Housing')->whereNull('parent_id')->firstOrFail();
+
+    Transaction::factory()->count(2)->for($user)->create([
+        'type' => TransactionType::Expense,
+        'category_id' => $housing->id,
+        'occurred_on' => date('Y-m-d'),
+        'description' => 'Selectable',
+    ]);
+
+    // Selection is page-scoped (TXL-04), and the count now says so rather than reading
+    // as a count over the whole filter.
+    $this->actingAs($user)
+        ->visit('/transactions')
+        ->click('@select-all')
+        ->assertSee('2 selected on this page')
+        ->assertNoJavascriptErrors();
+});

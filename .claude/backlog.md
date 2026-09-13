@@ -218,7 +218,7 @@ Conventions for every item:
     `tests/Browser/TransactionsTest.php` at both widths
   - Commit: `fix: keep every filter when paging`
 
-- [ ] **tx-list-polish** — The list reads and moves better
+- [x] **tx-list-polish** — The list reads and moves better
   - Refs: TXL-01, TXL-04, TXL-05, UX-05, UX-13, NFR-06
   - Build: `pages/transactions/index.tsx` — totals move above the list and stick while it scrolls
     (they are below the fold today, which is backwards for UX-05), rows take keyboard navigation

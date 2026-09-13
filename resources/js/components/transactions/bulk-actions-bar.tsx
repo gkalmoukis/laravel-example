@@ -68,7 +68,17 @@ export default function BulkActionsBar({
             className="flex flex-wrap items-end gap-3 rounded-lg border bg-muted/40 p-4"
             data-testid="bulk-actions"
         >
-            <p className="text-sm font-medium">{selectedIds.length} selected</p>
+            <p className="text-sm font-medium">
+                {selectedIds.length} selected
+                {/*
+                 * Selection is page-scoped on purpose (TXL-04) — saying so stops
+                 * "3 selected" being read as three out of the whole filter.
+                 */}
+                <span className="font-normal text-muted-foreground">
+                    {' '}
+                    on this page
+                </span>
+            </p>
 
             <div className="min-w-48">
                 <Label htmlFor="bulk_category">Change category to</Label>
