@@ -117,6 +117,19 @@ final class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * The user's preferences, always.
+     *
+     * Every invited account is provisioned with a row, but the relation is nullable in
+     * the type system and an account can exist for a moment before provisioning finishes.
+     * An unsaved instance carries the documented defaults, so callers get the same answer
+     * either way instead of each guarding for themselves.
+     */
+    public function preferences(): UserPreference
+    {
+        return $this->preference ?? new UserPreference();
+    }
+
+    /**
      * Today, where the user lives.
      *
      * A transaction dated "today" at 01:00 in Athens belongs to a day the server, running

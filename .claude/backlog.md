@@ -258,7 +258,7 @@ Conventions for every item:
     `tests/Browser/ForecastTest.php` at both widths
   - Commit: `feat: forecast screen`
 
-- [ ] **m5-emergency-fund-calculation** — The emergency fund formulas
+- [x] **m5-emergency-fund-calculation** — The emergency fund formulas
   - Refs: §7.6
   - Build: `app/Data/EmergencyFundStatus.php` · `app/Actions/CalculateEmergencyFund.php` —
     essential monthly expenses by integer division, suggested target or custom override,

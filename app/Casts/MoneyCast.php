@@ -14,7 +14,11 @@ use Illuminate\Database\Eloquent\Model;
  * Inertia props always send `->cents`, so money crosses the wire as an integer and is
  * formatted on the client with the user's locale (FE-18).
  *
- * @implements CastsAttributes<Money, Money|int>
+ * Nullable columns — a goal with no target, a contribution nobody set — cast to null
+ * rather than to zero, because "not decided" and "nothing" are different answers. The
+ * generic says so, or PHPStan reads every money attribute as always present.
+ *
+ * @implements CastsAttributes<Money|null, Money|int|null>
  */
 final readonly class MoneyCast implements CastsAttributes
 {
