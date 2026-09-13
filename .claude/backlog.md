@@ -109,7 +109,7 @@ Conventions for every item:
     render as different colours, and every status badge still carries its icon and text label
   - Commit: `feat: design tokens and type scale`
 
-- [ ] **ui-primitives** — One page rhythm, one figure card, and the dead code goes
+- [x] **ui-primitives** — One page rhythm, one figure card, and the dead code goes
   - Refs: UX-05, UX-09, UX-13
   - Build: `resources/js/components/page-shell.tsx` — one page gutter
     (`px-4 md:px-6 lg:px-8`) and one section rhythm (`space-y-8`), applied to every page that

@@ -3,6 +3,7 @@ import { Receipt } from 'lucide-react';
 import { useState } from 'react';
 import EmptyState from '@/components/finance/empty-state';
 import Heading from '@/components/heading';
+import PageShell from '@/components/page-shell';
 import BulkActionsBar from '@/components/transactions/bulk-actions-bar';
 import TransactionFilters from '@/components/transactions/transaction-filters';
 import {
@@ -11,6 +12,11 @@ import {
 } from '@/components/transactions/transaction-row';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+} from '@/components/ui/pagination';
 import {
     Table,
     TableBody,
@@ -64,6 +70,13 @@ function Totals({ totals }: { totals: TransactionTotals }) {
     );
 }
 
+/**
+ * Previous and next over the whole filter.
+ *
+ * Built on the `ui/pagination` primitive for its markup and its `aria-label`, but with
+ * Inertia's `Link` rather than the primitive's bare anchor: a plain `<a>` would reload
+ * the application on every page turn.
+ */
 function Pager({
     pagination,
     filters,
@@ -101,37 +114,50 @@ function Pager({
     const hasNext = pagination.currentPage < pagination.lastPage;
 
     return (
-        <nav
-            className="flex items-center justify-between gap-2"
-            aria-label="Pagination"
-        >
-            {hasPrevious ? (
-                <Button variant="outline" size="sm" asChild>
-                    <Link href={query(pagination.currentPage - 1)}>
-                        Previous
-                    </Link>
-                </Button>
-            ) : (
-                <Button variant="outline" size="sm" disabled>
-                    Previous
-                </Button>
-            )}
+        <Pagination className="justify-between">
+            <PaginationContent>
+                <PaginationItem>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={!hasPrevious}
+                        asChild={hasPrevious}
+                    >
+                        {hasPrevious ? (
+                            <Link href={query(pagination.currentPage - 1)}>
+                                Previous
+                            </Link>
+                        ) : (
+                            <span>Previous</span>
+                        )}
+                    </Button>
+                </PaginationItem>
+            </PaginationContent>
 
             <span className="text-sm text-muted-foreground">
                 Page {pagination.currentPage} of {pagination.lastPage} ·{' '}
                 {pagination.total} transactions
             </span>
 
-            {hasNext ? (
-                <Button variant="outline" size="sm" asChild>
-                    <Link href={query(pagination.currentPage + 1)}>Next</Link>
-                </Button>
-            ) : (
-                <Button variant="outline" size="sm" disabled>
-                    Next
-                </Button>
-            )}
-        </nav>
+            <PaginationContent>
+                <PaginationItem>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={!hasNext}
+                        asChild={hasNext}
+                    >
+                        {hasNext ? (
+                            <Link href={query(pagination.currentPage + 1)}>
+                                Next
+                            </Link>
+                        ) : (
+                            <span>Next</span>
+                        )}
+                    </Button>
+                </PaginationItem>
+            </PaginationContent>
+        </Pagination>
     );
 }
 
@@ -171,7 +197,7 @@ export default function TransactionsIndex({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Transactions" />
 
-            <div className="space-y-6 px-4 py-6">
+            <PageShell>
                 <Heading
                     title="Transactions"
                     description="Everything you have recorded, newest first."
@@ -283,7 +309,7 @@ export default function TransactionsIndex({
                         <Pager pagination={pagination} filters={filters} />
                     </>
                 )}
-            </div>
+            </PageShell>
         </AppLayout>
     );
 }

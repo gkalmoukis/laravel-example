@@ -21,6 +21,7 @@ import MetricCard, { MetricRows } from '@/components/finance/metric-card';
 import ProgressBar from '@/components/finance/progress-bar';
 import { SelectedYearSetupBanner } from '@/components/finance/setup-banner';
 import Heading from '@/components/heading';
+import PageShell from '@/components/page-shell';
 import { usePreferences } from '@/hooks/use-preferences';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
@@ -114,7 +115,7 @@ export default function Dashboard({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
 
-            <div className="space-y-6 px-4 py-6">
+            <PageShell>
                 <Heading
                     title={`${year} at a glance`}
                     description={
@@ -356,7 +357,7 @@ export default function Dashboard({
                         <GoalsProgressChart goals={goalsProgress ?? []} />
                     </Deferred>
                 </div>
-            </div>
+            </PageShell>
         </AppLayout>
     );
 }

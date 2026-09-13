@@ -2,6 +2,7 @@ import { Head } from '@inertiajs/react';
 import type { PropsWithChildren, ReactNode } from 'react';
 import { SelectedYearSetupBanner } from '@/components/finance/setup-banner';
 import Heading from '@/components/heading';
+import PageShell from '@/components/page-shell';
 import YearNav from '@/components/planning/year-nav';
 import AppLayout from '@/layouts/app-layout';
 import { index as cashFlow } from '@/routes/cash-flow';
@@ -48,7 +49,7 @@ export default function ReportsLayout({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`${title} · ${year}`} />
 
-            <div className="px-4 py-6">
+            <PageShell stacked={false}>
                 <Heading title={`${year} reports`} description={description} />
 
                 {/*
@@ -62,7 +63,7 @@ export default function ReportsLayout({
                 </div>
 
                 <div className="mt-8">{children}</div>
-            </div>
+            </PageShell>
         </AppLayout>
     );
 }

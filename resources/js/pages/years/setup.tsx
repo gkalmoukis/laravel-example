@@ -5,6 +5,7 @@ import SalaryModelController from '@/actions/App/Http/Controllers/SalaryModelCon
 import YearSetupCompletionController from '@/actions/App/Http/Controllers/YearSetupCompletionController';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
+import PageShell from '@/components/page-shell';
 import Money from '@/components/planning/money';
 import MoneyInput from '@/components/planning/money-input';
 import YearNav from '@/components/planning/year-nav';
@@ -117,7 +118,7 @@ export default function YearSetup(props: Props) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Set up ${year.year}`} />
 
-            <div className="mx-auto w-full max-w-3xl px-4 py-6">
+            <PageShell stacked={false} className="mx-auto w-full max-w-3xl">
                 <Heading
                     title={`Set up ${year.year}`}
                     description="Six short steps. Everything can be changed later, and you can skip anything except the first."
@@ -188,7 +189,7 @@ export default function YearSetup(props: Props) {
                         </Button>
                     )}
                 </div>
-            </div>
+            </PageShell>
         </AppLayout>
     );
 }

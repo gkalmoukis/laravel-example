@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import type { PropsWithChildren } from 'react';
 import Heading from '@/components/heading';
+import PageShell from '@/components/page-shell';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useCurrentUrl } from '@/hooks/use-current-url';
@@ -71,7 +72,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
     }
 
     return (
-        <div className="px-4 py-6">
+        <PageShell stacked={false}>
             <Heading
                 title="Settings"
                 description="Manage your profile and account settings"
@@ -112,6 +113,6 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                     </section>
                 </div>
             </div>
-        </div>
+        </PageShell>
     );
 }

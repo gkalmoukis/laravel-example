@@ -4,6 +4,7 @@ import BalanceChart, {
 import ChartDataTable from '@/components/finance/chart-data-table';
 import GlossaryTerm from '@/components/finance/glossary-term';
 import RecordCards from '@/components/finance/record-cards';
+import { Stat, StatGrid } from '@/components/finance/stat-card';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Table,
@@ -87,40 +88,26 @@ export default function CashFlowIndex({
             }
         >
             <div className="space-y-6">
-                <dl className="grid gap-4 rounded-lg border p-4 sm:grid-cols-4">
-                    <div>
-                        <dt className="text-sm text-muted-foreground">
-                            Started the year with
-                        </dt>
-                        <dd className="mt-1 font-semibold tabular-nums">
-                            {formatMoney(openingBalanceCents)}
-                        </dd>
-                    </div>
-                    <div>
-                        <dt className="text-sm text-muted-foreground">
-                            Available now
-                        </dt>
-                        <dd className="mt-1 font-semibold tabular-nums">
-                            {formatMoney(currentAvailableCents)}
-                        </dd>
-                    </div>
-                    <div>
-                        <dt className="text-sm text-muted-foreground">
-                            Year end, planned
-                        </dt>
-                        <dd className="mt-1 font-semibold text-series-plan tabular-nums">
-                            {formatMoney(plannedYearEndCents)}
-                        </dd>
-                    </div>
-                    <div>
-                        <dt className="text-sm text-muted-foreground">
-                            Year end, forecast
-                        </dt>
-                        <dd className="mt-1 font-semibold text-series-forecast tabular-nums">
-                            {formatMoney(forecastYearEndCents)}
-                        </dd>
-                    </div>
-                </dl>
+                <StatGrid>
+                    <Stat
+                        label="Started the year with"
+                        value={formatMoney(openingBalanceCents)}
+                    />
+                    <Stat
+                        label="Available now"
+                        value={formatMoney(currentAvailableCents)}
+                    />
+                    <Stat
+                        label="Year end, planned"
+                        value={formatMoney(plannedYearEndCents)}
+                        tone="plan"
+                    />
+                    <Stat
+                        label="Year end, forecast"
+                        value={formatMoney(forecastYearEndCents)}
+                        tone="forecast"
+                    />
+                </StatGrid>
 
                 <Card>
                     <CardHeader>

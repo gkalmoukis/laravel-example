@@ -3,6 +3,7 @@ import { useState } from 'react';
 import FinancialYearController from '@/actions/App/Http/Controllers/FinancialYearController';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
+import PageShell from '@/components/page-shell';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -42,7 +43,7 @@ export default function CreateYear({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Start a plan" />
 
-            <div className="mx-auto w-full max-w-2xl px-4 py-6">
+            <PageShell stacked={false} className="mx-auto w-full max-w-2xl">
                 <Heading
                     title="Start a plan"
                     description="Pick the year you want to plan for. You can change everything afterwards."
@@ -127,7 +128,7 @@ export default function CreateYear({
                         </>
                     )}
                 </Form>
-            </div>
+            </PageShell>
         </AppLayout>
     );
 }

@@ -2,6 +2,7 @@ import { Link } from '@inertiajs/react';
 import { AlertTriangle } from 'lucide-react';
 import GlossaryTerm from '@/components/finance/glossary-term';
 import RecordCards from '@/components/finance/record-cards';
+import { Stat, StatGrid } from '@/components/finance/stat-card';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -137,75 +138,60 @@ export default function ForecastIndex({
             }
         >
             <div className="space-y-6">
-                <dl className="grid gap-4 rounded-lg border p-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <div>
-                        <dt className="text-sm text-muted-foreground">
-                            Income
-                        </dt>
-                        <dd className="mt-1 font-semibold tabular-nums">
-                            {formatMoney(summary.incomeCents)}
-                        </dd>
-                    </div>
-                    <div>
-                        <dt className="text-sm text-muted-foreground">
-                            Expenses
-                        </dt>
-                        <dd className="mt-1 font-semibold tabular-nums">
-                            {formatMoney(summary.expenseCents)}
-                        </dd>
-                    </div>
-                    <div>
-                        <dt className="text-sm text-muted-foreground">
-                            Savings
-                        </dt>
-                        <dd className="mt-1 font-semibold tabular-nums">
-                            {formatMoney(summary.savingsCents)}
-                        </dd>
-                        <dd
-                            className="text-xs text-muted-foreground"
-                            data-testid="savings-rate"
-                        >
-                            {savingsRate(
-                                summary.savingsCents,
-                                summary.incomeCents,
-                            )}{' '}
-                            of what you earn
-                        </dd>
-                    </div>
-                    <div>
-                        <dt className="text-sm text-muted-foreground">
-                            Year end balance
-                        </dt>
-                        <dd className="mt-1 font-semibold text-series-forecast tabular-nums">
-                            {formatMoney(summary.yearEndCents)}
-                        </dd>
-                        <dd
-                            className="text-xs text-muted-foreground"
-                            data-testid="deviation"
-                        >
-                            {summary.deviationCents === 0
-                                ? 'Exactly as planned'
-                                : `${formatMoney(Math.abs(summary.deviationCents))} ${
-                                      summary.deviationCents > 0
-                                          ? 'better'
-                                          : 'worse'
-                                  } than ${
-                                      summary.hasBaseline
-                                          ? 'first planned'
-                                          : 'your current plan'
-                                  }`}
-                            {summary.hasBaseline &&
-                                summary.baselineCapturedAt && (
-                                    <>
-                                        {' '}
-                                        (set{' '}
-                                        {formatDate(summary.baselineCapturedAt)}
-                                        )
-                                    </>
-                                )}
-                        </dd>
-                    </div>
-                </dl>
+                <StatGrid>
+                    <Stat
+                        label="Income"
+                        value={formatMoney(summary.incomeCents)}
+                    />
+                    <Stat
+                        label="Expenses"
+                        value={formatMoney(summary.expenseCents)}
+                    />
+                    <Stat
+                        label="Savings"
+                        value={formatMoney(summary.savingsCents)}
+                        sub={
+                            <span data-testid="savings-rate">
+                                {savingsRate(
+                                    summary.savingsCents,
+                                    summary.incomeCents,
+                                )}{' '}
+                                of what you earn
+                            </span>
+                        }
+                    />
+                    <Stat
+                        label="Year end balance"
+                        value={formatMoney(summary.yearEndCents)}
+                        tone="forecast"
+                        sub={
+                            <span data-testid="deviation">
+                                {summary.deviationCents === 0
+                                    ? 'Exactly as planned'
+                                    : `${formatMoney(Math.abs(summary.deviationCents))} ${
+                                          summary.deviationCents > 0
+                                              ? 'better'
+                                              : 'worse'
+                                      } than ${
+                                          summary.hasBaseline
+                                              ? 'first planned'
+                                              : 'your current plan'
+                                      }`}
+                                {summary.hasBaseline &&
+                                    summary.baselineCapturedAt && (
+                                        <>
+                                            {' '}
+                                            (set{' '}
+                                            {formatDate(
+                                                summary.baselineCapturedAt,
+                                            )}
+                                            )
+                                        </>
+                                    )}
+                            </span>
+                        }
+                    />
+                </StatGrid>
 
                 {unfinished.length > 0 && (
                     <div

@@ -1,6 +1,7 @@
 import { Head } from '@inertiajs/react';
 import type { PropsWithChildren, ReactNode } from 'react';
 import Heading from '@/components/heading';
+import PageShell from '@/components/page-shell';
 import YearNav from '@/components/planning/year-nav';
 import AppLayout from '@/layouts/app-layout';
 import { show as emergencyFund } from '@/routes/emergency-fund';
@@ -48,7 +49,7 @@ export default function GoalsLayout({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={title} />
 
-            <div className="px-4 py-6">
+            <PageShell stacked={false}>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <Heading title={title} description={description} />
 
@@ -60,7 +61,7 @@ export default function GoalsLayout({
                 </div>
 
                 <div className="mt-8">{children}</div>
-            </div>
+            </PageShell>
         </AppLayout>
     );
 }

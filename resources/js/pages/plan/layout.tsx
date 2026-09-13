@@ -4,6 +4,7 @@ import SetupBanner, {
     SelectedYearSetupBanner,
 } from '@/components/finance/setup-banner';
 import Heading from '@/components/heading';
+import PageShell from '@/components/page-shell';
 import YearNav from '@/components/planning/year-nav';
 import AppLayout from '@/layouts/app-layout';
 import { show as showPlan } from '@/routes/plan';
@@ -82,7 +83,7 @@ export default function PlanLayout({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={year ? `${title} · ${year.year}` : title} />
 
-            <div className="px-4 py-6">
+            <PageShell stacked={false}>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <Heading
                         title={year ? `${year.year} plan` : title}
@@ -99,7 +100,7 @@ export default function PlanLayout({
                 </div>
 
                 <div className="mt-8">{children}</div>
-            </div>
+            </PageShell>
         </AppLayout>
     );
 }

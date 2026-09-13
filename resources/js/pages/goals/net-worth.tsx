@@ -3,6 +3,7 @@ import { Plus, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import { useState } from 'react';
 import ChartDataTable from '@/components/finance/chart-data-table';
 import GlossaryTerm from '@/components/finance/glossary-term';
+import { Stat } from '@/components/finance/stat-card';
 import InputError from '@/components/input-error';
 import NetWorthChart, {
     type NetWorthPoint,
@@ -171,22 +172,14 @@ export default function NetWorthIndex({
                                             label={`Since ${year} began`}
                                         />
                                     )}
-                                    <div>
-                                        <dt className="text-sm text-muted-foreground">
-                                            Owned
-                                        </dt>
-                                        <dd className="mt-1 font-medium tabular-nums">
-                                            {formatMoney(current.assetsCents)}
-                                        </dd>
-                                    </div>
-                                    <div>
-                                        <dt className="text-sm text-muted-foreground">
-                                            Owed
-                                        </dt>
-                                        <dd className="mt-1 font-medium tabular-nums">
-                                            {formatMoney(current.debtsCents)}
-                                        </dd>
-                                    </div>
+                                    <Stat
+                                        label="Owned"
+                                        value={formatMoney(current.assetsCents)}
+                                    />
+                                    <Stat
+                                        label="Owed"
+                                        value={formatMoney(current.debtsCents)}
+                                    />
                                 </dl>
                             </CardContent>
                         </Card>

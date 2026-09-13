@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { AlertTriangle } from 'lucide-react';
 import MonthStatusBadge from '@/components/finance/month-status-badge';
+import { Stat } from '@/components/finance/stat-card';
 import VarianceRow, {
     type VarianceRowData,
 } from '@/components/finance/variance-row';
@@ -9,6 +10,7 @@ import CompleteMonthCard from '@/components/months/complete-month-card';
 import SnapshotForm, {
     type Holding,
 } from '@/components/net-worth/snapshot-form';
+import PageShell from '@/components/page-shell';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { usePreferences } from '@/hooks/use-preferences';
@@ -51,15 +53,16 @@ function Figure({
     const { formatMoney } = usePreferences();
 
     return (
-        <div>
-            <dt className="text-sm text-muted-foreground">{label}</dt>
-            <dd className="mt-1 text-xl font-semibold text-series-actual tabular-nums">
-                {formatMoney(actual)}
-            </dd>
-            <dd className="text-xs text-series-plan tabular-nums">
-                {formatMoney(planned)} planned
-            </dd>
-        </div>
+        <Stat
+            label={label}
+            value={formatMoney(actual)}
+            tone="actual"
+            sub={
+                <span className="text-series-plan">
+                    {formatMoney(planned)} planned
+                </span>
+            }
+        />
     );
 }
 
@@ -102,7 +105,7 @@ export default function MonthShow({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`${name} · Month review`} />
 
-            <div className="space-y-6 px-4 py-6">
+            <PageShell>
                 <div className="flex flex-wrap items-center gap-3">
                     <Heading
                         title={name}
@@ -250,7 +253,7 @@ export default function MonthShow({
                     isComplete={status === 'complete'}
                     needsConfirmation={needsConfirmation}
                 />
-            </div>
+            </PageShell>
         </AppLayout>
     );
 }

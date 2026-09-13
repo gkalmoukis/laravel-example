@@ -4,6 +4,7 @@ import GlossaryTerm from '@/components/finance/glossary-term';
 import MonthStatusBadge from '@/components/finance/month-status-badge';
 import { SelectedYearSetupBanner } from '@/components/finance/setup-banner';
 import Heading from '@/components/heading';
+import PageShell from '@/components/page-shell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { usePreferences } from '@/hooks/use-preferences';
 import AppLayout from '@/layouts/app-layout';
@@ -43,7 +44,7 @@ export default function MonthsIndex({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Months · ${year}`} />
 
-            <div className="px-4 py-6">
+            <PageShell stacked={false}>
                 <Heading
                     title={`${year} month by month`}
                     description={
@@ -125,7 +126,7 @@ export default function MonthsIndex({
                         </Card>
                     ))}
                 </div>
-            </div>
+            </PageShell>
         </AppLayout>
     );
 }
