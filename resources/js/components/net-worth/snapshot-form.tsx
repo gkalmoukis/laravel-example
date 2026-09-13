@@ -1,5 +1,4 @@
 import { useForm, usePage } from '@inertiajs/react';
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -23,6 +22,11 @@ export type Holding = {
  * This is the one thing the application cannot work out for itself: transactions say what
  * moved, but only the user knows what an investment is now worth. Saving is optional —
  * a month can be finished without it.
+ *
+ * The typed figures live in `form.data` and nowhere else. Keeping a second copy in
+ * component state and bridging the two with `transform()` is how this form previously
+ * managed to send the prefilled values instead of the typed ones: the request succeeded,
+ * wrote the figures back unchanged, and raised nothing to say so.
  */
 export default function SnapshotForm({
     year,
@@ -40,17 +44,6 @@ export default function SnapshotForm({
     const { formatMoney, formatLocale } = usePreferences();
     const { errors } = usePage().props;
 
-    const [amounts, setAmounts] = useState<Record<number, string>>(() =>
-        Object.fromEntries(
-            holdings.map((holding) => [
-                holding.id,
-                formatAmount(holding.valueCents, formatLocale),
-            ]),
-        ),
-    );
-
-    // The form is given its real shape up front. An empty useForm({}) has nothing for
-    // transform() to build on, so the request goes out with no holdings at all.
     const form = useForm<{ holdings: { id: number; amount: string }[] }>({
         holdings: holdings.map((holding) => ({
             id: holding.id,
@@ -58,33 +51,36 @@ export default function SnapshotForm({
         })),
     });
 
-    const liquidTotal = holdings
-        .filter((holding) => holding.isLiquid)
-        .reduce((total, holding) => {
-            const typed = Number(
-                (amounts[holding.id] ?? '')
-                    .replace(/\./g, '')
-                    .replace(',', '.'),
-            );
+    const setAmount = (index: number, amount: string) => {
+        form.setData(
+            'holdings',
+            form.data.holdings.map((row, at) =>
+                at === index ? { ...row, amount } : row,
+            ),
+        );
+    };
 
-            return (
-                total + (Number.isFinite(typed) ? Math.round(typed * 100) : 0)
-            );
-        }, 0);
+    const liquidTotal = holdings.reduce((total, holding, index) => {
+        if (!holding.isLiquid) {
+            return total;
+        }
+
+        // el-GR writes 1.234,56, so the thousands separator goes before the decimal
+        // separator becomes a point. Display only — the server parses the real amount.
+        const typed = Number(
+            (form.data.holdings[index]?.amount ?? '')
+                .replace(/\./g, '')
+                .replace(',', '.'),
+        );
+
+        return total + (Number.isFinite(typed) ? Math.round(typed * 100) : 0);
+    }, 0);
 
     const difference = liquidTotal - liquidClosingCents;
 
     const submit = () => {
-        form.transform(() => ({
-            holdings: holdings.map((holding) => ({
-                id: holding.id,
-                amount: amounts[holding.id] ?? '0',
-            })),
-        }));
-
         form.patch(saveSnapshots.url({ year, month }), {
             preserveScroll: true,
-            onSuccess: () => form.transform((data) => data),
         });
     };
 
@@ -122,12 +118,9 @@ export default function SnapshotForm({
                                 name={`holdings[${index}][amount]`}
                                 inputMode="decimal"
                                 className="mt-1"
-                                value={amounts[holding.id] ?? ''}
+                                value={form.data.holdings[index]?.amount ?? ''}
                                 onChange={(event) =>
-                                    setAmounts({
-                                        ...amounts,
-                                        [holding.id]: event.target.value,
-                                    })
+                                    setAmount(index, event.target.value)
                                 }
                             />
                             {errors[`holdings.${index}.amount`] && (

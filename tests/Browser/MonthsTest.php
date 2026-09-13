@@ -191,3 +191,25 @@ it('reads the year overview on a phone', function (): void {
         ->assertNoJavascriptErrors()
         ->assertNoConsoleLogs();
 });
+
+it('records what each holding was worth at the end of the month', function (): void {
+    $year = (int) date('Y');
+    [$user, $financialYear] = userWithYear($year);
+
+    $cash = $user->netWorthItems()->where('kind', NetWorthItemKind::Cash)->firstOrFail();
+
+    // The form is prefilled from the opening figures, so typing over one and saving is
+    // the case that proves the typed value is what gets sent (MON-06).
+    $this->actingAs($user)
+        ->visit('/years/'.$year.'/months/1')
+        ->fill('#holding-'.$cash->id, '1.234,56')
+        ->click('@save-snapshots')
+        ->assertNoJavascriptErrors();
+
+    // Asserted on a later page rather than on a toast: the application runs in a separate
+    // process, and a toast has come and gone by the time anything can look for it.
+    $this->actingAs($user)
+        ->visit('/net-worth')
+        ->assertSee('1.234,56')
+        ->assertNoJavascriptErrors();
+});

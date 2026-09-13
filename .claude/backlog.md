@@ -467,7 +467,7 @@ Conventions for every item:
   - Tests: `tests/Feature/PrivacyTest.php`
   - Commit: `test: keep financial data out of logs`
 
-- [ ] **m7-browser-core-flows** — The remaining browser coverage <!-- gate -->
+- [x] **m7-browser-core-flows** — The remaining browser coverage <!-- gate -->
   - Refs: TST-04, TST-05, UX-10, §2.2
   - Build: `tests/Browser/DashboardTest.php` · extend `tests/Browser/PlanningTest.php` with the
     wizard end to end at 375px · a §2.2 acceptance walk over the demo dataset
@@ -479,14 +479,13 @@ Conventions for every item:
 
 ## Known gaps
 
-- **The snapshot form's save button does not dispatch under Playwright.** The endpoint is
-  covered by `tests/Feature/Months/NetWorthSnapshotTest.php` (12 tests) and works when
-  called directly — a direct `patch()` inside the same browser test writes the row. Only
-  the in-browser click sends nothing, with no JavaScript error. Three attempts spent: the
-  flash contract was genuinely broken and is fixed, `useForm({})` had no initial shape and
-  is fixed, but the click still sends nothing. `tests/Browser/MonthsTest.php` asserts the
-  reconciliation hint and leaves saving to the feature test. Worth a fresh look before
-  `m7-browser-core-flows`, which exercises the same form.
+- ~~**The snapshot form's save button does not dispatch under Playwright.**~~ **Fixed in
+  `m7-browser-core-flows`.** The form kept two sources of truth — component state for the
+  inputs and `form.data` for the request — bridged only by `transform()`, so what was sent
+  was the prefilled figures rather than the typed ones: a request that succeeded and wrote
+  nothing new. `form.data` is now the only copy. The earlier attempts failed because they
+  asserted on the flash toast, which is gone by the time anything looks for it; the test
+  now asserts the saved figure on a later page load.
 
 ## Deferred — SHOULD items
 
