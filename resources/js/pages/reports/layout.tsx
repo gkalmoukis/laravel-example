@@ -8,9 +8,10 @@ import AppLayout from '@/layouts/app-layout';
 import { index as cashFlow } from '@/routes/cash-flow';
 import { index as comparison } from '@/routes/comparison';
 import { index as forecast } from '@/routes/forecast';
+import { index as reports } from '@/routes/reports';
 import type { BreadcrumbItem } from '@/types';
 
-export type ReportTab = 'comparison' | 'cash-flow' | 'forecast';
+export type ReportTab = 'summary' | 'comparison' | 'cash-flow' | 'forecast';
 
 /**
  * The shell every report shares: the year, its tabs, and the reminder to finish setup.
@@ -36,6 +37,7 @@ export default function ReportsLayout({
     ];
 
     const tabs = [
+        { key: 'summary', label: 'Summary', href: reports.url({ year }) },
         {
             key: 'comparison',
             label: 'Plan vs actual',

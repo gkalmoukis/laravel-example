@@ -257,7 +257,7 @@ Conventions for every item:
 
 ## P5 — Easier reporting
 
-- [ ] **reports-summary** — The year in one screen
+- [x] **reports-summary** — The year in one screen
   - Refs: FC-01, CF-01, ALRT-01, ALRT-06, UX-05, UX-09
   - Build: `app/Http/Controllers/ReportSummaryController.php@index` at `years/{year}/reports`
     (name `reports.index`), composing `CalculateAnnualSummary`, `CalculateCashFlow` and

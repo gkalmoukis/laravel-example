@@ -283,3 +283,34 @@ it('keeps a hub lit from any of its tabs', function (): void {
         ->assertDataAttribute('#nav-settings', 'active', 'true')
         ->assertNoJavascriptErrors();
 });
+
+it('opens the reports on the summary and drills into a tab', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    $year = date('Y');
+
+    // Reports now opens on the screen that answers "how is the year going" rather than
+    // on one of the three that answer a narrower question (UX-05).
+    $this->actingAs($user)
+        ->visit('/dashboard')
+        ->click('#nav-reports')
+        ->assertPathIs('/years/'.$year.'/reports')
+        ->assertSee('Available now')
+        ->assertSee('Money in')
+        ->click('Plan vs actual')
+        ->assertPathIs('/years/'.$year.'/reports/comparison')
+        ->assertDataAttribute('#nav-reports', 'active', 'true')
+        ->assertNoJavascriptErrors();
+});
+
+it('reads the reports summary on a phone', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    $this->actingAs($user)
+        ->visit('/years/'.date('Y').'/reports')
+        ->on()->mobile()
+        ->assertSee('Available now')
+        ->assertSee('Forecast year end')
+        ->assertNoJavascriptErrors()
+        ->assertNoConsoleLogs();
+});

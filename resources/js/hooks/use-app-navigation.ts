@@ -9,11 +9,11 @@ import {
     Wallet,
 } from 'lucide-react';
 import { dashboard } from '@/routes';
-import { index as comparison } from '@/routes/comparison';
 import { index as goals } from '@/routes/goals';
 import { index as months } from '@/routes/months';
 import { show as showPlan } from '@/routes/plan';
 import { edit as preferences } from '@/routes/preferences';
+import { index as reports } from '@/routes/reports';
 import { index as subscriptions } from '@/routes/subscriptions';
 import { index as transactions } from '@/routes/transactions';
 import type { NavItem } from '@/types';
@@ -54,7 +54,7 @@ export function useAppNavigation(): NavItem[] {
 
         items.push({
             title: 'Reports',
-            href: comparison({ year: selectedYear }),
+            href: reports({ year: selectedYear }),
             icon: ChartNoAxesCombined,
             match: [`/years/${selectedYear}/reports`],
         });

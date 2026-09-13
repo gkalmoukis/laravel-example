@@ -27,6 +27,7 @@ use App\Http\Controllers\PlanBaselineController;
 use App\Http\Controllers\PlanController;
 use App\Http\Controllers\PlanItemController;
 use App\Http\Controllers\PreferencesController;
+use App\Http\Controllers\ReportSummaryController;
 use App\Http\Controllers\SalaryModelController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\SubcategoryParentController;
@@ -150,6 +151,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     // Reports. The three of them read the same figures and were three separate
     // destinations, so they are one hub with three tabs now. The names are unchanged; the
     // flat URIs they used to live at redirect, so a bookmark still lands.
+    Route::get('years/{year}/reports', [ReportSummaryController::class, 'index'])->name('reports.index');
     Route::get('years/{year}/reports/comparison', [ComparisonController::class, 'index'])->name('comparison.index');
     Route::get('years/{year}/reports/cash-flow', [CashFlowController::class, 'index'])->name('cash-flow.index');
     Route::get('years/{year}/reports/forecast', [ForecastController::class, 'index'])->name('forecast.index');
