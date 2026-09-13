@@ -5,6 +5,7 @@ import VarianceRow, {
     type VarianceRowData,
 } from '@/components/finance/variance-row';
 import Heading from '@/components/heading';
+import CompleteMonthCard from '@/components/months/complete-month-card';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { usePreferences } from '@/hooks/use-preferences';
@@ -63,6 +64,7 @@ export default function MonthShow({
     year,
     month,
     status,
+    needsConfirmation,
     totals,
     issues,
     income,
@@ -71,6 +73,7 @@ export default function MonthShow({
     year: number;
     month: number;
     status: string;
+    needsConfirmation: boolean;
     totals: Totals;
     issues: Issue[];
     income: VarianceRowData[];
@@ -224,6 +227,14 @@ export default function MonthShow({
                         </section>
                     </CardContent>
                 </Card>
+
+                <CompleteMonthCard
+                    year={year}
+                    month={month}
+                    monthName={name}
+                    isComplete={status === 'complete'}
+                    needsConfirmation={needsConfirmation}
+                />
             </div>
         </AppLayout>
     );

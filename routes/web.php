@@ -10,6 +10,7 @@ use App\Http\Controllers\FinancialYearController;
 use App\Http\Controllers\InvitationAcceptanceController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\InvitationResendController;
+use App\Http\Controllers\MonthCompletionController;
 use App\Http\Controllers\MonthController;
 use App\Http\Controllers\OpeningPositionController;
 use App\Http\Controllers\PlanBaselineController;
@@ -115,6 +116,8 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     // Months...
     Route::get('years/{year}/months', [MonthController::class, 'index'])->name('months.index');
     Route::get('years/{year}/months/{month}', [MonthController::class, 'show'])->name('months.show');
+    Route::post('years/{year}/months/{month}/completion', [MonthCompletionController::class, 'store'])->name('month-completion.store');
+    Route::delete('years/{year}/months/{month}/completion', [MonthCompletionController::class, 'destroy'])->name('month-completion.destroy');
 
     // Preferences...
     Route::get('settings/preferences', [PreferencesController::class, 'edit'])->name('preferences.edit');

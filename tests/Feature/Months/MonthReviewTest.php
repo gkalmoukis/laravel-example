@@ -175,3 +175,17 @@ it('reports another user month as missing', function (): void {
 
     expect($owner->financialYears()->where('year', 2027)->exists())->toBeTrue();
 });
+
+it('tells the page whether finishing the month needs confirming', function (): void {
+    [$user] = userWithYear(2026);
+
+    $this->travelTo('2026-05-10');
+
+    $this->actingAs($user)
+        ->get(route('months.show', ['year' => 2026, 'month' => 5]))
+        ->assertInertia(fn ($page) => $page->where('needsConfirmation', true));
+
+    $this->actingAs($user)
+        ->get(route('months.show', ['year' => 2026, 'month' => 4]))
+        ->assertInertia(fn ($page) => $page->where('needsConfirmation', false));
+});

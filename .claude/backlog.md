@@ -184,7 +184,7 @@ Conventions for every item:
   - Tests: `tests/Feature/Months/MonthReviewTest.php`
   - Commit: `feat: month review screen`
 
-- [ ] **m4-month-close** — Completing and reopening a month
+- [x] **m4-month-close** — Completing and reopening a month
   - Refs: MON-03 (step 5), MON-04, MON-05
   - Build: `app/Actions/CompleteMonth.php` — blocked while the month has flagged transactions,
     blocked when the month starts after today in the user's timezone, confirmation required to

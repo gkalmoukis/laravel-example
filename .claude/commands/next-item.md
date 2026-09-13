@@ -125,6 +125,9 @@ One line, nothing else:
   `tests/Browser/Screenshots` before changing the selector** — it usually shows the real cause.
 - **A Radix Popover inside the quick-add Dialog needs `modal`**, or it portals outside the
   dialog and the dialog's `pointer-events: none` leaves its options visible but unclickable.
+- **A scripted string replacement can match in more than one place.** Anchor on text unique
+  to the method you mean, or assert the match count — a props line inserted into two
+  controller methods at once compiles fine and fails eight tests later.
 - **Pest test helpers are global functions across the whole suite.** A bare `spend()` or
   `expenseCategory()` in a new test file collides with one in another and kills the run with
   `Cannot redeclare function`. Prefix helpers with the subject under test (`flowSpend`,

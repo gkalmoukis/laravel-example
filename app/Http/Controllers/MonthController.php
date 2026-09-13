@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Actions\CalculateCashFlow;
 use App\Actions\CalculateMonthlyFigures;
 use App\Actions\CalculateVariances;
+use App\Actions\CompleteMonth;
 use App\Data\BalanceLine;
 use App\Data\Variance;
 use App\Enums\TransactionIssue;
@@ -63,6 +64,7 @@ final readonly class MonthController
         CalculateMonthlyFigures $figures,
         CalculateVariances $variances,
         CalculateCashFlow $cashFlow,
+        CompleteMonth $completion,
     ): Response {
         Gate::authorize('view', $year);
 
@@ -82,6 +84,7 @@ final readonly class MonthController
             'year' => $year->year,
             'month' => $month,
             'status' => $totals->status->value,
+            'needsConfirmation' => $completion->needsConfirmation($year, $month, $year->user->today()),
             'totals' => [
                 'incomeCents' => $totals->actualIncomeCents,
                 'expenseCents' => $totals->actualExpenseCents,
