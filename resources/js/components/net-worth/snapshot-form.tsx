@@ -49,7 +49,14 @@ export default function SnapshotForm({
         ),
     );
 
-    const form = useForm({});
+    // The form is given its real shape up front. An empty useForm({}) has nothing for
+    // transform() to build on, so the request goes out with no holdings at all.
+    const form = useForm<{ holdings: { id: number; amount: string }[] }>({
+        holdings: holdings.map((holding) => ({
+            id: holding.id,
+            amount: formatAmount(holding.valueCents, formatLocale),
+        })),
+    });
 
     const liquidTotal = holdings
         .filter((holding) => holding.isLiquid)
@@ -77,6 +84,7 @@ export default function SnapshotForm({
 
         form.patch(saveSnapshots.url({ year, month }), {
             preserveScroll: true,
+            onSuccess: () => form.transform((data) => data),
         });
     };
 

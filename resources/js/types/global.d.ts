@@ -8,6 +8,8 @@ declare module '@inertiajs/core' {
     export interface InertiaConfig {
         flashDataType: {
             toast?: FlashToast;
+            // What controllers flash with ->with('status', '…').
+            status?: string;
         };
         sharedPageProps: {
             name: string;
