@@ -122,18 +122,20 @@ Conventions for every item:
 
 ## M4 — Actuals, months, comparison, cash flow
 
-- [ ] **m4-monthly-figures** — Plan, Actual and Forecast per category and month
+- [x] **m4-monthly-figures** — Plan, Actual and Forecast per category and month
   - Refs: §7.1, MON-01, TXV-05, NFR-02, NFR-03
   - Build: `app/Data/{MonthlyFigures,CategoryFigures,MonthTotals}.php` (final readonly) ·
     `app/Actions/CalculateMonthlyFigures.php` — one grouped aggregate per series over
     `Transaction::valid()` and `plan_item_amounts`, subcategories rolling up into parents,
     **`today` injected as a `CarbonImmutable` parameter, never `now()`** ·
-    `App\Models\User::today(): CarbonImmutable` as the resolver ·
+    `App\Models\User::today()` is the resolver, already built ·
     extend `tests/Unit/ArchTest.php` — `App\Data` is final and readonly, and no
     `float`/`(float)`/`round(` in `app/Actions` or `app/ValueObjects` except
     `Money::multiplyByRatio`
-  - Notes: this item fixes the injected-`today` signature every later calculation Action
-    inherits. Status(m) per §7.1; F(c,m) = A when Complete, else max(P, A).
+  - Notes: §7.1 has no dependency on the current date, so `CalculateMonthlyFigures` takes
+    no `today`. The convention still holds for the Actions that do need it — `today` is a
+    `CarbonImmutable` argument, never `now()` inside, resolved by `User::today()`.
+    Status(m) per §7.1; F(c,m) = A when Complete, else max(P, A).
   - Tests: `tests/Unit/Actions/CalculateMonthlyFiguresTest.php` — hand-computed expectations
     including P=0, the InProgress max rule, 31 Dec / 1 Jan boundaries, and Athens vs UTC at
     midnight
