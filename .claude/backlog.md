@@ -141,7 +141,7 @@ Conventions for every item:
     midnight
   - Commit: `feat: monthly plan, actual and forecast figures`
 
-- [ ] **m4-cash-flow-and-annual-summary** — Balances and the annual totals
+- [x] **m4-cash-flow-and-annual-summary** — Balances and the annual totals
   - Refs: §7.2, §7.3, EDGE-03
   - Build: `app/Data/{CashFlow,CashFlowMonth,AnnualSummary}.php` ·
     `app/Actions/CalculateCashFlow.php` — B₀ from month-0 Cash + EmergencyFund snapshots,

@@ -125,6 +125,10 @@ One line, nothing else:
   `tests/Browser/Screenshots` before changing the selector** — it usually shows the real cause.
 - **A Radix Popover inside the quick-add Dialog needs `modal`**, or it portals outside the
   dialog and the dialog's `pointer-events: none` leaves its options visible but unclickable.
+- **Pest test helpers are global functions across the whole suite.** A bare `spend()` or
+  `expenseCategory()` in a new test file collides with one in another and kills the run with
+  `Cannot redeclare function`. Prefix helpers with the subject under test (`flowSpend`,
+  `txCategory`, `summaryRecord`), or put genuinely shared ones in `tests/Pest.php`.
 - **Browser flakiness is almost always contention.** If a browser test fails in the full run
   but passes alone — especially if a *different* one fails each run — lower
   `PEST_PROCESSES` (default 3) rather than touching the test. Never raise a timeout or weaken
