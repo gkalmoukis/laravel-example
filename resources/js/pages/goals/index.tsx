@@ -1,8 +1,7 @@
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Link, router, useForm } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import GoalCard, { type GoalCardData } from '@/components/goals/goal-card';
-import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,14 +14,11 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import AppLayout from '@/layouts/app-layout';
+import GoalsLayout from '@/pages/goals/layout';
 import { destroy as restoreGoal } from '@/routes/goal-archive';
 import { index as goalsIndex, store as storeGoal } from '@/routes/goals';
-import type { BreadcrumbItem } from '@/types';
 
 type ArchivedGoal = { id: number; name: string; type: string };
-
-const breadcrumbs: BreadcrumbItem[] = [{ title: 'Goals', href: goalsIndex() }];
 
 const TYPES = [
     { value: 'investment', label: 'Investment' },
@@ -68,25 +64,21 @@ export default function GoalsIndex({
     };
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Goals" />
-
-            <div className="space-y-6 px-4 py-6">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                    <Heading
-                        title="Goals"
-                        description="What you are putting money aside for."
-                    />
-
-                    <Button
-                        onClick={() => setAdding(!adding)}
-                        data-testid="add-goal"
-                    >
-                        <Plus className="size-4" />
-                        New goal
-                    </Button>
-                </div>
-
+        <GoalsLayout
+            tab="goals"
+            title="Goals"
+            description="What you are putting money aside for."
+            action={
+                <Button
+                    onClick={() => setAdding(!adding)}
+                    data-testid="add-goal"
+                >
+                    <Plus className="size-4" />
+                    New goal
+                </Button>
+            }
+        >
+            <div className="space-y-6">
                 {adding && (
                     <Card>
                         <CardHeader>
@@ -315,6 +307,6 @@ export default function GoalsIndex({
                     </div>
                 )}
             </div>
-        </AppLayout>
+        </GoalsLayout>
     );
 }

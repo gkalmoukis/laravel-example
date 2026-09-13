@@ -29,7 +29,7 @@ it('shows what the user owns and owes', function (): void {
         ->update(['value_cents' => 200_000]);
 
     $this->actingAs($user)
-        ->visit('/net-worth')
+        ->visit('/goals/net-worth')
         ->assertSee('Net worth')
         // 5.000,00 owned less 2.000,00 owed.
         ->assertSee('3.000,00')
@@ -41,7 +41,7 @@ it('reads the year as a chart or as a table', function (): void {
     [$user] = userWithYear((int) date('Y'));
 
     $this->actingAs($user)
-        ->visit('/net-worth')
+        ->visit('/goals/net-worth')
         ->click('@toggle-chart-table')
         ->assertSee('View as chart')
         ->assertNoJavascriptErrors();
@@ -51,7 +51,7 @@ it('adds something the user owns', function (): void {
     [$user] = userWithYear((int) date('Y'));
 
     $this->actingAs($user)
-        ->visit('/net-worth')
+        ->visit('/goals/net-worth')
         ->click('@add-holding')
         ->fill('name', 'Flat')
         ->click('@save-holding')
@@ -65,7 +65,7 @@ it('retires something the user no longer has', function (): void {
     $investment = $user->netWorthItems()->where('kind', NetWorthItemKind::Investment)->firstOrFail();
 
     $this->actingAs($user)
-        ->visit('/net-worth')
+        ->visit('/goals/net-worth')
         ->click('@retire-'.$investment->id)
         ->assertDontSee('@retire-'.$investment->id)
         ->assertNoJavascriptErrors();
@@ -75,7 +75,7 @@ it('reads the net worth on a phone', function (): void {
     [$user] = userWithYear((int) date('Y'));
 
     $this->actingAs($user)
-        ->visit('/net-worth')
+        ->visit('/goals/net-worth')
         ->on()->mobile()
         ->assertSee('Net worth')
         ->assertNoJavascriptErrors()

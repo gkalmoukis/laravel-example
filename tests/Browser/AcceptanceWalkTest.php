@@ -63,7 +63,7 @@ it('walks the acceptance criteria over the demo year', function (): void {
         ->assertSee('Cash flow')
         ->navigate('/goals/emergency-fund')
         ->assertSee('Emergency fund')
-        ->navigate('/net-worth')
+        ->navigate('/goals/net-worth')
         ->assertSee('Net worth')
         ->assertNoJavascriptErrors();
 
@@ -87,7 +87,7 @@ it('walks the same criteria on a phone', function (): void {
         '/years/'.$year.'/reports/comparison',
         '/years/'.$year.'/reports/cash-flow',
         '/years/'.$year.'/reports/forecast',
-        '/net-worth',
+        '/goals/net-worth',
         '/goals',
         '/subscriptions',
     ] as $path) {
@@ -128,7 +128,7 @@ function everyAuthenticatedPage(): array
         '/transactions',
         '/goals',
         '/goals/emergency-fund',
-        '/net-worth',
+        '/goals/net-worth',
         '/subscriptions',
         '/years/create',
         '/settings/profile',

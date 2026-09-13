@@ -527,9 +527,9 @@ For any category/period with plan *P* and actual *A*:
 
 | ID | Requirement | Level |
 |---|---|---|
-| NW-01 | `/net-worth` shows current net worth (latest month with any snapshot), the change vs the previous month and vs the start of the year, a breakdown by kind, and a line chart of NW(0..12) for the selected year. | MUST |
+| NW-01 | `/goals/net-worth` shows current net worth (latest month with any snapshot), the change vs the previous month and vs the start of the year, a breakdown by kind, and a line chart of NW(0..12) for the selected year. | MUST |
 | NW-02 | Items (holdings and debts) can be managed there: add, rename, change kind, deactivate. | MUST |
-| NW-03 | Snapshots are entered from the month review (MON-06) or from `/net-worth` for any month. The month-0 snapshot is the opening position (OPEN-01). | MUST |
+| NW-03 | Snapshots are entered from the month review (MON-06) or from `/goals/net-worth` for any month. The month-0 snapshot is the opening position (OPEN-01). | MUST |
 | NW-04 | Carried-forward values are shown in muted text with a "carried forward" tooltip (7.8). | MUST |
 
 ### 8.17 Subscriptions (brief 4.9)
@@ -598,7 +598,7 @@ All authenticated routes use `auth` and `verified` middleware. Year-scoped route
 | Transactions | `GET /transactions` | `transactions/index` | List + filters |
 | Goals | `GET /goals` | `goals/index` | Goal cards |
 | Emergency fund | `GET /goals/emergency-fund` | `goals/emergency-fund` | Progress |
-| Net worth | `GET /net-worth` | `net-worth/index` | Current NW + change |
+| Net worth | `GET /goals/net-worth` | `goals/net-worth` | Current NW + change |
 | Subscriptions | `GET /subscriptions` | `subscriptions/index` | Monthly total |
 | Categories | `GET /settings/categories` | `settings/categories` | Tree |
 | Accounts | `GET /settings/accounts` | `settings/accounts` | List |

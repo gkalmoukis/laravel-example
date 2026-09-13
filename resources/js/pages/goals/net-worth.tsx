@@ -1,9 +1,8 @@
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Link, router, useForm } from '@inertiajs/react';
 import { Plus, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import { useState } from 'react';
 import ChartDataTable from '@/components/finance/chart-data-table';
 import GlossaryTerm from '@/components/finance/glossary-term';
-import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import NetWorthChart, {
     type NetWorthPoint,
@@ -26,14 +25,12 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { usePreferences } from '@/hooks/use-preferences';
-import AppLayout from '@/layouts/app-layout';
+import GoalsLayout from '@/pages/goals/layout';
 import { create as createYear } from '@/routes/financial-years';
-import { index as netWorthIndex } from '@/routes/net-worth';
 import {
     destroy as retireItem,
     store as storeItem,
 } from '@/routes/net-worth-items';
-import type { BreadcrumbItem } from '@/types';
 
 type Holding = {
     itemId: number;
@@ -53,10 +50,6 @@ type MonthPosition = {
 };
 
 type Item = { id: number; name: string; kind: string; isActive: boolean };
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Net worth', href: netWorthIndex() },
-];
 
 export default function NetWorthIndex({
     hasYear,
@@ -125,23 +118,17 @@ export default function NetWorthIndex({
     );
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Net worth" />
-
-            <div className="space-y-6 px-4 py-6">
-                <Heading
-                    title="Net worth"
-                    description={
-                        <>
-                            Your{' '}
-                            <GlossaryTerm term="netWorth">
-                                net worth
-                            </GlossaryTerm>
-                            , month by month.
-                        </>
-                    }
-                />
-
+        <GoalsLayout
+            tab="net-worth"
+            title="Net worth"
+            description={
+                <>
+                    Your <GlossaryTerm term="netWorth">net worth</GlossaryTerm>,
+                    month by month.
+                </>
+            }
+        >
+            <div className="space-y-6">
                 {!hasYear || !current ? (
                     <div
                         className="rounded-lg border border-dashed p-10 text-center"
@@ -413,6 +400,6 @@ export default function NetWorthIndex({
                     </CardContent>
                 </Card>
             </div>
-        </AppLayout>
+        </GoalsLayout>
     );
 }

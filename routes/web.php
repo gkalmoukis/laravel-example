@@ -124,6 +124,11 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     // /goals/{goal} route, so the word is never read as an id (EF-01).
     Route::get('goals/emergency-fund', [EmergencyFundController::class, 'show'])->name('emergency-fund.show');
     Route::patch('goals/emergency-fund', [EmergencyFundController::class, 'update'])->name('emergency-fund.update');
+    // Net worth reads as one of the things the user is working towards, so its page sits
+    // here rather than at the top level. Same rule as the emergency fund: the word is
+    // registered before any /goals/{goal} route, so it is never read as an id.
+    Route::get('goals/net-worth', [NetWorthController::class, 'index'])->name('net-worth.index');
+    Route::get('net-worth', fn (): RedirectResponse => to_route('net-worth.index'));
     Route::get('goals', [GoalController::class, 'index'])->name('goals.index');
     Route::post('goals', [GoalController::class, 'store'])->name('goals.store');
     Route::patch('goals/{goal}', [GoalController::class, 'update'])->name('goals.update');
@@ -137,8 +142,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::post('subscriptions/{subscription}/activation', [SubscriptionActivationController::class, 'store'])->name('subscription-activation.store');
     Route::delete('subscriptions/{subscription}/activation', [SubscriptionActivationController::class, 'destroy'])->name('subscription-activation.destroy');
 
-    // Net worth...
-    Route::get('net-worth', [NetWorthController::class, 'index'])->name('net-worth.index');
+    // Net worth items. The page itself lives with the goals; these are never bookmarked.
     Route::post('net-worth/items', [NetWorthItemController::class, 'store'])->name('net-worth-items.store');
     Route::patch('net-worth/items/{netWorthItem}', [NetWorthItemController::class, 'update'])->name('net-worth-items.update');
     Route::delete('net-worth/items/{netWorthItem}', [NetWorthItemController::class, 'destroy'])->name('net-worth-items.destroy');

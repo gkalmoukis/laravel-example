@@ -25,7 +25,7 @@ final readonly class NetWorthController
         $year = $this->selectedYear($user);
 
         if (! $year instanceof FinancialYear) {
-            return Inertia::render('net-worth/index', [
+            return Inertia::render('goals/net-worth', [
                 'hasYear' => false,
                 'year' => null,
                 'current' => null,
@@ -39,7 +39,7 @@ final readonly class NetWorthController
 
         $position = $calculator->handle($year);
 
-        return Inertia::render('net-worth/index', [
+        return Inertia::render('goals/net-worth', [
             'hasYear' => true,
             'year' => $year->year,
             'current' => $this->presentMonth($position->current()),

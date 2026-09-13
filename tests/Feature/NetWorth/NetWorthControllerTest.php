@@ -35,7 +35,7 @@ it('shows where the user stands', function (): void {
     $this->actingAs($user)
         ->get(route('net-worth.index'))
         ->assertInertia(fn ($page) => $page
-            ->component('net-worth/index')
+            ->component('goals/net-worth')
             ->where('hasYear', true)
             ->where('current.assetsCents', 500_000)
             ->where('current.debtsCents', 200_000)
@@ -234,4 +234,14 @@ it('offers every kind of holding', function (): void {
 
 it('needs a signed-in user', function (): void {
     $this->get(route('net-worth.index'))->assertRedirect(route('login'));
+});
+
+it('lives under the goals hub and redirects from where it used to be', function (): void {
+    [$user] = userWithYear();
+
+    expect(route('net-worth.index', absolute: false))->toBe('/goals/net-worth');
+
+    $this->actingAs($user)
+        ->get('/net-worth')
+        ->assertRedirect(route('net-worth.index'));
 });

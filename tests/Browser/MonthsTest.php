@@ -209,7 +209,7 @@ it('records what each holding was worth at the end of the month', function (): v
     // Asserted on a later page rather than on a toast: the application runs in a separate
     // process, and a toast has come and gone by the time anything can look for it.
     $this->actingAs($user)
-        ->visit('/net-worth')
+        ->visit('/goals/net-worth')
         ->assertSee('1.234,56')
         ->assertNoJavascriptErrors();
 });

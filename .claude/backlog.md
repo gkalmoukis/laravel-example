@@ -44,7 +44,7 @@ Conventions for every item:
     `tests/Browser/{ForecastTest,NavigationTest,AccessibilityTest,EmptyStatesTest,AcceptanceWalkTest}.php`
   - Commit: `feat: reports hub`
 
-- [ ] **nav-goals-hub** — Goals, emergency fund and net worth become one hub
+- [x] **nav-goals-hub** — Goals, emergency fund and net worth become one hub
   - Refs: GOAL-01, EF-01, NW-01, §9
   - Build: `routes/web.php` — `net-worth` → `goals/net-worth`, keeping the name
     `net-worth.index`, with a redirect from the old URI · `resources/js/pages/net-worth/index.tsx`

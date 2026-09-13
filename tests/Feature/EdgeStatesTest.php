@@ -192,7 +192,7 @@ it('renders every list screen with nothing recorded', function (string $route): 
     'transactions' => ['/transactions'],
     'goals' => ['/goals'],
     'subscriptions' => ['/subscriptions'],
-    'net worth' => ['/net-worth'],
+    'net worth' => ['/goals/net-worth'],
     'months' => ['/years/2027/months'],
     'comparison' => ['/years/2027/reports/comparison'],
     'cash flow' => ['/years/2027/reports/cash-flow'],

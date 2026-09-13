@@ -1,7 +1,6 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Link, useForm } from '@inertiajs/react';
 import { ShieldCheck } from 'lucide-react';
 import ProgressBar from '@/components/finance/progress-bar';
-import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,15 +8,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { usePreferences } from '@/hooks/use-preferences';
-import AppLayout from '@/layouts/app-layout';
 import { formatAmount } from '@/lib/money';
-import {
-    show as emergencyFundShow,
-    update as saveEmergencyFund,
-} from '@/routes/emergency-fund';
+import GoalsLayout from '@/pages/goals/layout';
+import { update as saveEmergencyFund } from '@/routes/emergency-fund';
 import { create as createYear } from '@/routes/financial-years';
 import { show as monthShow } from '@/routes/months';
-import type { BreadcrumbItem } from '@/types';
 
 type Status = {
     essentialMonthlyCents: number;
@@ -34,10 +29,6 @@ type Status = {
 };
 
 type CategoryChoice = { id: number; name: string; isEssential: boolean };
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Emergency fund', href: emergencyFundShow() },
-];
 
 /**
  * When the fund is reached, said as a month rather than a count: "in 14 months" is
@@ -102,29 +93,24 @@ export default function EmergencyFund({
 
     if (!hasYear || !status) {
         return (
-            <AppLayout breadcrumbs={breadcrumbs}>
-                <Head title="Emergency fund" />
-
-                <div className="px-4 py-6">
-                    <Heading
-                        title="Emergency fund"
-                        description="Money set aside in case your income stops."
-                    />
-
-                    <div
-                        className="mt-6 rounded-lg border border-dashed p-10 text-center"
-                        data-testid="needs-year"
-                    >
-                        <p className="text-muted-foreground">
-                            Your target comes from what you have planned to
-                            spend, so there is nothing to work it out from yet.
-                        </p>
-                        <Button className="mt-3" asChild>
-                            <Link href={createYear()}>Create a plan</Link>
-                        </Button>
-                    </div>
+            <GoalsLayout
+                tab="emergency-fund"
+                title="Emergency fund"
+                description="Money set aside in case your income stops."
+            >
+                <div
+                    className="rounded-lg border border-dashed p-10 text-center"
+                    data-testid="needs-year"
+                >
+                    <p className="text-muted-foreground">
+                        Your target comes from what you have planned to spend,
+                        so there is nothing to work it out from yet.
+                    </p>
+                    <Button className="mt-3" asChild>
+                        <Link href={createYear()}>Create a plan</Link>
+                    </Button>
                 </div>
-            </AppLayout>
+            </GoalsLayout>
         );
     }
 
@@ -140,15 +126,12 @@ export default function EmergencyFund({
     };
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Emergency fund" />
-
-            <div className="space-y-6 px-4 py-6">
-                <Heading
-                    title="Emergency fund"
-                    description="Money set aside in case your income stops."
-                />
-
+        <GoalsLayout
+            tab="emergency-fund"
+            title="Emergency fund"
+            description="Money set aside in case your income stops."
+        >
+            <div className="space-y-6">
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-base">
@@ -367,6 +350,6 @@ export default function EmergencyFund({
                     </CardContent>
                 </Card>
             </div>
-        </AppLayout>
+        </GoalsLayout>
     );
 }

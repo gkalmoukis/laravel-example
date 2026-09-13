@@ -86,3 +86,17 @@ it('reads the goals on a phone', function (): void {
         ->assertNoJavascriptErrors()
         ->assertNoConsoleLogs();
 });
+
+it('moves between goals, the emergency fund and net worth from one tab row', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    $this->actingAs($user)
+        ->visit('/goals')
+        ->assertSee('Goals')
+        ->click('@tab-emergency-fund')
+        ->assertPathIs('/goals/emergency-fund')
+        ->click('@tab-net-worth')
+        ->assertPathIs('/goals/net-worth')
+        ->assertSee('Net worth')
+        ->assertNoJavascriptErrors();
+});
