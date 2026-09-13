@@ -101,3 +101,27 @@ it('keeps floating point out of money logic', function (): void {
         }
     }
 });
+
+it('keeps financial data out of the logs', function (): void {
+    // NFR-05. Nothing in the application writes to the log, which is the simplest way to
+    // guarantee an amount or a description never reaches one. If logging is ever wanted,
+    // it goes through a dedicated channel that takes ids — not through a call slipped
+    // into an Action while debugging and left behind.
+    $forbidden = ['Log::', 'logger(', 'error_log(', 'var_dump(', 'dump(', 'dd('];
+
+    $files = collect([app_path()])
+        ->flatMap(fn (string $directory): array => File::allFiles($directory));
+
+    expect($files)->not->toBeEmpty();
+
+    foreach ($files as $file) {
+        $contents = File::get($file->getPathname());
+
+        foreach ($forbidden as $token) {
+            expect($contents)->not->toContain(
+                $token,
+                sprintf('%s calls %s; financial data must never reach a log (NFR-05).', $file->getFilename(), $token),
+            );
+        }
+    }
+});

@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Actions\BuildClosingBalanceChart;
 use App\Actions\BuildDashboard;
-use App\Actions\BuildDashboardCharts;
+use App\Actions\BuildExpensesByCategoryChart;
+use App\Actions\BuildGoalsProgressChart;
+use App\Actions\BuildIncomeExpenseChart;
+use App\Actions\BuildNetWorthTrendChart;
 use App\Actions\ResolveSelectedYear;
 use App\Data\Alert;
 use App\Data\DashboardData;
@@ -27,7 +31,11 @@ final readonly class DashboardController
 {
     public function __construct(
         private ResolveSelectedYear $selectedYear,
-        private BuildDashboardCharts $charts,
+        private BuildClosingBalanceChart $closingBalance,
+        private BuildExpensesByCategoryChart $expensesByCategory,
+        private BuildIncomeExpenseChart $incomeAndExpenses,
+        private BuildNetWorthTrendChart $netWorthTrend,
+        private BuildGoalsProgressChart $goalsProgress,
     ) {}
 
     public function index(#[CurrentUser] User $user, BuildDashboard $dashboard): RedirectResponse|Response
@@ -60,11 +68,11 @@ final readonly class DashboardController
     private function charts(FinancialYear $year, CarbonImmutable $today): array
     {
         return [
-            'closingBalance' => Inertia::defer(fn (): array => $this->charts->closingBalance($year, $today)),
-            'expensesByCategory' => Inertia::defer(fn (): array => $this->charts->expensesByCategory($year, $today)),
-            'incomeAndExpenses' => Inertia::defer(fn (): array => $this->charts->incomeAndExpenses($year)),
-            'netWorthTrend' => Inertia::defer(fn (): array => $this->charts->netWorthTrend($year)),
-            'goalsProgress' => Inertia::defer(fn (): array => $this->charts->goalsProgress($year, $today)),
+            'closingBalance' => Inertia::defer(fn (): array => $this->closingBalance->handle($year, $today)),
+            'expensesByCategory' => Inertia::defer(fn (): array => $this->expensesByCategory->handle($year, $today)),
+            'incomeAndExpenses' => Inertia::defer(fn (): array => $this->incomeAndExpenses->handle($year)),
+            'netWorthTrend' => Inertia::defer(fn (): array => $this->netWorthTrend->handle($year)),
+            'goalsProgress' => Inertia::defer(fn (): array => $this->goalsProgress->handle($year, $today)),
         ];
     }
 

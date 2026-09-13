@@ -460,7 +460,7 @@ Conventions for every item:
   - Tests: extend the browser suite with keyboard operation of quick add
   - Commit: `feat: glossary tooltips and accessibility pass`
 
-- [ ] **m7-privacy** — Financial data stays out of the logs
+- [x] **m7-privacy** — Financial data stays out of the logs
   - Refs: NFR-05
   - Build: audit Action logging so only IDs are written; confirm `/up` and exception context
     carry no amounts or descriptions
