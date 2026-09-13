@@ -424,7 +424,7 @@ Conventions for every item:
   - Tests: `tests/Feature/Dashboard/DashboardChartsTest.php` — each deferred prop resolves
   - Commit: `feat: dashboard charts`
 
-- [ ] **m7-demo-seeder** — The local demo year
+- [x] **m7-demo-seeder** — The local demo year
   - Refs: §12.2
   - Build: `database/seeders/DemoSeeder.php` — a 2027 with a salary model at 1.800,00 € on 14
     payments, a budget across the essential categories, 3 irregular items one of them Spread,
