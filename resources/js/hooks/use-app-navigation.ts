@@ -5,6 +5,7 @@ import {
     Receipt,
     Scale,
     ShieldCheck,
+    Target,
     Telescope,
     TrendingUp,
     Settings,
@@ -15,6 +16,7 @@ import { index as cashFlow } from '@/routes/cash-flow';
 import { index as comparison } from '@/routes/comparison';
 import { show as emergencyFund } from '@/routes/emergency-fund';
 import { index as forecast } from '@/routes/forecast';
+import { index as goals } from '@/routes/goals';
 import { index as months } from '@/routes/months';
 import { show as showPlan } from '@/routes/plan';
 import { edit as preferences } from '@/routes/preferences';
@@ -66,6 +68,8 @@ export function useAppNavigation(): NavItem[] {
             icon: Telescope,
         });
     }
+
+    items.push({ title: 'Goals', href: goals(), icon: Target });
 
     items.push({
         title: 'Emergency fund',

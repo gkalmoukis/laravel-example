@@ -290,7 +290,7 @@ Conventions for every item:
   - Tests: `tests/Unit/Actions/CalculateGoalProgressTest.php`
   - Commit: `feat: goal progress calculation`
 
-- [ ] **m5-goals-screen** — Goals CRUD
+- [x] **m5-goals-screen** — Goals CRUD
   - Refs: GOAL-01, GOAL-02, GOAL-03, GOAL-04
   - Build: `app/Actions/{CreateGoal,UpdateGoal,ArchiveGoal}.php` ·
     `app/Http/Requests/{Store,Update}GoalRequest.php` ·

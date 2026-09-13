@@ -11,6 +11,8 @@ use App\Http\Controllers\ComparisonController;
 use App\Http\Controllers\EmergencyFundController;
 use App\Http\Controllers\FinancialYearController;
 use App\Http\Controllers\ForecastController;
+use App\Http\Controllers\GoalArchiveController;
+use App\Http\Controllers\GoalController;
 use App\Http\Controllers\InvitationAcceptanceController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\InvitationResendController;
@@ -129,6 +131,11 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     // /goals/{goal} route, so the word is never read as an id (EF-01).
     Route::get('goals/emergency-fund', [EmergencyFundController::class, 'show'])->name('emergency-fund.show');
     Route::patch('goals/emergency-fund', [EmergencyFundController::class, 'update'])->name('emergency-fund.update');
+    Route::get('goals', [GoalController::class, 'index'])->name('goals.index');
+    Route::post('goals', [GoalController::class, 'store'])->name('goals.store');
+    Route::patch('goals/{goal}', [GoalController::class, 'update'])->name('goals.update');
+    Route::post('goals/{goal}/archive', [GoalArchiveController::class, 'store'])->name('goal-archive.store');
+    Route::delete('goals/{goal}/archive', [GoalArchiveController::class, 'destroy'])->name('goal-archive.destroy');
 
     // Reports...
     Route::get('years/{year}/comparison', [ComparisonController::class, 'index'])->name('comparison.index');

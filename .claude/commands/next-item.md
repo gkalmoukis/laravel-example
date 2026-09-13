@@ -118,6 +118,11 @@ One line, nothing else:
   (a path change or visible text) before asserting anything else.
 - **Coverage is scoped to `app/` and must be exactly 100%.** Never land a class in `app/` ahead
   of the code that exercises it, and test every `match` arm.
+- **Coverage will not credit a multi-line ternary, `match` arm, or closure inside an array
+  literal**, even when a test plainly exercises it — it reports 100% in isolation and short
+  of it in the parallel run. Do not chase it with more tests: pull the expression into a
+  small named method with explicit early returns, or replace a mapping closure with a
+  `foreach`. The code reads better for it, and the branch is then counted.
 - **Browser test selectors go through `GuessLocator`**, which understands `@testid`, `#id`,
   `[name=…]` and visible text — but not a bare `[data-attr="…"]`, which silently falls through
   and can type into whatever is focused. Give anything a test needs to reach an `id` or a
