@@ -244,7 +244,7 @@ Conventions for every item:
 
 ## M5 — Forecast, goals, emergency fund, net worth
 
-- [ ] **m5-forecast-screen** — The forecast
+- [x] **m5-forecast-screen** — The forecast
   - Refs: FC-01, FC-02, FC-03, FC-04, FC-05, FC-06 (consumption)
   - Build: `app/Http/Controllers/ForecastController.php@index` · route `forecast.index` ·
     `resources/js/pages/forecast/index.tsx` — annual income, expenses, savings and savings
@@ -252,6 +252,8 @@ Conventions for every item:
     with its capture date; per-month source badge "Actual" / "Plan + actual" / "Plan"; the
     FC-04 highlight for past months that are not Complete; per-category annual Plan vs
     Forecast table · sidebar entry
+  - Note: FC-01's emergency fund block is added by `m5-emergency-fund-calculation`, which
+    owns that calculation; everything else on the screen is done.
   - Tests: `tests/Feature/Reports/ForecastTest.php` · browser smoke in
     `tests/Browser/ForecastTest.php` at both widths
   - Commit: `feat: forecast screen`

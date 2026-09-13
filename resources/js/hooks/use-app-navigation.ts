@@ -4,6 +4,7 @@ import {
     LayoutGrid,
     Receipt,
     Scale,
+    Telescope,
     TrendingUp,
     Settings,
     Wallet,
@@ -11,6 +12,7 @@ import {
 import { dashboard } from '@/routes';
 import { index as cashFlow } from '@/routes/cash-flow';
 import { index as comparison } from '@/routes/comparison';
+import { index as forecast } from '@/routes/forecast';
 import { index as months } from '@/routes/months';
 import { show as showPlan } from '@/routes/plan';
 import { edit as preferences } from '@/routes/preferences';
@@ -54,6 +56,12 @@ export function useAppNavigation(): NavItem[] {
             title: 'Cash flow',
             href: cashFlow({ year: selectedYear }),
             icon: TrendingUp,
+        });
+
+        items.push({
+            title: 'Forecast',
+            href: forecast({ year: selectedYear }),
+            icon: Telescope,
         });
     }
 

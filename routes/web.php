@@ -9,6 +9,7 @@ use App\Http\Controllers\CategoryActivationController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ComparisonController;
 use App\Http\Controllers\FinancialYearController;
+use App\Http\Controllers\ForecastController;
 use App\Http\Controllers\InvitationAcceptanceController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\InvitationResendController;
@@ -126,6 +127,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     // Reports...
     Route::get('years/{year}/comparison', [ComparisonController::class, 'index'])->name('comparison.index');
     Route::get('years/{year}/cash-flow', [CashFlowController::class, 'index'])->name('cash-flow.index');
+    Route::get('years/{year}/forecast', [ForecastController::class, 'index'])->name('forecast.index');
 
     // Preferences...
     Route::get('settings/preferences', [PreferencesController::class, 'edit'])->name('preferences.edit');
