@@ -127,3 +127,14 @@ warning, 77.001 is over — so a future rewrite cannot quietly move the line.
 Percentages themselves are never computed in PHP. The figures cross the wire as cents and
 the interface divides, which is what "computed at full precision and rounded half-up to one
 decimal only for display" asks for.
+
+## Flashed status messages are toasts
+
+Controllers say `->with('status', '…')`, which is Laravel's own convention. The starter
+kit's toast hook only listened for a `toast` key, so across twenty controllers the message
+was flashed and silently dropped — no success feedback appeared anywhere in the
+application.
+
+`useFlashToast` now honours both: a `toast` object where the tone matters, and a plain
+`status` string, which is always a success. Prefer `->with('status', …)`; it reads better at
+the call site and is what the rest of the framework expects.

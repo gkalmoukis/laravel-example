@@ -235,7 +235,7 @@ Conventions for every item:
     twelve-month cash-flow table and every variance
   - Commit: `test: golden dataset for actuals and balances`
 
-- [ ] **m4-month-close-browser-test** — Browser coverage for the close flow <!-- gate -->
+- [x] **m4-month-close-browser-test** — Browser coverage for the close flow <!-- gate -->
   - Refs: TST-04 (month close slice), UX-10
   - Build: `tests/Browser/MonthsTest.php`
   - Tests: months index → review → fix a flagged transaction → save snapshots → complete →
@@ -474,6 +474,17 @@ Conventions for every item:
   - Commit: `test: core flow browser coverage`
 
 ---
+
+## Known gaps
+
+- **The snapshot form's save button does not dispatch under Playwright.** The endpoint is
+  covered by `tests/Feature/Months/NetWorthSnapshotTest.php` (12 tests) and works when
+  called directly — a direct `patch()` inside the same browser test writes the row. Only
+  the in-browser click sends nothing, with no JavaScript error. Three attempts spent: the
+  flash contract was genuinely broken and is fixed, `useForm({})` had no initial shape and
+  is fixed, but the click still sends nothing. `tests/Browser/MonthsTest.php` asserts the
+  reconciliation hint and leaves saving to the feature test. Worth a fresh look before
+  `m7-browser-core-flows`, which exercises the same form.
 
 ## Deferred — SHOULD items
 
