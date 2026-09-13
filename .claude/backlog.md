@@ -404,7 +404,7 @@ Conventions for every item:
   - Tests: `tests/Unit/Actions/BuildAlertsTest.php` — one case per alert type plus the empty case
   - Commit: `feat: in-app alerts`
 
-- [ ] **m7-dashboard-cards** — The dashboard's primary and secondary blocks
+- [x] **m7-dashboard-cards** — The dashboard's primary and secondary blocks
   - Refs: DASH-01, DASH-02, DASH-03, DASH-05, DASH-06, YEAR-08, UX-09
   - Build: `app/Data/DashboardData.php` · `app/Actions/BuildDashboard.php` ·
     `app/Http/Controllers/DashboardController.php@index` replacing the closure in

@@ -8,6 +8,7 @@ use App\Http\Controllers\CashFlowController;
 use App\Http\Controllers\CategoryActivationController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ComparisonController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmergencyFundController;
 use App\Http\Controllers\FinancialYearController;
 use App\Http\Controllers\ForecastController;
@@ -42,12 +43,8 @@ use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\UserTwoFactorAuthenticationController;
 use App\Http\Controllers\YearSetupCompletionController;
 use App\Http\Controllers\YearSetupController;
-use App\Models\User;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use Inertia\Response;
 
 Route::get('/', fn () => Inertia::render('welcome'))->name('home');
 
@@ -55,17 +52,7 @@ Route::get('/', fn () => Inertia::render('welcome'))->name('home');
 // the only authenticated routes outside this group are the ones a user must be able to
 // reach *before* verifying, plus logout.
 Route::middleware(['auth', 'verified'])->group(function (): void {
-    Route::get('dashboard', function (Request $request): RedirectResponse|Response {
-        $user = $request->user();
-
-        // Nothing to show without a plan, so a new account is sent to make one first
-        // rather than shown six empty cards (YEAR-08).
-        if ($user instanceof User && $user->financialYears()->doesntExist()) {
-            return to_route('financial-years.create');
-        }
-
-        return Inertia::render('dashboard');
-    })->name('dashboard');
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // User...
     Route::delete('user', [UserController::class, 'destroy'])->name('user.destroy');

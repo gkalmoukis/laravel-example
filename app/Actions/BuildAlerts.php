@@ -9,10 +9,8 @@ use App\Data\CashFlowMonth;
 use App\Data\MonthlyFigures;
 use App\Enums\AlertType;
 use App\Enums\MonthStatus;
-use App\Enums\TransactionIssue;
 use App\Enums\VarianceStatus;
 use App\Models\FinancialYear;
-use App\Models\Transaction;
 use Carbon\CarbonImmutable;
 
 /**
@@ -43,6 +41,7 @@ final readonly class BuildAlerts
         private CalculateVariances $variances,
         private CalculateEmergencyFund $emergencyFund,
         private CalculateGoalProgress $goals,
+        private CountTransactionIssues $issues,
     ) {}
 
     /**
@@ -139,42 +138,18 @@ final readonly class BuildAlerts
      */
     private function transactionIssues(FinancialYear $financialYear): array
     {
-        $flagged = Transaction::withIssues(
-            Transaction::flagged($financialYear->user->transactions()->getQuery())
-        )->get();
+        $count = $this->issues->handle($financialYear);
 
-        $inScope = [];
-        $mismatched = 0;
-
-        foreach ($flagged as $transaction) {
-            $issues = $transaction->loadedIssues();
-
-            // A transaction with no year at all belongs to no year's list, so it is
-            // reported whichever year is selected — otherwise nobody would ever see it.
-            $belongs = $transaction->occurred_on->year === $financialYear->year
-                || in_array(TransactionIssue::NoFinancialYear, $issues, true);
-
-            if (! $belongs) {
-                continue;
-            }
-
-            $inScope[] = $transaction;
-
-            if (in_array(TransactionIssue::CategoryTypeMismatch, $issues, true)) {
-                $mismatched++;
-            }
-        }
-
-        if ($inScope === []) {
+        if (! $count->any()) {
             return [];
         }
 
         $url = route('transactions.index', ['year' => $financialYear->year, 'issues' => 1]);
 
-        $alerts = [new Alert(AlertType::TransactionsWithIssues, $this->count(count($inScope)), $url)];
+        $alerts = [new Alert(AlertType::TransactionsWithIssues, $this->count($count->total), $url)];
 
-        if ($mismatched > 0) {
-            $alerts[] = new Alert(AlertType::CategoryTypeMismatch, $this->count($mismatched), $url);
+        if ($count->categoryTypeMismatch > 0) {
+            $alerts[] = new Alert(AlertType::CategoryTypeMismatch, $this->count($count->categoryTypeMismatch), $url);
         }
 
         return $alerts;
