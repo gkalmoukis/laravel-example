@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { Receipt } from 'lucide-react';
 import { useState } from 'react';
+import EmptyState from '@/components/finance/empty-state';
 import Heading from '@/components/heading';
 import BulkActionsBar from '@/components/transactions/bulk-actions-bar';
 import TransactionFilters from '@/components/transactions/transaction-filters';
@@ -185,23 +186,13 @@ export default function TransactionsIndex({
                 />
 
                 {transactions.length === 0 ? (
-                    <div
-                        className="flex flex-col items-center gap-3 rounded-lg border border-dashed p-10 text-center"
-                        data-testid="empty-state"
-                    >
-                        <Receipt
-                            className="size-8 text-muted-foreground"
-                            aria-hidden="true"
-                        />
-                        <p className="text-muted-foreground">
-                            Nothing matches these filters yet.
-                        </p>
-                        <Button variant="secondary" asChild>
-                            <Link href={transactionsIndex()}>
-                                Clear the filters
-                            </Link>
-                        </Button>
-                    </div>
+                    <EmptyState
+                        title="Nothing matches these filters yet"
+                        message="Widen the dates, or clear them and start again."
+                        icon={Receipt}
+                        actionLabel="Clear the filters"
+                        actionHref={transactionsIndex()}
+                    />
                 ) : (
                     <>
                         <div className="hidden md:block">

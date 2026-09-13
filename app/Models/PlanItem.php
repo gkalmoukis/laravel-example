@@ -9,6 +9,7 @@ use App\Enums\Frequency;
 use App\Enums\PlanItemKind;
 use App\Enums\PlanItemSource;
 use App\Enums\TransactionType;
+use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Database\Factories\PlanItemFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -164,5 +165,26 @@ final class PlanItem extends Model
     public function isSpread(): bool
     {
         return $this->allocation === Allocation::Spread;
+    }
+
+    /**
+     * The day this is actually due in a given month (EDGE-05).
+     *
+     * A payment day of 31 is a way of saying "the end of the month", so a month that has
+     * no 31st resolves to its last day rather than rolling into the next one — which
+     * would move the cost into a month that never planned for it. February settles on the
+     * 28th, or the 29th in a leap year.
+     */
+    public function paymentDateIn(int $month): ?CarbonImmutable
+    {
+        $day = $this->payment_day;
+
+        if ($day === null) {
+            return null;
+        }
+
+        $first = CarbonImmutable::parse(sprintf('%d-%02d-01', $this->financialYear->year, $month));
+
+        return $first->setDay(min($day, $first->daysInMonth));
     }
 }

@@ -442,7 +442,7 @@ Conventions for every item:
     the full alert list
   - Commit: `test: golden dataset for dashboard and alerts`
 
-- [ ] **m7-empty-states-and-edges** — Empty, zero and edge states across every screen
+- [x] **m7-empty-states-and-edges** — Empty, zero and edge states across every screen
   - Refs: EDGE-01, EDGE-02, EDGE-03, EDGE-04, EDGE-05, UX-06, UX-07
   - Build: `resources/js/components/finance/empty-state.tsx` applied to every list and chart
     with one next action · the setup banner used on months, comparison, cash flow, forecast and

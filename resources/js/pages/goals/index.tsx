@@ -1,5 +1,5 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { Plus, Target } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import GoalCard, { type GoalCardData } from '@/components/goals/goal-card';
 import Heading from '@/components/heading';
@@ -257,26 +257,16 @@ export default function GoalsIndex({
                     </Card>
                 )}
 
-                {goals.length === 0 ? (
-                    <div
-                        className="flex flex-col items-center gap-3 rounded-lg border border-dashed p-10 text-center"
-                        data-testid="no-goals"
-                    >
-                        <Target
-                            className="size-8 text-muted-foreground"
-                            aria-hidden="true"
-                        />
-                        <p className="text-muted-foreground">
-                            Nothing to aim at yet.
-                        </p>
-                    </div>
-                ) : (
-                    <div className="grid gap-4 lg:grid-cols-2">
-                        {goals.map((goal) => (
-                            <GoalCard key={goal.id} goal={goal} />
-                        ))}
-                    </div>
-                )}
+                {/*
+                 * No empty state here: every account is provisioned with an emergency
+                 * fund goal that cannot be archived (GOAL-01), so this list always has
+                 * at least one card in it.
+                 */}
+                <div className="grid gap-4 lg:grid-cols-2">
+                    {goals.map((goal) => (
+                        <GoalCard key={goal.id} goal={goal} />
+                    ))}
+                </div>
 
                 {archivedCount > 0 && (
                     <div className="space-y-3">

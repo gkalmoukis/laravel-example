@@ -195,6 +195,10 @@ final readonly class PlanController
                 'categoryName' => $item->category->name,
                 'frequency' => $item->frequency->value,
                 'startMonth' => $item->start_month,
+                'paymentDay' => $item->payment_day,
+                // Resolved rather than repeated: the 31st is the 28th in February, and
+                // the list should say the day the money actually leaves (EDGE-05).
+                'dueOn' => $item->paymentDateIn($item->start_month)?->toDateString(),
                 'allocation' => $item->allocation->value,
                 'isSpread' => $item->isSpread(),
                 'source' => $item->source->value,

@@ -18,6 +18,7 @@ import NetWorthTrendChart, {
 import AlertsPanel, { type AlertItem } from '@/components/finance/alerts-panel';
 import MetricCard, { MetricRows } from '@/components/finance/metric-card';
 import ProgressBar from '@/components/finance/progress-bar';
+import { SelectedYearSetupBanner } from '@/components/finance/setup-banner';
 import Heading from '@/components/heading';
 import { usePreferences } from '@/hooks/use-preferences';
 import AppLayout from '@/layouts/app-layout';
@@ -117,6 +118,8 @@ export default function Dashboard({
                     title={`${year} at a glance`}
                     description="Where the year stands, and what needs a look."
                 />
+
+                <SelectedYearSetupBanner />
 
                 <AlertsPanel alerts={alerts} />
 

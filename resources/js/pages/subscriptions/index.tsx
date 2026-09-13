@@ -1,6 +1,7 @@
 import { Head, router } from '@inertiajs/react';
 import { Plus, RefreshCw, Repeat } from 'lucide-react';
 import { useState } from 'react';
+import EmptyState from '@/components/finance/empty-state';
 import Heading from '@/components/heading';
 import SubscriptionForm, {
     type AccountOption,
@@ -164,18 +165,14 @@ export default function SubscriptionsIndex({
                 )}
 
                 {subscriptions.length === 0 ? (
-                    <div
-                        className="flex flex-col items-center gap-3 rounded-lg border border-dashed p-10 text-center"
-                        data-testid="no-subscriptions"
-                    >
-                        <Repeat
-                            className="size-8 text-muted-foreground"
-                            aria-hidden="true"
-                        />
-                        <p className="text-muted-foreground">
-                            Nothing on a schedule yet.
-                        </p>
-                    </div>
+                    <EmptyState
+                        title="Nothing on a schedule yet"
+                        message="Add what leaves your account every month and the plan will follow it."
+                        icon={Repeat}
+                        actionLabel="Add a subscription"
+                        onAction={() => setOpen('new')}
+                        testId="no-subscriptions"
+                    />
                 ) : (
                     <ul className="space-y-3">
                         {subscriptions.map((subscription) => (

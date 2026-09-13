@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { AlertTriangle } from 'lucide-react';
 import MonthStatusBadge from '@/components/finance/month-status-badge';
+import { SelectedYearSetupBanner } from '@/components/finance/setup-banner';
 import Heading from '@/components/heading';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { usePreferences } from '@/hooks/use-preferences';
@@ -46,6 +47,10 @@ export default function MonthsIndex({
                     title={`${year} month by month`}
                     description="Where each month stands, and what is left to finish."
                 />
+
+                <div className="mt-4">
+                    <SelectedYearSetupBanner />
+                </div>
 
                 <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {months.map((month) => (

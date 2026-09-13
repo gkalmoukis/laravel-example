@@ -1,4 +1,5 @@
 import { Head, router } from '@inertiajs/react';
+import { SelectedYearSetupBanner } from '@/components/finance/setup-banner';
 import VarianceRow, {
     type VarianceRowData,
 } from '@/components/finance/variance-row';
@@ -67,6 +68,8 @@ export default function ComparisonIndex({
                     title="Plan vs actual"
                     description="Where the year went to plan, and where it did not."
                 />
+
+                <SelectedYearSetupBanner />
 
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="flex gap-1 rounded-md border p-1">

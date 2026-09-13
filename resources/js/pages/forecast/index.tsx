@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { AlertTriangle } from 'lucide-react';
+import { SelectedYearSetupBanner } from '@/components/finance/setup-banner';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -137,6 +138,8 @@ export default function ForecastIndex({
                     title="Forecast"
                     description="Where the year ends up if the rest of it goes to plan."
                 />
+
+                <SelectedYearSetupBanner />
 
                 <dl className="grid gap-4 rounded-lg border p-4 sm:grid-cols-2 lg:grid-cols-4">
                     <div>

@@ -3,6 +3,7 @@ import BalanceChart, {
     type BalancePoint,
 } from '@/components/finance/balance-chart';
 import ChartDataTable from '@/components/finance/chart-data-table';
+import { SelectedYearSetupBanner } from '@/components/finance/setup-banner';
 import Heading from '@/components/heading';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -84,6 +85,8 @@ export default function CashFlowIndex({
                     title="Cash flow"
                     description="What the balance does over the year — and whether it ever runs out."
                 />
+
+                <SelectedYearSetupBanner />
 
                 <dl className="grid gap-4 rounded-lg border p-4 sm:grid-cols-4">
                     <div>
