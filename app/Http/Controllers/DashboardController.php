@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Actions\BuildDashboard;
+use App\Actions\BuildDashboardCharts;
 use App\Actions\ResolveSelectedYear;
 use App\Data\Alert;
 use App\Data\DashboardData;
 use App\Models\FinancialYear;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -23,7 +25,10 @@ use Inertia\Response;
  */
 final readonly class DashboardController
 {
-    public function __construct(private ResolveSelectedYear $selectedYear) {}
+    public function __construct(
+        private ResolveSelectedYear $selectedYear,
+        private BuildDashboardCharts $charts,
+    ) {}
 
     public function index(#[CurrentUser] User $user, BuildDashboard $dashboard): RedirectResponse|Response
     {
@@ -35,7 +40,32 @@ final readonly class DashboardController
             return to_route('financial-years.create');
         }
 
-        return Inertia::render('dashboard', $this->props($dashboard->handle($year, $user->today())));
+        $today = $user->today();
+
+        return Inertia::render('dashboard', [
+            ...$this->props($dashboard->handle($year, $today)),
+            ...$this->charts($year, $today),
+        ]);
+    }
+
+    /**
+     * The charts, each fetched after the page has painted (DASH-04, FE-08).
+     *
+     * Every one of them walks the whole year's figures, so loading them with the cards
+     * would hold the first useful screen behind five calculations the user has not looked
+     * at yet. Separate props rather than one, so a slow chart never delays the rest.
+     *
+     * @return array<string, mixed>
+     */
+    private function charts(FinancialYear $year, CarbonImmutable $today): array
+    {
+        return [
+            'closingBalance' => Inertia::defer(fn (): array => $this->charts->closingBalance($year, $today)),
+            'expensesByCategory' => Inertia::defer(fn (): array => $this->charts->expensesByCategory($year, $today)),
+            'incomeAndExpenses' => Inertia::defer(fn (): array => $this->charts->incomeAndExpenses($year)),
+            'netWorthTrend' => Inertia::defer(fn (): array => $this->charts->netWorthTrend($year)),
+            'goalsProgress' => Inertia::defer(fn (): array => $this->charts->goalsProgress($year, $today)),
+        ];
     }
 
     /**

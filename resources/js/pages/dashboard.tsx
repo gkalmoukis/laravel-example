@@ -1,4 +1,20 @@
-import { Head, type InertiaLinkProps, Link } from '@inertiajs/react';
+import { Deferred, Head, type InertiaLinkProps, Link } from '@inertiajs/react';
+import { ChartSkeleton } from '@/components/dashboard/chart-card';
+import ClosingBalanceChart, {
+    type ClosingBalancePoint,
+} from '@/components/dashboard/closing-balance-chart';
+import ExpensesByCategoryChart, {
+    type ExpensesByCategory,
+} from '@/components/dashboard/expenses-by-category-chart';
+import GoalsProgressChart, {
+    type GoalBar,
+} from '@/components/dashboard/goals-progress-chart';
+import IncomeExpenseChart, {
+    type MonthFlow,
+} from '@/components/dashboard/income-expense-chart';
+import NetWorthTrendChart, {
+    type NetWorthTrendPoint,
+} from '@/components/dashboard/net-worth-trend-chart';
 import AlertsPanel, { type AlertItem } from '@/components/finance/alerts-panel';
 import MetricCard, { MetricRows } from '@/components/finance/metric-card';
 import ProgressBar from '@/components/finance/progress-bar';
@@ -47,6 +63,13 @@ type Props = {
     completedMonths: number;
     transactionIssues: number;
     alerts: AlertItem[];
+
+    // Deferred: absent on the first response, and along a moment later (DASH-04, FE-08).
+    closingBalance?: ClosingBalancePoint[];
+    expensesByCategory?: ExpensesByCategory;
+    incomeAndExpenses?: MonthFlow[];
+    netWorthTrend?: NetWorthTrendPoint[];
+    goalsProgress?: GoalBar[];
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -77,8 +100,13 @@ export default function Dashboard({
     completedMonths,
     transactionIssues,
     alerts,
+    closingBalance,
+    expensesByCategory,
+    incomeAndExpenses,
+    netWorthTrend,
+    goalsProgress,
 }: Props) {
-    const { formatMoney } = usePreferences();
+    const { formatMoney, formatLocale } = usePreferences();
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -255,8 +283,73 @@ export default function Dashboard({
                         />
                     )}
                 </div>
+
+                {/* DASH-04: each chart arrives on its own, behind its own skeleton. */}
+                <div className="grid gap-4 xl:grid-cols-2">
+                    <Deferred
+                        data="closingBalance"
+                        fallback={<ChartSkeleton title="Closing balance" />}
+                    >
+                        <ClosingBalanceChart
+                            points={closingBalance ?? []}
+                            year={year}
+                        />
+                    </Deferred>
+
+                    <Deferred
+                        data="expensesByCategory"
+                        fallback={
+                            <ChartSkeleton title="Where the money went" />
+                        }
+                    >
+                        <ExpensesByCategoryChart
+                            data={expensesByCategory ?? { month: 1, rows: [] }}
+                            monthLabel={monthName(
+                                expensesByCategory?.month ?? 1,
+                                formatLocale,
+                            )}
+                        />
+                    </Deferred>
+
+                    <Deferred
+                        data="incomeAndExpenses"
+                        fallback={<ChartSkeleton title="Month by month" />}
+                    >
+                        <IncomeExpenseChart
+                            points={incomeAndExpenses ?? []}
+                            year={year}
+                        />
+                    </Deferred>
+
+                    <Deferred
+                        data="netWorthTrend"
+                        fallback={<ChartSkeleton title="Net worth" />}
+                    >
+                        <NetWorthTrendChart
+                            points={netWorthTrend ?? []}
+                            year={year}
+                        />
+                    </Deferred>
+
+                    <Deferred
+                        data="goalsProgress"
+                        fallback={<ChartSkeleton title="Goals" />}
+                    >
+                        <GoalsProgressChart goals={goalsProgress ?? []} />
+                    </Deferred>
+                </div>
             </div>
         </AppLayout>
+    );
+}
+
+/**
+ * "March" — the month the expenses chart is showing, written out because it is read as a
+ * sentence rather than an axis label.
+ */
+function monthName(month: number, locale: string): string {
+    return new Intl.DateTimeFormat(locale, { month: 'long' }).format(
+        new Date(2000, month - 1, 1),
     );
 }
 

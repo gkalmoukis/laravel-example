@@ -415,7 +415,7 @@ Conventions for every item:
   - Tests: `tests/Feature/Dashboard/DashboardControllerTest.php`
   - Commit: `feat: dashboard cards`
 
-- [ ] **m7-dashboard-charts** — Five lazily loaded charts
+- [x] **m7-dashboard-charts** — Five lazily loaded charts
   - Refs: DASH-04, DASH-05, FE-08, NFR-04
   - Build: `Inertia::defer()` prop per chart from `DashboardController` ·
     `resources/js/components/dashboard/{closing-balance-chart,expenses-by-category-chart,income-expense-chart,net-worth-trend-chart,goals-progress-chart}.tsx`,

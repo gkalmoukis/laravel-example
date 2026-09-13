@@ -209,3 +209,19 @@ it('reads the cash flow on a phone', function (): void {
         ->assertNoJavascriptErrors()
         ->assertNoConsoleLogs();
 });
+
+it('loads the dashboard charts after the figures', function (): void {
+    [$user, $year] = userWithYear((int) date('Y'));
+
+    // Each chart is a deferred prop, so the page paints first and they arrive after
+    // their skeletons (DASH-04, FE-08).
+    $this->actingAs($user)
+        ->visit('/dashboard')
+        ->assertSee('Available now')
+        ->assertSee('Closing balance')
+        ->assertSee('Month by month')
+        ->assertSee('Net worth')
+        ->assertSee('Goals')
+        ->assertNoJavascriptErrors()
+        ->assertNoConsoleLogs();
+});

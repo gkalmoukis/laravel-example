@@ -46,3 +46,13 @@ export function formatDayAndMonth(isoDate: string, locale: string): string {
         month: 'long',
     }).format(new Date(year, month - 1, day));
 }
+
+/**
+ * "Mar" — the short month name in the viewer's locale, for chart axes and table rows
+ * where the full name would not fit.
+ */
+export function shortMonth(month: number, locale: string): string {
+    return new Intl.DateTimeFormat(locale, { month: 'short' }).format(
+        new Date(2000, month - 1, 1),
+    );
+}
