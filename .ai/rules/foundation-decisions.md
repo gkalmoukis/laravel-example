@@ -99,3 +99,16 @@ machine wants a different number.
 
 Expect to revisit this as browser tests grow. If flakiness returns, lower the worker count
 before touching any assertion.
+
+## Overlays do not nest on a phone
+
+The category picker is a popover on a desktop and part of the form on a phone. A popover
+inside the quick-add sheet renders its options where they can be seen but not clicked, and
+on a 375px screen a second floating layer over a sheet is the wrong shape anyway.
+
+The desktop popover needs `modal` for the same underlying reason: without it the popover
+portals outside the dialog, where the dialog's own `pointer-events: none` guard applies.
+
+Anything bulk or selection-related needs its own control in the mobile card list. The
+desktop table header is hidden below 768px, so a control that lives only there — select-all
+was the first — quietly becomes desktop-only.

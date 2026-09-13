@@ -112,7 +112,7 @@ Conventions for every item:
   - Tests: `tests/Feature/Transactions/RecategorizeTransactionsTest.php`
   - Commit: `feat: bulk recategorise transactions`
 
-- [ ] **m3-transaction-browser-tests** — Browser coverage for the fifteen-second path <!-- gate -->
+- [x] **m3-transaction-browser-tests** — Browser coverage for the fifteen-second path <!-- gate -->
   - Refs: TST-04 (quick add slice), TST-05, UX-10, NFR-06
   - Build: `tests/Browser/TransactionsTest.php`
   - Tests: common path in ≤6 interactions (open, amount, pick category, description, save) ·

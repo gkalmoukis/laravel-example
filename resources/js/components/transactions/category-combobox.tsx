@@ -14,6 +14,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import type {
     CategoryChoice,
@@ -49,9 +50,13 @@ function entriesFor(category: QuickAddCategory): Entry[] {
 }
 
 /**
- * `modal` on the Popover is load-bearing: the combobox lives inside the quick-add dialog,
- * and a non-modal popover portals out to the body, where the dialog's own
- * `pointer-events: none` guard leaves the options visible but unclickable.
+ * On a desktop this is a combobox in a popover; on a phone the quick-add form is already a
+ * sheet, so the list is part of the form rather than a second layer floating over a small
+ * screen. Nesting one overlay inside another also leaves the options visible but
+ * unclickable, which is a poor way to discover a layout decision.
+ *
+ * `modal` on the Popover is load-bearing for the desktop case: without it the popover
+ * portals outside the dialog, where the dialog's own `pointer-events: none` guard applies.
  */
 export default function CategoryCombobox({
     options,
@@ -67,6 +72,7 @@ export default function CategoryCombobox({
     invalid?: boolean;
 }) {
     const [open, setOpen] = useState(false);
+    const isMobile = useIsMobile();
 
     const { habits, rest } = useMemo(() => {
         const ofType = options.categories.filter(
@@ -96,6 +102,71 @@ export default function CategoryCombobox({
         setOpen(false);
     };
 
+    const ticked = (entry: Entry) =>
+        value?.categoryId === entry.categoryId &&
+        value.subcategoryId === entry.subcategoryId;
+
+    const list = (
+        <Command>
+            <CommandInput id="category-search" placeholder="Type a category…" />
+            <CommandList>
+                <CommandEmpty>No category matches.</CommandEmpty>
+
+                {habits.length > 0 && (
+                    <CommandGroup heading="You use these most">
+                        {habits.map((entry) => (
+                            <CommandItem
+                                key={`habit-${entry.categoryId}`}
+                                value={entry.keywords}
+                                onSelect={() => choose(entry)}
+                            >
+                                <Check
+                                    className={cn(
+                                        'size-4',
+                                        ticked(entry)
+                                            ? 'opacity-100'
+                                            : 'opacity-0',
+                                    )}
+                                />
+                                {entry.label}
+                            </CommandItem>
+                        ))}
+                    </CommandGroup>
+                )}
+
+                <CommandGroup heading="All categories">
+                    {rest.map((entry) => (
+                        <CommandItem
+                            key={`${entry.categoryId}-${entry.subcategoryId ?? 'none'}`}
+                            value={entry.keywords}
+                            onSelect={() => choose(entry)}
+                        >
+                            <Check
+                                className={cn(
+                                    'size-4',
+                                    ticked(entry) ? 'opacity-100' : 'opacity-0',
+                                )}
+                            />
+                            {entry.label}
+                        </CommandItem>
+                    ))}
+                </CommandGroup>
+            </CommandList>
+        </Command>
+    );
+
+    if (isMobile) {
+        return (
+            <div
+                className="rounded-md border"
+                data-testid="category-combobox"
+                aria-invalid={invalid}
+            >
+                {list}
+            </div>
+        );
+    }
+
     return (
         <Popover open={open} onOpenChange={setOpen} modal>
             <PopoverTrigger asChild>
@@ -121,62 +192,7 @@ export default function CategoryCombobox({
                 className="w-(--radix-popover-trigger-width) p-0"
                 align="start"
             >
-                <Command>
-                    <CommandInput
-                        id="category-search"
-                        placeholder="Type a category…"
-                    />
-                    <CommandList>
-                        <CommandEmpty>No category matches.</CommandEmpty>
-
-                        {habits.length > 0 && (
-                            <CommandGroup heading="You use these most">
-                                {habits.map((entry) => (
-                                    <CommandItem
-                                        key={`habit-${entry.categoryId}`}
-                                        value={entry.keywords}
-                                        onSelect={() => choose(entry)}
-                                    >
-                                        <Check
-                                            className={cn(
-                                                'size-4',
-                                                value?.categoryId ===
-                                                    entry.categoryId &&
-                                                    value.subcategoryId === null
-                                                    ? 'opacity-100'
-                                                    : 'opacity-0',
-                                            )}
-                                        />
-                                        {entry.label}
-                                    </CommandItem>
-                                ))}
-                            </CommandGroup>
-                        )}
-
-                        <CommandGroup heading="All categories">
-                            {rest.map((entry) => (
-                                <CommandItem
-                                    key={`${entry.categoryId}-${entry.subcategoryId ?? 'none'}`}
-                                    value={entry.keywords}
-                                    onSelect={() => choose(entry)}
-                                >
-                                    <Check
-                                        className={cn(
-                                            'size-4',
-                                            value?.categoryId ===
-                                                entry.categoryId &&
-                                                value.subcategoryId ===
-                                                    entry.subcategoryId
-                                                ? 'opacity-100'
-                                                : 'opacity-0',
-                                        )}
-                                    />
-                                    {entry.label}
-                                </CommandItem>
-                            ))}
-                        </CommandGroup>
-                    </CommandList>
-                </Command>
+                {list}
             </PopoverContent>
         </Popover>
     );

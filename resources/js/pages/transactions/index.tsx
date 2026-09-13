@@ -255,6 +255,25 @@ export default function TransactionsIndex({
                         </div>
 
                         <div className="space-y-2 md:hidden">
+                            {/*
+                             * Select-all lives in the table header on a desktop, which is
+                             * hidden here — so the card list carries its own, or bulk
+                             * refiling would be desktop-only (TXL-04, NFR-06).
+                             */}
+                            <label className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm">
+                                <Checkbox
+                                    checked={allSelected}
+                                    onCheckedChange={(checked) =>
+                                        setSelectedIds(
+                                            checked === true ? pageIds : [],
+                                        )
+                                    }
+                                    aria-label="Select all on this page"
+                                    data-testid="select-all-cards"
+                                />
+                                Select all on this page
+                            </label>
+
                             {transactions.map((row) => (
                                 <TransactionCard
                                     key={row.id}
