@@ -129,7 +129,12 @@ One line, nothing else:
   but passes alone — especially if a *different* one fails each run — lower
   `PEST_PROCESSES` (default 3) rather than touching the test. Never raise a timeout or weaken
   an assertion to chase it.
-- The full gate is slow enough to exceed Composer's 300s process timeout; run it as
+- The full gate can exceed Composer's 300s process timeout; run it as
   `vendor/bin/sail exec -e COMPOSER_PROCESS_TIMEOUT=0 laravel.test composer test:unit`.
+- **An interrupted browser run leaves Chromium behind.** If the gate suddenly takes minutes
+  instead of under a minute, check `uptime` and
+  `vendor/bin/sail exec laravel.test sh -c "ps aux | grep -c '[p]laywright'"`. Clear them with
+  `vendor/bin/sail exec laravel.test sh -c "pkill -f playwright || true"` and wait for the load
+  average to settle before trusting any result — a saturated machine fails tests that are fine.
 - **Three failed attempts** at getting a check green → mark the item `[!]` with the failure
   summarised in one line, commit only that backlog edit as `chore: block <id>`, and stop.

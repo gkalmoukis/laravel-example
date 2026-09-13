@@ -2,6 +2,7 @@ import { CalendarClock } from 'lucide-react';
 import IssueBadge from '@/components/transactions/issue-badge';
 import TransactionActions from '@/components/transactions/transaction-actions';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { usePreferences } from '@/hooks/use-preferences';
 import { cn } from '@/lib/utils';
@@ -50,14 +51,29 @@ function Meta({ row, today }: { row: Row; today: string }) {
 export function TransactionTableRow({
     row,
     today,
+    selected,
+    onSelect,
 }: {
     row: Row;
     today: string;
+    selected: boolean;
+    onSelect: (checked: boolean) => void;
 }) {
     const { formatDate } = usePreferences();
 
     return (
-        <TableRow data-testid="transaction-row">
+        <TableRow
+            data-testid="transaction-row"
+            data-state={selected ? 'selected' : undefined}
+        >
+            <TableCell className="w-10">
+                <Checkbox
+                    checked={selected}
+                    onCheckedChange={(checked) => onSelect(checked === true)}
+                    aria-label={`Select ${row.description}`}
+                    data-testid={`select-${row.id}`}
+                />
+            </TableCell>
             <TableCell className="whitespace-nowrap tabular-nums">
                 {formatDate(row.occurredOn)}
             </TableCell>
@@ -88,13 +104,33 @@ export function TransactionTableRow({
  * The same row on a phone. Five columns do not fit at 375 px, so the row becomes a card
  * rather than something the user has to scroll sideways through (UX-13).
  */
-export function TransactionCard({ row, today }: { row: Row; today: string }) {
+export function TransactionCard({
+    row,
+    today,
+    selected,
+    onSelect,
+}: {
+    row: Row;
+    today: string;
+    selected: boolean;
+    onSelect: (checked: boolean) => void;
+}) {
     const { formatDate } = usePreferences();
 
     return (
         <div className="rounded-lg border p-3" data-testid="transaction-card">
             <div className="flex items-start justify-between gap-3">
-                <span className="font-medium">{row.description}</span>
+                <span className="flex items-center gap-2 font-medium">
+                    <Checkbox
+                        checked={selected}
+                        onCheckedChange={(checked) =>
+                            onSelect(checked === true)
+                        }
+                        aria-label={`Select ${row.description}`}
+                        data-testid={`select-card-${row.id}`}
+                    />
+                    {row.description}
+                </span>
                 <div className="flex items-center gap-1">
                     <Amount row={row} />
                     <TransactionActions row={row} />

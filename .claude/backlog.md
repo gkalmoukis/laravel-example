@@ -100,7 +100,7 @@ Conventions for every item:
   - Tests: extend `tests/Feature/Transactions/TransactionControllerTest.php`
   - Commit: `feat: edit, duplicate and delete transactions`
 
-- [ ] **m3-bulk-recategorise** — Changing the category of many transactions at once
+- [x] **m3-bulk-recategorise** — Changing the category of many transactions at once
   - Refs: TXL-04
   - Build: `app/Actions/RecategorizeTransactions.php` returning updated and skipped counts with
     reasons · `app/Http/Requests/UpdateTransactionCategoryRequest.php` ·

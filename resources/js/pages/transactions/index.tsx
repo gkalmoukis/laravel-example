@@ -1,12 +1,15 @@
 import { Head, Link } from '@inertiajs/react';
 import { Receipt } from 'lucide-react';
+import { useState } from 'react';
 import Heading from '@/components/heading';
+import BulkActionsBar from '@/components/transactions/bulk-actions-bar';
 import TransactionFilters from '@/components/transactions/transaction-filters';
 import {
     TransactionCard,
     TransactionTableRow,
 } from '@/components/transactions/transaction-row';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Table,
     TableBody,
@@ -147,6 +150,22 @@ export default function TransactionsIndex({
     const { today } = usePreferences();
     const todayIso = today();
 
+    const [selectedIds, setSelectedIds] = useState<number[]>([]);
+
+    const toggle = (id: number, checked: boolean) => {
+        setSelectedIds((current) =>
+            checked
+                ? [...current, id]
+                : current.filter((selected) => selected !== id),
+        );
+    };
+
+    // "Select all" means all on this page, not every row the filter matches — selecting
+    // rows the user cannot see would make the count meaningless (TXL-04).
+    const pageIds = transactions.map((row) => row.id);
+    const allSelected =
+        pageIds.length > 0 && pageIds.every((id) => selectedIds.includes(id));
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Transactions" />
@@ -158,6 +177,12 @@ export default function TransactionsIndex({
                 />
 
                 <TransactionFilters filters={filters} options={options} />
+
+                <BulkActionsBar
+                    selectedIds={selectedIds}
+                    options={options}
+                    onDone={() => setSelectedIds([])}
+                />
 
                 {transactions.length === 0 ? (
                     <div
@@ -183,6 +208,20 @@ export default function TransactionsIndex({
                             <Table>
                                 <TableHeader>
                                     <TableRow>
+                                        <TableHead className="w-10">
+                                            <Checkbox
+                                                checked={allSelected}
+                                                onCheckedChange={(checked) =>
+                                                    setSelectedIds(
+                                                        checked === true
+                                                            ? pageIds
+                                                            : [],
+                                                    )
+                                                }
+                                                aria-label="Select all on this page"
+                                                data-testid="select-all"
+                                            />
+                                        </TableHead>
                                         <TableHead>Date</TableHead>
                                         <TableHead>Description</TableHead>
                                         <TableHead>Category</TableHead>
@@ -203,6 +242,12 @@ export default function TransactionsIndex({
                                             key={row.id}
                                             row={row}
                                             today={todayIso}
+                                            selected={selectedIds.includes(
+                                                row.id,
+                                            )}
+                                            onSelect={(checked) =>
+                                                toggle(row.id, checked)
+                                            }
                                         />
                                     ))}
                                 </TableBody>
@@ -215,6 +260,10 @@ export default function TransactionsIndex({
                                     key={row.id}
                                     row={row}
                                     today={todayIso}
+                                    selected={selectedIds.includes(row.id)}
+                                    onSelect={(checked) =>
+                                        toggle(row.id, checked)
+                                    }
                                 />
                             ))}
                         </div>

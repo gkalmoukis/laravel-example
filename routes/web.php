@@ -18,6 +18,7 @@ use App\Http\Controllers\PreferencesController;
 use App\Http\Controllers\SalaryModelController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\SubcategoryParentController;
+use App\Http\Controllers\TransactionCategoryController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserEmailResetNotificationController;
@@ -104,6 +105,9 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     // contains its date, and may be recorded before that year exists (TXQ-08).
     Route::get('transactions', [TransactionController::class, 'index'])->name('transactions.index');
     Route::post('transactions', [TransactionController::class, 'store'])->name('transactions.store');
+    // Registered on its own path rather than under transactions/ so it can never be
+    // mistaken for a transaction id by the binding above.
+    Route::patch('transaction-category', [TransactionCategoryController::class, 'update'])->name('transaction-category.update');
     Route::patch('transactions/{transaction}', [TransactionController::class, 'update'])->name('transactions.update');
     Route::delete('transactions/{transaction}', [TransactionController::class, 'destroy'])->name('transactions.destroy');
 
