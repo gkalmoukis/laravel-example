@@ -145,7 +145,12 @@ export default function YearSetup(props: Props) {
                     {step === 'review' && <ReviewStep {...props} />}
                 </div>
 
-                <div className="mt-10 flex items-center justify-between gap-4 border-t pt-6">
+                {/*
+                 * The quick-add button floats over the bottom-right corner on a phone,
+                 * which is exactly where Next sits. The extra space below puts the
+                 * wizard's own navigation clear of it (UX-13, NFR-06).
+                 */}
+                <div className="mt-10 flex items-center justify-between gap-4 border-t pt-6 pb-24 md:pb-0">
                     {previousStep ? (
                         <Button variant="ghost" asChild>
                             <Link

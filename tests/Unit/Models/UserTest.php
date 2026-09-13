@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\User;
+use App\Models\UserPreference;
 
 test('to array', function (): void {
     $user = User::factory()->create()->refresh();
@@ -18,4 +19,16 @@ test('to array', function (): void {
             'created_at',
             'updated_at',
         ]);
+});
+
+it('always has preferences to read', function (): void {
+    $provisioned = planningUser();
+
+    expect($provisioned->preferences()->emergency_fund_months)
+        ->toBe(UserPreference::DEFAULT_EMERGENCY_FUND_MONTHS);
+
+    // An account that exists before provisioning has finished still answers, with the
+    // documented defaults rather than a null dereference.
+    expect(User::factory()->create()->preferences()->emergency_fund_months)
+        ->toBe(UserPreference::DEFAULT_EMERGENCY_FUND_MONTHS);
 });

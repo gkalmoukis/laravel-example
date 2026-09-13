@@ -98,6 +98,8 @@ final readonly class PlanController
 
         $rows = [];
 
+        $subscriptionNames = $this->activeSubscriptionNames($year);
+
         foreach ($this->expenseCategories($year) as $category) {
             $ofCategory = $items->where('category_id', $category->id);
 
@@ -118,6 +120,7 @@ final readonly class PlanController
                 // the sum and cannot be edited in place (BUD-03).
                 'isEditable' => $this->budgetCell->isEditable($year, $category),
                 'itemCount' => $ofCategory->count(),
+                'doubleCounts' => $this->doubleCounts($ofCategory, $subscriptionNames),
             ];
         }
 
@@ -192,6 +195,10 @@ final readonly class PlanController
                 'categoryName' => $item->category->name,
                 'frequency' => $item->frequency->value,
                 'startMonth' => $item->start_month,
+                'paymentDay' => $item->payment_day,
+                // Resolved rather than repeated: the 31st is the 28th in February, and
+                // the list should say the day the money actually leaves (EDGE-05).
+                'dueOn' => $item->paymentDateIn($item->start_month)?->toDateString(),
                 'allocation' => $item->allocation->value,
                 'isSpread' => $item->isSpread(),
                 'source' => $item->source->value,
@@ -222,6 +229,50 @@ final readonly class PlanController
                 'isIrregular' => $category->is_irregular,
             ])
             ->all();
+    }
+
+    /**
+     * Manual plan items that name something already planned by a subscription (SUB-05).
+     *
+     * A subscription plans itself, so a hand-written item of the same name in the same
+     * category is almost certainly the same cost entered twice. Matched on the name alone
+     * and case-insensitively, because that is how a person would notice it themselves.
+     *
+     * @param  Collection<int, PlanItem>  $items
+     * @param  array<string, string>  $subscriptionNames  lowercased name => name as typed
+     * @return list<string>
+     */
+    private function doubleCounts(Collection $items, array $subscriptionNames): array
+    {
+        $names = [];
+
+        foreach ($items as $item) {
+            if (! $item->isManual()) {
+                continue;
+            }
+
+            $match = $subscriptionNames[mb_strtolower($item->name)] ?? null;
+
+            if ($match !== null && ! in_array($match, $names, true)) {
+                $names[] = $match;
+            }
+        }
+
+        return $names;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function activeSubscriptionNames(FinancialYear $year): array
+    {
+        $names = [];
+
+        foreach ($year->user->subscriptions()->where('is_active', true)->get() as $subscription) {
+            $names[mb_strtolower($subscription->name)] = $subscription->name;
+        }
+
+        return $names;
     }
 
     /**

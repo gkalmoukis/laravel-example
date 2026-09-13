@@ -4,12 +4,24 @@ declare(strict_types=1);
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\BudgetCellController;
+use App\Http\Controllers\CashFlowController;
 use App\Http\Controllers\CategoryActivationController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ComparisonController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EmergencyFundController;
 use App\Http\Controllers\FinancialYearController;
+use App\Http\Controllers\ForecastController;
+use App\Http\Controllers\GoalArchiveController;
+use App\Http\Controllers\GoalController;
 use App\Http\Controllers\InvitationAcceptanceController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\InvitationResendController;
+use App\Http\Controllers\MonthCompletionController;
+use App\Http\Controllers\MonthController;
+use App\Http\Controllers\NetWorthController;
+use App\Http\Controllers\NetWorthItemController;
+use App\Http\Controllers\NetWorthSnapshotController;
 use App\Http\Controllers\OpeningPositionController;
 use App\Http\Controllers\PlanBaselineController;
 use App\Http\Controllers\PlanController;
@@ -18,6 +30,10 @@ use App\Http\Controllers\PreferencesController;
 use App\Http\Controllers\SalaryModelController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\SubcategoryParentController;
+use App\Http\Controllers\SubscriptionActivationController;
+use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\TransactionCategoryController;
+use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserEmailResetNotificationController;
 use App\Http\Controllers\UserEmailVerificationController;
@@ -36,7 +52,7 @@ Route::get('/', fn () => Inertia::render('welcome'))->name('home');
 // the only authenticated routes outside this group are the ones a user must be able to
 // reach *before* verifying, plus logout.
 Route::middleware(['auth', 'verified'])->group(function (): void {
-    Route::get('dashboard', fn () => Inertia::render('dashboard'))->name('dashboard');
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // User...
     Route::delete('user', [UserController::class, 'destroy'])->name('user.destroy');
@@ -84,6 +100,51 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::patch('years/{year}/plan-items/{planItem}', [PlanItemController::class, 'update'])->name('plan-items.update');
     Route::delete('years/{year}/plan-items/{planItem}', [PlanItemController::class, 'destroy'])->name('plan-items.destroy');
     Route::patch('years/{year}/budget-cell', [BudgetCellController::class, 'update'])->name('budget-cell.update');
+
+    // Transactions. Not scoped to a year: a transaction belongs to whichever year
+    // contains its date, and may be recorded before that year exists (TXQ-08).
+    Route::get('transactions', [TransactionController::class, 'index'])->name('transactions.index');
+    Route::post('transactions', [TransactionController::class, 'store'])->name('transactions.store');
+    // Registered on its own path rather than under transactions/ so it can never be
+    // mistaken for a transaction id by the binding above.
+    Route::patch('transaction-category', [TransactionCategoryController::class, 'update'])->name('transaction-category.update');
+    Route::patch('transactions/{transaction}', [TransactionController::class, 'update'])->name('transactions.update');
+    Route::delete('transactions/{transaction}', [TransactionController::class, 'destroy'])->name('transactions.destroy');
+
+    // Months...
+    Route::get('years/{year}/months', [MonthController::class, 'index'])->name('months.index');
+    Route::get('years/{year}/months/{month}', [MonthController::class, 'show'])->name('months.show');
+    Route::post('years/{year}/months/{month}/completion', [MonthCompletionController::class, 'store'])->name('month-completion.store');
+    Route::delete('years/{year}/months/{month}/completion', [MonthCompletionController::class, 'destroy'])->name('month-completion.destroy');
+    Route::patch('years/{year}/months/{month}/net-worth', [NetWorthSnapshotController::class, 'update'])->name('net-worth-snapshots.update');
+
+    // Goals. The emergency fund has its own path and is registered before any
+    // /goals/{goal} route, so the word is never read as an id (EF-01).
+    Route::get('goals/emergency-fund', [EmergencyFundController::class, 'show'])->name('emergency-fund.show');
+    Route::patch('goals/emergency-fund', [EmergencyFundController::class, 'update'])->name('emergency-fund.update');
+    Route::get('goals', [GoalController::class, 'index'])->name('goals.index');
+    Route::post('goals', [GoalController::class, 'store'])->name('goals.store');
+    Route::patch('goals/{goal}', [GoalController::class, 'update'])->name('goals.update');
+    Route::post('goals/{goal}/archive', [GoalArchiveController::class, 'store'])->name('goal-archive.store');
+    Route::delete('goals/{goal}/archive', [GoalArchiveController::class, 'destroy'])->name('goal-archive.destroy');
+
+    // Subscriptions...
+    Route::get('subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions.index');
+    Route::post('subscriptions', [SubscriptionController::class, 'store'])->name('subscriptions.store');
+    Route::patch('subscriptions/{subscription}', [SubscriptionController::class, 'update'])->name('subscriptions.update');
+    Route::post('subscriptions/{subscription}/activation', [SubscriptionActivationController::class, 'store'])->name('subscription-activation.store');
+    Route::delete('subscriptions/{subscription}/activation', [SubscriptionActivationController::class, 'destroy'])->name('subscription-activation.destroy');
+
+    // Net worth...
+    Route::get('net-worth', [NetWorthController::class, 'index'])->name('net-worth.index');
+    Route::post('net-worth/items', [NetWorthItemController::class, 'store'])->name('net-worth-items.store');
+    Route::patch('net-worth/items/{netWorthItem}', [NetWorthItemController::class, 'update'])->name('net-worth-items.update');
+    Route::delete('net-worth/items/{netWorthItem}', [NetWorthItemController::class, 'destroy'])->name('net-worth-items.destroy');
+
+    // Reports...
+    Route::get('years/{year}/comparison', [ComparisonController::class, 'index'])->name('comparison.index');
+    Route::get('years/{year}/cash-flow', [CashFlowController::class, 'index'])->name('cash-flow.index');
+    Route::get('years/{year}/forecast', [ForecastController::class, 'index'])->name('forecast.index');
 
     // Preferences...
     Route::get('settings/preferences', [PreferencesController::class, 'edit'])->name('preferences.edit');

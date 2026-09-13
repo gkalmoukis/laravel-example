@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\Account;
+use App\Models\FinancialYear;
 use App\Models\User;
 
 function validPreferences(array $overrides = []): array
@@ -94,6 +95,8 @@ it('never lets currency or the financial year start be changed', function (): vo
 
 it('shares the new formatting on the very next request', function (): void {
     $user = User::factory()->create();
+
+    FinancialYear::factory()->for($user)->create();
 
     $this->actingAs($user)
         ->get(route('dashboard'))

@@ -1,5 +1,5 @@
 import { usePage } from '@inertiajs/react';
-import { formatDate, todayIn } from '@/lib/dates';
+import { formatDate, formatDayAndMonth, todayIn } from '@/lib/dates';
 import { formatAmount, formatMoney } from '@/lib/money';
 
 const fallback = {
@@ -24,6 +24,8 @@ export function usePreferences() {
             formatAmount(cents, resolved.formatLocale),
         formatDate: (isoDate: string) =>
             formatDate(isoDate, resolved.formatLocale),
+        formatDayAndMonth: (isoDate: string) =>
+            formatDayAndMonth(isoDate, resolved.formatLocale),
         today: () => todayIn(resolved.timezone),
     };
 }

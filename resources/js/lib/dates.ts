@@ -29,3 +29,30 @@ export function todayIn(timezone: string): string {
         day: '2-digit',
     }).format(new Date());
 }
+
+/**
+ * "3 March" — the way a person says a date out loud, for confirmation copy where a full
+ * numeric date would read like a form field rather than a question (TXF-03).
+ */
+export function formatDayAndMonth(isoDate: string, locale: string): string {
+    const [year, month, day] = isoDate.slice(0, 10).split('-').map(Number);
+
+    if (!year || !month || !day) {
+        return isoDate;
+    }
+
+    return new Intl.DateTimeFormat(locale, {
+        day: 'numeric',
+        month: 'long',
+    }).format(new Date(year, month - 1, day));
+}
+
+/**
+ * "Mar" — the short month name in the viewer's locale, for chart axes and table rows
+ * where the full name would not fit.
+ */
+export function shortMonth(month: number, locale: string): string {
+    return new Intl.DateTimeFormat(locale, { month: 'short' }).format(
+        new Date(2000, month - 1, 1),
+    );
+}

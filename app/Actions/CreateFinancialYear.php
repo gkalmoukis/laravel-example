@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\DB;
  */
 final readonly class CreateFinancialYear
 {
+    public function __construct(private SyncSubscriptionPlanItems $subscriptionPlanItems) {}
+
     /**
      * Whether a year is inside the span the application offers (YEAR-01).
      */
@@ -43,6 +45,10 @@ final readonly class CreateFinancialYear
             $financialYear = $user->financialYears()->create(['year' => $year]);
 
             $this->seedOpeningPosition($user, $financialYear);
+
+            // A year opens already knowing what the standing charges will cost it
+            // (SUB-04, YEAR-03).
+            $this->subscriptionPlanItems->handle($financialYear);
 
             return $financialYear;
         });

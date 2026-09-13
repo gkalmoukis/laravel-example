@@ -1,4 +1,5 @@
 import { router } from '@inertiajs/react';
+import { TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
 import BudgetCellController from '@/actions/App/Http/Controllers/BudgetCellController';
 import Money from '@/components/planning/money';
@@ -34,6 +35,7 @@ type Row = {
     annualCents: number;
     isEditable: boolean;
     itemCount: number;
+    doubleCounts: string[];
 };
 
 type Props = {
@@ -148,6 +150,8 @@ function Grid({
                         <TableRow key={row.categoryId}>
                             <TableCell className="font-medium">
                                 {row.categoryName}
+
+                                <DoubleCountWarning row={row} />
 
                                 {!row.isEditable && (
                                     <Tooltip>
@@ -267,6 +271,8 @@ function MonthlyView({
                     >
                         <span className="flex-1 text-sm font-medium">
                             {row.categoryName}
+
+                            <DoubleCountWarning row={row} />
                         </span>
 
                         {row.isEditable ? (
@@ -303,5 +309,35 @@ function MonthlyView({
                 <Money cents={total} className="font-medium" />
             </div>
         </div>
+    );
+}
+
+/**
+ * A subscription already plans itself, so a hand-written item of the same name in the
+ * same category is very likely the same cost twice over (SUB-05).
+ */
+function DoubleCountWarning({ row }: { row: Row }) {
+    if (row.doubleCounts.length === 0) {
+        return null;
+    }
+
+    const message = row.doubleCounts
+        .map((name) => `This may double-count ${name}`)
+        .join('. ');
+
+    return (
+        <Tooltip>
+            <TooltipTrigger asChild>
+                <span
+                    className="ml-1 inline-flex cursor-help align-middle text-amber-600 dark:text-amber-500"
+                    data-testid={`double-count-${row.categoryId}`}
+                >
+                    <TriangleAlert className="size-4" aria-hidden="true" />
+                    <span className="sr-only">{message}</span>
+                </span>
+            </TooltipTrigger>
+
+            <TooltipContent>{message}</TooltipContent>
+        </Tooltip>
     );
 }

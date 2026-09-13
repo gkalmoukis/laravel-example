@@ -60,3 +60,94 @@ losing month, a closing balance that goes below zero (which the forecast alerts 
 
 Those are returned as plain signed `int` cents, not `Money`. Do not clamp them at zero to
 fit them into `Money`; that would silently report a negative net worth as nothing.
+
+## Commit messages are a subject line only
+
+Earlier guidance asked for Conventional Commits with a scope, a body explaining why, and the
+requirement IDs touched — and the first milestones were written that way. The project owner
+asked for the opposite: one line, at most 60 characters, a plain type prefix without scope
+parentheses, no body, no IDs. `feat: quick add transactions`, not
+`feat(transactions): quick add [TXQ-01..TXQ-10]`.
+
+Requirement IDs have not gone anywhere; they stay in code PHPDoc, where they sit next to the
+logic they justify rather than in a log nobody greps. The same restraint applies to PR titles
+and descriptions.
+
+## The remaining work is driven by a backlog and a loop
+
+`.claude/backlog.md` holds every remaining v1 item in dependency order, and
+`.claude/commands/next-item.md` implements exactly one of them per invocation — read the PRD for
+its requirement IDs, build, test, commit, tick. The last item of each milestone carries
+`<!-- gate -->`, which is where the full `sail composer test` runs; other items run targeted
+Pest plus `test:lint` and `test:types`.
+
+All of it stays local on one branch. The loop never pushes and never opens a pull request.
+
+## The test suite runs three workers, and browser tests get a minute
+
+`pest --parallel` defaults to one worker per core. On a sixteen-core machine that means
+sixteen simultaneous Chromium instances under Xdebug coverage, which thrashes the box: the
+suite took 216 seconds and failed two browser tests, each of which passed on its own. The
+failures moved between runs, which is what contention looks like rather than a bug.
+
+`composer test:unit` therefore pins `--processes=${PEST_PROCESSES:-3}` and `tests/Pest.php`
+raises the browser timeout to sixty seconds for the `Browser` suite. Same suite, same
+assertions, 60 seconds and green. Neither is a quality threshold: coverage stays at exactly
+100%, and a genuinely broken test still fails — it just no longer fails for being queued
+behind five others. Override the worker count with `PEST_PROCESSES` where a different
+machine wants a different number.
+
+Expect to revisit this as browser tests grow. If flakiness returns, lower the worker count
+before touching any assertion.
+
+## Overlays do not nest on a phone
+
+The category picker is a popover on a desktop and part of the form on a phone. A popover
+inside the quick-add sheet renders its options where they can be seen but not clicked, and
+on a 375px screen a second floating layer over a sheet is the wrong shape anyway.
+
+The desktop popover needs `modal` for the same underlying reason: without it the popover
+portals outside the dialog, where the dialog's own `pointer-events: none` guard applies.
+
+Anything bulk or selection-related needs its own control in the mobile card list. The
+desktop table header is hidden below 768px, so a control that lives only there — select-all
+was the first — quietly becomes desktop-only.
+
+## Percentage thresholds are compared by multiplying, not dividing
+
+The budget warning threshold is a percentage, so the obvious test for "more than 10% over"
+is `actual > planned * (1 + t)`. That divides money, which invites a rounding argument at
+exactly the boundary the threshold exists to define — and `round()` is banned inside
+`app/` by the NFR-02 architecture test anyway.
+
+Both sides are multiplied by 100 instead: `actual * 100` against `planned * (100 + t)`.
+Same answer, exactly, in integers. The tests pin each boundary to the penny — 77.000 is a
+warning, 77.001 is over — so a future rewrite cannot quietly move the line.
+
+Percentages themselves are never computed in PHP. The figures cross the wire as cents and
+the interface divides, which is what "computed at full precision and rounded half-up to one
+decimal only for display" asks for.
+
+## Flashed status messages are toasts
+
+Controllers say `->with('status', '…')`, which is Laravel's own convention. The starter
+kit's toast hook only listened for a `toast` key, so across twenty controllers the message
+was flashed and silently dropped — no success feedback appeared anywhere in the
+application.
+
+`useFlashToast` now honours both: a `toast` object where the tone matters, and a plain
+`status` string, which is always a success. Prefer `->with('status', …)`; it reads better at
+the call site and is what the rest of the framework expects.
+
+## The emergency fund is part of the liquid balance
+
+Adding an opening emergency fund to the golden fixture changed every balance figure in
+the year — including ones a previous milestone had already pinned. That is correct, not a
+regression: §7.2 defines the opening balance as Cash **plus** EmergencyFund, and Q-03
+settled that the fund is tracked as a separate holding precisely so the forecast can tell
+when it would be eaten into.
+
+So the fund counts twice over, in two different senses: once in net worth as a holding,
+and once in the liquid balance the cash flow runs from. `GoldenYear::OPENING_BALANCE` is
+the cash alone; `OPENING_LIQUID` is what the balance series actually starts at. Anything
+comparing against a balance wants the latter.

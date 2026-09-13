@@ -6,6 +6,7 @@ use App\Models\Account;
 use App\Models\Category;
 use App\Models\Goal;
 use App\Models\NetWorthItem;
+use App\Models\Subscription;
 use App\Models\User;
 use App\Models\UserPreference;
 use Illuminate\Support\Facades\Gate;
@@ -24,6 +25,9 @@ it("denies another user's record as missing", function (string $model, string $a
         Account::class => Account::factory()->for($owner)->create(),
         Category::class => Category::factory()->for($owner)->create(),
         Goal::class => Goal::factory()->for($owner)->create(),
+        Subscription::class => Subscription::factory()->for($owner)->create([
+            'category_id' => Category::factory()->for($owner),
+        ]),
         default => UserPreference::factory()->for($owner)->create(),
     };
 
@@ -43,6 +47,9 @@ it("denies another user's record as missing", function (string $model, string $a
     'goal view' => [Goal::class, 'view'],
     'goal update' => [Goal::class, 'update'],
     'goal delete' => [Goal::class, 'delete'],
+    'subscription view' => [Subscription::class, 'view'],
+    'subscription update' => [Subscription::class, 'update'],
+    'subscription delete' => [Subscription::class, 'delete'],
 ]);
 
 it('allows the owner', function (string $model, string $ability): void {
@@ -52,6 +59,9 @@ it('allows the owner', function (string $model, string $ability): void {
         Account::class => Account::factory()->for($owner)->create(),
         Category::class => Category::factory()->for($owner)->create(),
         Goal::class => Goal::factory()->for($owner)->create(),
+        Subscription::class => Subscription::factory()->for($owner)->create([
+            'category_id' => Category::factory()->for($owner),
+        ]),
         default => UserPreference::factory()->for($owner)->create(),
     };
 
@@ -61,6 +71,7 @@ it('allows the owner', function (string $model, string $ability): void {
     'category update' => [Category::class, 'update'],
     'preference update' => [UserPreference::class, 'update'],
     'goal update' => [Goal::class, 'update'],
+    'subscription update' => [Subscription::class, 'update'],
 ]);
 
 it('refuses to remove records that must always exist', function (): void {

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Enums\TransactionType;
 use App\Models\Category;
+use App\Models\PlanItem;
+use App\Models\Transaction;
 use App\Models\User;
 
 it('lists the tree, one level deep, for this user only', function (): void {
@@ -332,4 +334,53 @@ it('allows renaming a subcategory onto a name used under a different parent', fu
         ->assertSessionHasNoErrors();
 
     expect($child->refresh()->name)->toBe('Coffee');
+});
+
+it('counts a category as in use once a transaction refers to it', function (): void {
+    [$user] = userWithYear();
+
+    $housing = $user->categories()->where('name', 'Housing')->whereNull('parent_id')->firstOrFail();
+
+    expect($housing->isInUse())->toBeFalse();
+
+    Transaction::factory()->for($user)->create([
+        'type' => TransactionType::Expense,
+        'category_id' => $housing->id,
+        'occurred_on' => '2027-03-03',
+    ]);
+
+    expect($housing->isInUse())->toBeTrue();
+});
+
+it('counts a subcategory as in use once a transaction refers to it', function (): void {
+    [$user] = userWithYear();
+
+    $food = $user->categories()->where('name', 'Food & Groceries')->whereNull('parent_id')->firstOrFail();
+    $supermarket = $user->categories()->where('name', 'Supermarket')->firstOrFail();
+
+    expect($supermarket->isInUse())->toBeFalse();
+
+    Transaction::factory()->for($user)->create([
+        'type' => TransactionType::Expense,
+        'category_id' => $food->id,
+        'subcategory_id' => $supermarket->id,
+        'occurred_on' => '2027-03-03',
+    ]);
+
+    expect($supermarket->isInUse())->toBeTrue();
+});
+
+it('counts a category as in use once the plan refers to it', function (): void {
+    [$user, $year] = userWithYear();
+
+    $housing = $user->categories()->where('name', 'Housing')->whereNull('parent_id')->firstOrFail();
+
+    expect($housing->isInUse())->toBeFalse();
+
+    PlanItem::factory()->for($year)->create([
+        'type' => TransactionType::Expense,
+        'category_id' => $housing->id,
+    ]);
+
+    expect($housing->isInUse())->toBeTrue();
 });

@@ -54,5 +54,8 @@ final class DatabaseSeeder extends Seeder
             'email' => 'revoked@fin.test',
             'invited_by' => $admin->id,
         ]);
+
+        // A year with enough in it to see every screen doing something (§12.2).
+        $this->call(DemoSeeder::class);
     }
 }

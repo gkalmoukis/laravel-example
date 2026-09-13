@@ -1,5 +1,7 @@
+import GlossaryTerm from '@/components/finance/glossary-term';
 import Money from '@/components/planning/money';
 import { Badge } from '@/components/ui/badge';
+import { usePreferences } from '@/hooks/use-preferences';
 import PlanLayout, { type PlanYear } from './layout';
 
 type Item = {
@@ -9,6 +11,7 @@ type Item = {
     annualCents: number;
     isSpread: boolean;
     startMonth: number;
+    dueOn: string | null;
 };
 
 const monthNames = [
@@ -37,18 +40,29 @@ export default function PlanIrregular({
     tabs: string[];
     items: Item[];
 }) {
+    const { formatDate } = usePreferences();
+
     return (
         <PlanLayout
             year={year}
             tab={tab}
             tabs={tabs}
             title="Irregular"
-            description="Costs that do not happen every month, like holidays or annual insurance."
+            description={
+                <>
+                    Every{' '}
+                    <GlossaryTerm term="irregularExpense">
+                        irregular expense
+                    </GlossaryTerm>{' '}
+                    the year expects.
+                </>
+            }
         >
             <ul className="divide-y rounded-md border">
                 {items.length === 0 && (
                     <li className="p-4 text-sm text-muted-foreground">
-                        Nothing irregular planned yet.
+                        Nothing irregular planned yet — add a holiday, an annual
+                        insurance or a tax bill so the year expects it.
                     </li>
                 )}
 
@@ -62,7 +76,9 @@ export default function PlanIrregular({
 
                             <span className="text-sm text-muted-foreground">
                                 {item.categoryName} ·{' '}
-                                {monthNames[item.startMonth - 1]}
+                                {item.dueOn === null
+                                    ? monthNames[item.startMonth - 1]
+                                    : `due ${formatDate(item.dueOn)}`}
                             </span>
 
                             {item.isSpread && (

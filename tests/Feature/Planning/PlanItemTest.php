@@ -13,6 +13,7 @@ use App\Enums\PlanItemSource;
 use App\Models\Category;
 use App\Models\PlanItem;
 use App\Models\PlanItemAmount;
+use App\Models\Subscription;
 use App\ValueObjects\Money;
 
 function expenseCategory(string $name = 'Housing'): Category
@@ -210,4 +211,22 @@ it('ignores generated items when deciding whether a cell is editable', function 
     ]);
 
     expect(resolve(UpdateBudgetCell::class)->isEditable($year, $category))->toBeTrue();
+});
+
+it('can be linked to the subscription that generated it', function (): void {
+    [$user, $year] = userWithYear();
+
+    $subscriptions = $user->categories()->where('name', 'Subscriptions')->firstOrFail();
+
+    $subscription = Subscription::factory()->for($user)->create([
+        'category_id' => $subscriptions->id,
+    ]);
+
+    $item = PlanItem::factory()->for($year)->create([
+        'category_id' => $subscriptions->id,
+        'subscription_id' => $subscription->id,
+        'source' => PlanItemSource::Subscription,
+    ]);
+
+    expect($item->subscription?->id)->toBe($subscription->id);
 });

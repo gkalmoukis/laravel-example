@@ -16,7 +16,8 @@ it('turns a valid invitation link into a logged-in account', function (): void {
         ->fill('password', 'StrongPassword1234')
         ->fill('password_confirmation', 'StrongPassword1234')
         ->click('@accept-invitation-button')
-        ->assertPathIs('/dashboard')
+        // A new account has no plan yet, so it starts by making one (YEAR-08).
+        ->assertPathIs('/years/create')
         ->assertNoJavascriptErrors();
 
     expect(User::query()->where('email', 'invitee@example.test')->firstOrFail()->email_verified_at)

@@ -276,3 +276,23 @@ it("hides another user's year behind a 404", function (): void {
         ->get(route('plan.show', ['year' => $year->year, 'tab' => 'income']))
         ->assertNotFound();
 });
+
+it('marks the opening step done once there is something in it', function (): void {
+    [$user] = userWithYear();
+
+    $this->actingAs($user)
+        ->get(route('year-setup.show', ['year' => 2027, 'step' => 'opening']))
+        ->assertInertia(fn ($page) => $page->where('completedSteps', []));
+
+    $cash = $user->netWorthItems()->where('kind', NetWorthItemKind::Cash)->firstOrFail();
+
+    $this->actingAs($user)->patch(route('opening-position.update', ['year' => 2027]), [
+        'holdings' => [['id' => $cash->id, 'amount' => '5.000,00']],
+    ]);
+
+    // The wizard resumes at the first unfinished step, so which steps count as done is
+    // what decides where a returning user lands (YEAR-04).
+    $this->actingAs($user)
+        ->get(route('year-setup.show', ['year' => 2027, 'step' => 'opening']))
+        ->assertInertia(fn ($page) => $page->where('completedSteps', ['opening']));
+});

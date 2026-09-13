@@ -59,6 +59,19 @@
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-ring: var(--sidebar-ring);
+
+    /*
+     * Plan, Actual and Forecast, and how far a category has drifted (§5.2). Colour is
+     * never the only signal — every use pairs these with a label and either a line style
+     * or an icon — but the palette still has to be one decision rather than a guess per
+     * screen.
+     */
+    --color-series-plan: var(--series-plan);
+    --color-series-actual: var(--series-actual);
+    --color-series-forecast: var(--series-forecast);
+    --color-status-ok: var(--status-ok);
+    --color-status-warning: var(--status-warning);
+    --color-status-over: var(--status-over);
 }
 
 :root {
@@ -95,6 +108,12 @@
     --sidebar-accent-foreground: oklch(0.205 0 0);
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.87 0 0);
+    --series-plan: oklch(0.556 0 0);
+    --series-actual: oklch(0.205 0 0);
+    --series-forecast: oklch(0.62 0.14 258);
+    --status-ok: oklch(0.52 0.13 155);
+    --status-warning: oklch(0.63 0.15 70);
+    --status-over: oklch(0.55 0.21 27);
 }
 
 .dark {
@@ -130,6 +149,12 @@
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(0.269 0 0);
     --sidebar-ring: oklch(0.439 0 0);
+    --series-plan: oklch(0.708 0 0);
+    --series-actual: oklch(0.985 0 0);
+    --series-forecast: oklch(0.72 0.13 258);
+    --status-ok: oklch(0.72 0.15 155);
+    --status-warning: oklch(0.78 0.15 70);
+    --status-over: oklch(0.7 0.19 27);
 }
 
 @layer base {

@@ -4,9 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Actions\BuildQuickAddOptions;
+use App\Actions\ResolveSelectedYear;
+use App\Models\FinancialYear;
 use App\Models\Invitation;
+use App\Models\User;
 use App\Models\UserPreference;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Inertia\Middleware;
 
 final class HandleInertiaRequests extends Middleware
@@ -17,6 +23,11 @@ final class HandleInertiaRequests extends Middleware
      * @var string
      */
     protected $rootView = 'app';
+
+    public function __construct(
+        private readonly ResolveSelectedYear $resolveSelectedYear,
+        private readonly BuildQuickAddOptions $quickAddOptions,
+    ) {}
 
     /**
      * @see https://inertiajs.com/asset-versioning
@@ -33,11 +44,14 @@ final class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+        $years = $this->years($user);
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user,
             ],
             'preferences' => $this->preferences($request),
             // Server-derived abilities. The frontend only hides UI with these; every
@@ -45,8 +59,73 @@ final class HandleInertiaRequests extends Middleware
             'abilities' => [
                 'canInvite' => $request->user()?->can('create', Invitation::class) ?? false,
             ],
+            'years' => $years
+                ->map(fn (FinancialYear $year): array => [
+                    'year' => $year->year,
+                    'isSetupComplete' => $year->isSetupComplete(),
+                ])
+                ->all(),
+            'selectedYear' => $this->selectedYear($user, $years, $request),
+            // Quick add is reachable from every page (TXQ-01), but most page loads never
+            // open it. Sent only when the sheet asks for it by partial reload, so the
+            // category and account queries cost nothing until they are wanted.
+            'quickAdd' => Inertia::optional(fn (): ?array => $user instanceof User
+                ? $this->quickAddOptions->handle($user)
+                : null),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
+    }
+
+    /**
+     * The year every screen is currently about, or nothing for a guest (YEAR-07).
+     *
+     * @param  Collection<int, FinancialYear>  $years
+     */
+    private function selectedYear(?User $user, Collection $years, Request $request): ?int
+    {
+        if (! $user instanceof User) {
+            return null;
+        }
+
+        return $this->resolveSelectedYear->handle($user, $years, $this->requestedYear($request));
+    }
+
+    /**
+     * The user's years, newest first, for the switcher in the top bar (YEAR-07).
+     *
+     * @return Collection<int, FinancialYear>
+     */
+    private function years(?User $user): Collection
+    {
+        if (! $user instanceof User) {
+            return new Collection();
+        }
+
+        return $user->financialYears()->orderByDesc('year')->get();
+    }
+
+    /**
+     * The year the current address is asking for, if any.
+     *
+     * Year-scoped routes bind it to a model; everything else may still ask for one in the
+     * query string, which is how a link from a report reaches the transaction list already
+     * pointed at the right year.
+     */
+    private function requestedYear(Request $request): ?int
+    {
+        $parameter = $request->route('year');
+
+        if ($parameter instanceof FinancialYear) {
+            return $parameter->year;
+        }
+
+        if (is_string($parameter) && ctype_digit($parameter)) {
+            return (int) $parameter;
+        }
+
+        $query = $request->query('year');
+
+        return is_string($query) && ctype_digit($query) ? (int) $query : null;
     }
 
     /**

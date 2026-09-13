@@ -62,3 +62,66 @@ it('exposes only resource methods on controllers', function (): void {
             ->toBe([], sprintf('%s exposes a non-resource method.', $controller));
     }
 });
+
+arch('calculation results are immutable')
+    ->expect('App\Data')
+    ->toBeFinal()
+    ->toBeReadonly();
+
+it('keeps floating point out of money logic', function (): void {
+    // NFR-02. Money is integer cents everywhere: a float would make two runs of the same
+    // report disagree in the last cent, and there is no amount of rounding at the edges
+    // that puts that right afterwards.
+    $forbidden = ['(float)', '(double)', 'floatval', 'round(', 'fdiv(', 'number_format('];
+
+    $exempt = [
+        // Money::multiplyByRatio rounds half up, and does it in integer arithmetic. The
+        // PRD allows it by name; the assertion below proves it needs no exemption.
+    ];
+
+    $files = collect([app_path('Actions'), app_path('Data'), app_path('ValueObjects')])
+        ->flatMap(fn (string $directory): array => File::allFiles($directory));
+
+    expect($files)->not->toBeEmpty();
+
+    foreach ($files as $file) {
+        $path = $file->getPathname();
+
+        if (in_array($path, $exempt, true)) {
+            continue;
+        }
+
+        $contents = File::get($path);
+
+        foreach ($forbidden as $token) {
+            expect($contents)->not->toContain(
+                $token,
+                sprintf('%s uses %s; money is integer cents (NFR-02).', $file->getFilename(), $token),
+            );
+        }
+    }
+});
+
+it('keeps financial data out of the logs', function (): void {
+    // NFR-05. Nothing in the application writes to the log, which is the simplest way to
+    // guarantee an amount or a description never reaches one. If logging is ever wanted,
+    // it goes through a dedicated channel that takes ids — not through a call slipped
+    // into an Action while debugging and left behind.
+    $forbidden = ['Log::', 'logger(', 'error_log(', 'var_dump(', 'dump(', 'dd('];
+
+    $files = collect([app_path()])
+        ->flatMap(fn (string $directory): array => File::allFiles($directory));
+
+    expect($files)->not->toBeEmpty();
+
+    foreach ($files as $file) {
+        $contents = File::get($file->getPathname());
+
+        foreach ($forbidden as $token) {
+            expect($contents)->not->toContain(
+                $token,
+                sprintf('%s calls %s; financial data must never reach a log (NFR-05).', $file->getFilename(), $token),
+            );
+        }
+    }
+});

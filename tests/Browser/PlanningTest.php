@@ -26,6 +26,52 @@ it('walks through setting up a year from nothing', function (): void {
         ->click('@save-opening-button')
         ->assertSee('Money you can spend')
         ->assertNoJavascriptErrors();
+
+    // Saving keeps the user on the step; moving on is a separate, deliberate click.
+    $page->click('@next-step-button')
+        ->assertPathIs('/years/'.date('Y').'/setup/income')
+        ->assertNoJavascriptErrors();
+
+    // Step two: the salary, which generates the year's income on its own (INC-01).
+    $page->fill('base_amount', '1.800,00')
+        ->click('@save-salary-button')
+        ->assertSee('Salary')
+        ->assertNoJavascriptErrors();
+
+    // The remaining steps are optional, so the wizard can be walked to its end from here.
+    foreach (['expenses', 'irregular', 'goals', 'review'] as $step) {
+        $page->navigate('/years/'.date('Y').'/setup/'.$step)
+            ->assertPathIs('/years/'.date('Y').'/setup/'.$step)
+            ->assertNoJavascriptErrors();
+    }
+
+    $page->click('@finish-setup-button')
+        ->assertPathBeginsWith('/years/')
+        ->assertDontSee('Setup unfinished')
+        ->assertNoJavascriptErrors();
+});
+
+it('walks the setup wizard end to end on a phone', function (): void {
+    $user = planningUser();
+
+    // TST-04: the same walk at 375 px, where the wizard has the least room to work in.
+    $page = $this->actingAs($user)->visit('/years/create')->on()->mobile();
+
+    $page->click('@create-year-button')
+        ->assertSee('Opening position')
+        ->fill('input[name="holdings[0][amount]"]', '2.500,00')
+        ->click('@save-opening-button')
+        ->assertSee('Money you can spend')
+        ->click('@next-step-button')
+        ->assertPathIs('/years/'.date('Y').'/setup/income')
+        ->fill('base_amount', '1.500,00')
+        ->click('@save-salary-button')
+        ->assertSee('Salary')
+        ->navigate('/years/'.date('Y').'/setup/review')
+        ->click('@finish-setup-button')
+        ->assertPathBeginsWith('/years/')
+        ->assertNoJavascriptErrors()
+        ->assertNoConsoleLogs();
 });
 
 it('generates the fourteen payments from a salary', function (): void {

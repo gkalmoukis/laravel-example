@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -36,6 +37,8 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property-read Collection<int, Category> $categories
  * @property-read Collection<int, Goal> $goals
  * @property-read Collection<int, FinancialYear> $financialYears
+ * @property-read Collection<int, Subscription> $subscriptions
+ * @property-read Collection<int, Transaction> $transactions
  * @property-read Collection<int, NetWorthItem> $netWorthItems
  */
 #[Hidden([
@@ -115,11 +118,52 @@ final class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * The user's preferences, always.
+     *
+     * Every invited account is provisioned with a row, but the relation is nullable in
+     * the type system and an account can exist for a moment before provisioning finishes.
+     * An unsaved instance carries the documented defaults, so callers get the same answer
+     * either way instead of each guarding for themselves.
+     */
+    public function preferences(): UserPreference
+    {
+        return $this->preference ?? new UserPreference();
+    }
+
+    /**
+     * Today, where the user lives.
+     *
+     * A transaction dated "today" at 01:00 in Athens belongs to a day the server, running
+     * on UTC, still calls yesterday, so every calendar decision reads this rather than the
+     * server's clock (§6.1).
+     */
+    public function today(): CarbonImmutable
+    {
+        return CarbonImmutable::now($this->preference->timezone ?? UserPreference::DEFAULT_TIMEZONE);
+    }
+
+    /**
      * @return HasMany<FinancialYear, $this>
      */
     public function financialYears(): HasMany
     {
         return $this->hasMany(FinancialYear::class);
+    }
+
+    /**
+     * @return HasMany<Subscription, $this>
+     */
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
+    /**
+     * @return HasMany<Transaction, $this>
+     */
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class);
     }
 
     /**

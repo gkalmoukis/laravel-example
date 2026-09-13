@@ -266,3 +266,19 @@ it('keeps one year per user but allows the same year for different users', funct
 
     expect(resolve(CreateFinancialYear::class)->handle($other, 2027)->year)->toBe(2027);
 });
+
+it('sends an account with no plan to make one', function (): void {
+    $user = planningUser();
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertRedirect(route('financial-years.create'));
+});
+
+it('shows the dashboard once a plan exists', function (): void {
+    [$user] = userWithYear();
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk();
+});

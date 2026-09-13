@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Models\FinancialYear;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
@@ -10,6 +11,8 @@ it('logs in with valid credentials', function (): void {
         'email' => 'person@example.test',
         'password' => Hash::make('StrongPassword1234'),
     ]);
+
+    FinancialYear::factory()->for($user)->create();
 
     visit('/login')
         ->fill('email', $user->email)
