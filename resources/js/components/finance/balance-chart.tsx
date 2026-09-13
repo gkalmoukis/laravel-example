@@ -43,6 +43,7 @@ export default function BalanceChart({ points }: { points: BalancePoint[] }) {
         <ChartContainer
             config={CONFIG}
             className="h-64 w-full"
+            role="img"
             aria-label="Closing balance each month, for the plan, what really happened, and the forecast"
         >
             <LineChart data={points} margin={{ left: 8, right: 8 }}>

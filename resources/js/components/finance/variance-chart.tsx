@@ -57,6 +57,7 @@ export default function VarianceChart({
             <ChartContainer
                 config={CONFIG}
                 className="h-64 w-full"
+                role="img"
                 aria-label={`${label}: planned against actual by category`}
             >
                 <BarChart

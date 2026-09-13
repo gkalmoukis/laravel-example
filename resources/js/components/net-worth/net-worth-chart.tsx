@@ -35,6 +35,7 @@ export default function NetWorthChart({ points }: { points: NetWorthPoint[] }) {
         <ChartContainer
             config={CONFIG}
             className="h-64 w-full"
+            role="img"
             aria-label="Net worth at the end of each month"
         >
             <AreaChart data={points} margin={{ left: 8, right: 8 }}>

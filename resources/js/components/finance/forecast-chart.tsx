@@ -52,6 +52,7 @@ export default function ForecastChart({ points }: { points: ForecastPoint[] }) {
             <ChartContainer
                 config={CONFIG}
                 className="h-64 w-full"
+                role="img"
                 aria-label="Forecast balance at the end of each month"
             >
                 <LineChart data={series} margin={{ left: 8, right: 8 }}>

@@ -355,7 +355,10 @@ function IncomeStep({
                                         name={`payments[${key}][month]`}
                                         defaultValue={String(payment.month)}
                                     >
-                                        <SelectTrigger className="w-40">
+                                        <SelectTrigger
+                                            className="w-40"
+                                            aria-label={`${bonusLabels[key] ?? key}: month`}
+                                        >
                                             <SelectValue />
                                         </SelectTrigger>
 

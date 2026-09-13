@@ -60,6 +60,7 @@ export default function IncomeExpenseChart({
             <ChartContainer
                 config={CONFIG}
                 className="h-64 w-full"
+                role="img"
                 aria-label={`Income and expenses each month of ${year}, actual for finished months and forecast for the rest`}
             >
                 <BarChart data={series} margin={{ left: 8, right: 8 }}>

@@ -46,6 +46,17 @@ it('walks the acceptance criteria over the demo year', function (): void {
         ->assertSee('Supermarket')
         ->assertNoJavascriptErrors();
 
+    // The reports hub opens on the screen that answers "how is the year going".
+    $page->navigate('/years/'.$year.'/reports')
+        ->assertSee('Available now')
+        ->assertSee('Money in')
+        ->assertNoJavascriptErrors();
+
+    // Subscriptions are part of the plan, and plan the year on their own (SUB-04).
+    $page->navigate('/subscriptions')
+        ->assertSee('Subscriptions')
+        ->assertNoJavascriptErrors();
+
     // "Compare Plan and Actual, and see an updated Forecast."
     $page->navigate('/years/'.$year.'/reports/comparison')
         ->assertSee('Plan vs actual')
@@ -173,3 +184,58 @@ it('renders every authenticated page at 375px without errors', function (string 
         ->assertNoJavascriptErrors()
         ->assertNoConsoleLogs();
 })->with(everyAuthenticatedPage(...));
+
+/**
+ * Every authenticated screen, at the two widths the product promises (UX-10).
+ *
+ * The seeded demo year is used rather than an empty account, so each page is exercised
+ * with real figures in it — an empty screen renders far less than a full one.
+ */
+it('renders every screen at both widths without errors', function (string $path): void {
+    $page = $this->actingAs($this->user)->visit($path);
+
+    $page->assertNoJavascriptErrors()->assertNoConsoleLogs();
+
+    $page->on()->mobile();
+
+    $page->assertNoJavascriptErrors()->assertNoConsoleLogs();
+
+    // Nothing but a table, a chart or a code block may scroll sideways, and each of
+    // those carries its own scroller — the page itself never does (UX-13).
+    $page->assertScript(
+        'document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1',
+    );
+})->with(function (): array {
+    $year = DemoSeeder::YEAR;
+
+    return [
+        '/dashboard',
+        '/transactions',
+        '/subscriptions',
+        '/goals',
+        '/goals/emergency-fund',
+        '/goals/net-worth',
+        '/years/create',
+        '/years/'.$year.'/months',
+        '/years/'.$year.'/months/1',
+        '/years/'.$year.'/plan/income',
+        '/years/'.$year.'/plan/expenses',
+        '/years/'.$year.'/plan/irregular',
+        '/years/'.$year.'/plan/opening',
+        '/years/'.$year.'/reports',
+        '/years/'.$year.'/reports/comparison',
+        '/years/'.$year.'/reports/cash-flow',
+        '/years/'.$year.'/reports/forecast',
+        '/years/'.$year.'/setup/opening',
+        '/years/'.$year.'/setup/income',
+        '/years/'.$year.'/setup/expenses',
+        '/settings/profile',
+        '/settings/password',
+        '/settings/appearance',
+        '/settings/two-factor',
+        '/settings/preferences',
+        '/settings/categories',
+        '/settings/accounts',
+        '/settings/invitations',
+    ];
+});

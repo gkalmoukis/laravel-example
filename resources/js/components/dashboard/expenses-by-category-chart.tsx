@@ -67,6 +67,7 @@ export default function ExpensesByCategoryChart({
             <ChartContainer
                 config={CONFIG}
                 className="h-64 w-full"
+                role="img"
                 aria-label={`Planned against actual spending by category in ${monthLabel}`}
             >
                 <BarChart

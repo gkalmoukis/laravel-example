@@ -99,6 +99,7 @@ export default function ComparisonIndex({
                         >
                             <SelectTrigger
                                 className="w-44"
+                                aria-label="Month"
                                 data-testid="month-picker"
                             >
                                 <SelectValue />

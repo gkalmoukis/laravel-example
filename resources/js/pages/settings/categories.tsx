@@ -27,7 +27,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import { index } from '@/routes/categories';
@@ -86,17 +86,26 @@ export default function Categories({
                         description="How your money is grouped. Categories can hold one level of subcategories."
                     />
 
-                    <Tabs
+                    {/*
+                     * A filter over one list rather than two panels, so these are
+                     * toggle buttons: Radix tabs would promise a tab panel through
+                     * `aria-controls` that this page never renders (NFR-06).
+                     */}
+                    <ToggleGroup
+                        type="single"
                         value={type}
-                        onValueChange={(value) =>
-                            setType(value as CategoryType)
-                        }
+                        onValueChange={(value) => {
+                            if (value) {
+                                setType(value as CategoryType);
+                            }
+                        }}
+                        variant="outline"
                     >
-                        <TabsList>
-                            <TabsTrigger value="expense">Expenses</TabsTrigger>
-                            <TabsTrigger value="income">Income</TabsTrigger>
-                        </TabsList>
-                    </Tabs>
+                        <ToggleGroupItem value="expense">
+                            Expenses
+                        </ToggleGroupItem>
+                        <ToggleGroupItem value="income">Income</ToggleGroupItem>
+                    </ToggleGroup>
 
                     <Form
                         {...CategoryController.store.form()}

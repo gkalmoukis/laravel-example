@@ -139,9 +139,9 @@
     --sidebar-ring: oklch(0.45 0.15 265);
     --series-plan: oklch(0.55 0.015 265);
     --series-actual: oklch(0.35 0.09 265);
-    --series-forecast: oklch(0.62 0.14 265);
+    --series-forecast: oklch(0.52 0.15 265);
     --status-ok: oklch(0.52 0.13 155);
-    --status-warning: oklch(0.63 0.15 70);
+    --status-warning: oklch(0.52 0.12 70);
     --status-over: oklch(0.55 0.21 27);
 }
 

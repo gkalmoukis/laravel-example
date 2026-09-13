@@ -309,7 +309,7 @@ Conventions for every item:
   - Tests: `tests/Feature/EdgeStatesTest.php` · `tests/Browser/EmptyStatesTest.php`
   - Commit: `feat: loading and empty states`
 
-- [ ] **ui-final-pass** — Both widths, every screen, keyboard throughout <!-- gate -->
+- [x] **ui-final-pass** — Both widths, every screen, keyboard throughout <!-- gate -->
   - Refs: UX-10, UX-13, NFR-04, NFR-06, TST-04, TST-05, §2.2
   - Build: a sweep of every screen this backlog touched at 1280px and 375px — keyboard reach,
     visible focus, labelled inputs, no horizontal scroll, tables over four columns as card lists
