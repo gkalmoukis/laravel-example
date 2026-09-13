@@ -125,7 +125,7 @@ Conventions for every item:
   - Tests: `tests/Browser/{DashboardTest,TransactionsTest}.php` — pagination works at both widths
   - Commit: `feat: shared page primitives`
 
-- [ ] **ui-landing** — The landing page stops being a starter kit <!-- gate -->
+- [x] **ui-landing** — The landing page stops being a starter kit <!-- gate -->
   - Refs: §1, NFR-04
   - Build: rewrite `resources/js/pages/welcome.tsx` — 388 lines of Laravel starter kit with about
     twenty hardcoded hex values and a large inline SVG — on the new tokens: what Fin is, one
