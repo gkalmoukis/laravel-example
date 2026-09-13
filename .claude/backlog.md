@@ -1,7 +1,9 @@
-# Fin v1 backlog
+# Fin UI backlog
 
-Ordered work remaining to finish `docs/prd.md` v1. The `/next-item` command implements the
-**first unchecked item** and nothing else.
+v1 is functionally complete — every item of the previous backlog shipped and git holds them.
+This backlog is the **UI modernisation and polish** pass: simpler navigation, one editable plan,
+a transaction list that keeps its filters, one reporting hub, and a theme that belongs to this
+product. The `/next-item` command implements the **first unchecked item** and nothing else.
 
 Statuses: `[ ]` todo · `[x]` done · `[!]` blocked — a blocked item halts the loop and carries a
 note beneath it explaining why.
@@ -10,482 +12,318 @@ note beneath it explaining why.
 
 Conventions for every item:
 
-- One commit, subject line only, taken verbatim from the item's `Commit:` line.
-- Read `docs/prd.md` for the item's `Refs:` before building. §7 is normative.
-- Follow sibling files for structure. Generate with `sail artisan make:*`.
-- Regenerate Wayfinder with `--with-form` after any route change, and commit the output.
+- One commit on `main`, subject line only, at most 60 characters, taken verbatim from the
+  item's `Commit:` line. The loop never pushes and never opens a pull request.
+- Read `docs/prd.md` for the item's `Refs:` before building — §5 for UX principles and the §5.3
+  glossary copy, §9 for screens and routes, §14 for empty and edge states.
+- Follow sibling files for structure. Reuse what is there before writing anything new.
+- **The numbers do not move.** No item changes a `Calculate*` or `Build*` result;
+  `tests/Feature/GoldenDataset/*` is the tripwire and passes untouched at every item.
+- Regenerate Wayfinder with `--with-form` after any route change, run `bun run build` after any
+  page move, and commit both.
 
 ---
 
-## M3 — Transactions (finish)
+## P1 — Structure
 
-- [x] **m3-app-shell-nav** — Navigation, the year switcher and the selected year
-  - Refs: YEAR-07, YEAR-08, EDGE-02, UX-05, §9 navigation
-  - Build: `app/Http/Middleware/HandleInertiaRequests.php` — share `years` (the user's financial
-    years, newest first) and `selectedYear`, resolved route param → `?year=` → session →
-    current calendar year → latest · new `resources/js/components/finance/year-switcher.tsx`
-    reusing `components/planning/year-nav.tsx` where it fits ·
-    `resources/js/components/app-sidebar.tsx` and `app-header.tsx` — nav entries for routes that
-    **already exist** (Dashboard, Plan, Settings); later items append their own ·
-    `resources/js/components/finance/setup-banner.tsx` ("Finish setting up {year}", EDGE-02) ·
-    `resources/js/types/global.d.ts` sharedPageProps
-  - Tests: extend `tests/Unit/Middleware/HandleInertiaRequestsTest.php` (every resolution arm) ·
-    new `tests/Browser/NavigationTest.php` at 1280px and 375px
-  - Commit: `feat: app navigation and year switcher`
+- [ ] **nav-reports-hub** — Plan vs actual, cash flow and forecast become one hub
+  - Refs: UX-05, UX-09, §9 screens and routes
+  - Build: `routes/web.php` — the three report URIs move under `years/{year}/reports/`
+    (`reports/comparison`, `reports/cash-flow`, `reports/forecast`) keeping the names
+    `comparison.index`, `cash-flow.index` and `forecast.index` untouched, plus a redirect from
+    each old URI · the three controllers' `Inertia::render` strings follow their pages:
+    `comparison/index.tsx` → `reports/comparison.tsx`, `cash-flow/index.tsx` →
+    `reports/cash-flow.tsx`, `forecast/index.tsx` → `reports/forecast.tsx` · new
+    `resources/js/pages/reports/layout.tsx`, copied from `resources/js/pages/plan/layout.tsx` —
+    the year, the tab row, `SelectedYearSetupBanner` · `wayfinder:generate --with-form`
+  - Notes: nothing merges. `ComparisonController`, `CashFlowController` and `ForecastController`
+    each keep exactly one `index` method and their props are unchanged. The Summary tab is added
+    later by `reports-summary`; the tab row lists three tabs until then.
+  - Tests: `tests/Feature/Reports/{ComparisonTest,CashFlowTest,ForecastTest}.php` — the new URIs
+    and each redirect · path assertions updated in
+    `tests/Browser/{ForecastTest,NavigationTest,AccessibilityTest,EmptyStatesTest,AcceptanceWalkTest}.php`
+  - Commit: `feat: reports hub`
 
-- [x] **m3-transaction-write-actions** — Recording, editing and deleting a transaction
-  - Refs: TXV-01, TXV-02, TXV-03, TXV-05, TXF-03, MET-01, CAT-03, CAT-04, USR-02, USR-03
-  - Build: `app/Actions/{CreateTransaction,UpdateTransaction,DeleteTransaction,ReopenMonth}.php` ·
-    `app/Policies/TransactionPolicy.php` (other users' records 404 via
-    `Response::denyAsNotFound()`) · `app/Http/Requests/{Store,Update}TransactionRequest.php`
-    (amount parsed in `prepareForValidation` via `Money::fromInput`, mirroring
-    `StorePlanItemRequest`; `reopen_month` boolean for TXV-02) ·
-    `app/Http/Controllers/TransactionController.php` (store, update, destroy only for now) ·
-    **fix `App\Models\Category::isInUse()`** — it checks only `children()`, so CAT-03/04 do not
-    hold; add the plan-item and transaction clauses · routes
-    `transactions.store/update/destroy`
-  - Notes: TXV-02 — a write into a Complete month is rejected unless `reopen_month` is set, in
-    which case reopening and the write happen in one `DB::transaction()`. The refusal carries
-    `month_complete` (the month number) beside the `occurred_on` message, which is what lets the
-    form offer "Reopen {month} and save".
-    CAT-03/CAT-04 were already satisfied — `type` is absent from `UpdateCategoryRequest` so it can
-    never change, and `destroy` is deactivation, so categories are never deleted. What this item
-    added was `isInUse()`'s plan-item and transaction clauses, which its own docblock deferred here.
-  - Tests: `tests/Feature/Transactions/TransactionControllerTest.php` ·
-    `tests/Feature/Transactions/CompleteMonthGuardTest.php` ·
-    `tests/Feature/Isolation/TransactionIsolationTest.php` · extend
-    `tests/Feature/Domain/CategoryControllerTest.php` for the new in-use clauses
-  - Commit: `feat: transaction write actions`
+- [ ] **nav-goals-hub** — Goals, emergency fund and net worth become one hub
+  - Refs: GOAL-01, EF-01, NW-01, §9
+  - Build: `routes/web.php` — `net-worth` → `goals/net-worth`, keeping the name
+    `net-worth.index`, with a redirect from the old URI · `resources/js/pages/net-worth/index.tsx`
+    → `resources/js/pages/goals/net-worth.tsx` and `NetWorthController`'s render string with it ·
+    new `resources/js/pages/goals/layout.tsx` with the three tabs · `wayfinder:generate --with-form`
+  - Notes: only the GET moves. The `net-worth/items` write routes are POST/PATCH/DELETE, never
+    bookmarked, and stay where they are under the name `net-worth-items.*`.
+  - Tests: `tests/Feature/NetWorth/NetWorthControllerTest.php` — new URI and redirect ·
+    `tests/Browser/{NetWorthTest,GoalsTest,NavigationTest}.php`
+  - Commit: `feat: goals hub`
 
-- [x] **m3-transaction-list-and-filters** — The transaction list, filters and totals
-  - Refs: TXL-01, TXL-02, TXL-03, TXL-05, TXV-05, EDGE-01, EDGE-04
-  - Build: `TransactionController@index` — newest first, 50 per page, `Transaction::withIssues()`,
-    filter state from the query string, footer totals from a **grouped aggregate over the whole
-    filter**, not the paginated page · `app/Http/Requests/IndexTransactionRequest.php` ·
-    `sail bunx shadcn@latest add pagination` · `resources/js/pages/transactions/index.tsx` ·
-    `resources/js/components/transactions/{transaction-row,transaction-filters,issue-badge}.tsx` ·
-    card list below 768px (UX-13) · route `transactions.index` · sidebar entry
-  - Notes: Essentials strict mode throws on unselected columns — do not narrow the `select()`.
-  - Tests: `tests/Feature/Transactions/TransactionListTest.php` (each filter, pagination,
-    totals over the filter, issue badges, future-date badge, empty state)
-  - Commit: `feat: transaction list and filters`
-
-- [x] **m3-quick-add-dialog** — Quick add on every page
-  - Refs: TXQ-01, TXQ-02, TXQ-03, TXQ-04, TXQ-06, TXQ-07, TXQ-08, TXQ-10, UX-11, UX-12, UX-14, ACC-02
-  - Build: `sail bunx shadcn@latest add command popover` (cmdk, approved by PRD §3.3; popover is
-    what the combobox needs) · `resources/js/components/transactions/quick-add-sheet.tsx`
-    (Dialog ≥768px, bottom Sheet below) · `category-combobox.tsx` — active categories of the
-    chosen type, the 5 most used in the last 90 days first then alphabetical, typing a
-    subcategory name fills both fields · `new-transaction-button.tsx` — top bar on desktop,
-    56px floating button bottom-right on mobile labelled "New transaction" for screen readers ·
-    `resources/js/hooks/use-quick-add.ts` — `N` shortcut ignored while an input is focused,
-    measures open→save into `entry_duration_ms` · share `quickAdd` as `Inertia::optional()` from
-    `HandleInertiaRequests` (categories, subcategories, accounts, most-used, default account,
-    years), fetched with `router.reload({ only: ['quickAdd'] })` when the sheet opens · mount in
-    `resources/js/layouts/app/app-sidebar-layout.tsx`
-  - Notes: ACC-02 "most recently used" = most recently entered (`created_at`). TXQ-08 warns
-    inline when the date falls in a year with no plan but still saves. TXQ-07 toast then partial
-    reload. Amount input `inputmode="decimal"`.
-  - Tests: `tests/Feature/Transactions/QuickAddOptionsTest.php` (ordering, most-used window,
-    default account, the optional prop resolving)
-  - Commit: `feat: quick add transactions`
-
-- [x] **m3-transaction-edit-duplicate-delete** — Editing, duplicating and deleting from the list
-  - Refs: TXF-01, TXF-02, TXF-03, TXV-02, CMP-02
-  - Build: reuse `quick-add-sheet.tsx` in edit and duplicate modes (duplicate prefills the
-    original's fields with **today's** date and saves with `entry_source = Duplicate`) ·
-    `resources/js/components/transactions/delete-transaction-dialog.tsx` — copy exactly
-    "Delete this 12,50 € expense from 3 March?" · `reopen-and-save-alert.tsx` surfacing the
-    TXV-02 rejection with a "Reopen {month} and save" action
-  - Tests: extend `tests/Feature/Transactions/TransactionControllerTest.php`
-  - Commit: `feat: edit, duplicate and delete transactions`
-
-- [x] **m3-bulk-recategorise** — Changing the category of many transactions at once
-  - Refs: TXL-04
-  - Build: `app/Actions/RecategorizeTransactions.php` returning updated and skipped counts with
-    reasons · `app/Http/Requests/UpdateTransactionCategoryRequest.php` ·
-    `app/Http/Controllers/TransactionCategoryController.php@update` · route
-    `transaction-category.update` · `resources/js/components/transactions/bulk-actions-bar.tsx`
-    (checkbox per row plus select-all-on-this-page)
-  - Notes: rows in a Complete month are **skipped**, not reopened — report
-    "Updated 12, skipped 3 in completed months". Type incompatibility is also a skip reason.
-  - Tests: `tests/Feature/Transactions/RecategorizeTransactionsTest.php`
-  - Commit: `feat: bulk recategorise transactions`
-
-- [x] **m3-transaction-browser-tests** — Browser coverage for the fifteen-second path <!-- gate -->
-  - Refs: TST-04 (quick add slice), TST-05, UX-10, NFR-06
-  - Build: `tests/Browser/TransactionsTest.php`
-  - Tests: common path in ≤6 interactions (open, amount, pick category, description, save) ·
-    Save & add another · `12,50` comma decimal · Complete-month guard then reopen-and-save ·
-    bulk recategorise · each at 1280px and 375px with `assertNoJavascriptErrors()`
-  - Commit: `test: transaction browser coverage`
-
-## M4 — Actuals, months, comparison, cash flow
-
-- [x] **m4-monthly-figures** — Plan, Actual and Forecast per category and month
-  - Refs: §7.1, MON-01, TXV-05, NFR-02, NFR-03
-  - Build: `app/Data/{MonthlyFigures,CategoryFigures,MonthTotals}.php` (final readonly) ·
-    `app/Actions/CalculateMonthlyFigures.php` — one grouped aggregate per series over
-    `Transaction::valid()` and `plan_item_amounts`, subcategories rolling up into parents,
-    **`today` injected as a `CarbonImmutable` parameter, never `now()`** ·
-    `App\Models\User::today()` is the resolver, already built ·
-    extend `tests/Unit/ArchTest.php` — `App\Data` is final and readonly, and no
-    `float`/`(float)`/`round(` in `app/Actions` or `app/ValueObjects` except
-    `Money::multiplyByRatio`
-  - Notes: §7.1 has no dependency on the current date, so `CalculateMonthlyFigures` takes
-    no `today`. The convention still holds for the Actions that do need it — `today` is a
-    `CarbonImmutable` argument, never `now()` inside, resolved by `User::today()`.
-    Status(m) per §7.1; F(c,m) = A when Complete, else max(P, A).
-  - Tests: `tests/Unit/Actions/CalculateMonthlyFiguresTest.php` — hand-computed expectations
-    including P=0, the InProgress max rule, 31 Dec / 1 Jan boundaries, and Athens vs UTC at
-    midnight
-  - Commit: `feat: monthly plan, actual and forecast figures`
-
-- [x] **m4-cash-flow-and-annual-summary** — Balances and the annual totals
-  - Refs: §7.2, §7.3, EDGE-03
-  - Build: `app/Data/{CashFlow,CashFlowMonth,AnnualSummary}.php` ·
-    `app/Actions/CalculateCashFlow.php` — B₀ from month-0 Cash + EmergencyFund snapshots,
-    C_P/C_F/C_A series, m_last rule, current available balance ·
-    `app/Actions/CalculateAnnualSummary.php` — planned/actual/forecast income, expenses,
-    savings; savings rate `null` when income is 0; deviation against
-    `financial_years.baseline`, falling back to C_P(12) labelled "vs current plan"
-  - Notes: derived figures that can go negative stay signed `int` cents, never `Money`.
-    m_last for a past year with no recorded months, or a future year → no Actual series.
-  - Tests: `tests/Unit/Actions/CalculateCashFlowTest.php`,
-    `tests/Unit/Actions/CalculateAnnualSummaryTest.php`
-  - Commit: `feat: cash flow and annual summary figures`
-
-- [x] **m4-variance-calculation** — Variance, thresholds and severity ordering
-  - Refs: §7.4, CMP-05, CMP-06
-  - Build: `app/Data/{Variance,VarianceReport}.php` · `app/Actions/CalculateVariances.php` —
-    uses `budget_warning_threshold_percent`, the expense and income tables, `NoPlan` when
-    P=0 and A=0, spread-only categories evaluated year-to-date cumulative ·
-    `severity(): int` on `app/Enums/VarianceStatus.php`
-  - Notes: exactly-100% coverage means every `match` arm needs a test.
-  - Tests: `tests/Unit/Actions/CalculateVariancesTest.php`
-  - Commit: `feat: budget variance calculation`
-
-- [x] **m4-months-index** — Twelve month cards
-  - Refs: MON-01, MON-02, EDGE-01
-  - Build: `app/Http/Controllers/MonthController.php@index` · route `months.index`
-    (`GET /years/{year}/months`) · `resources/js/pages/months/index.tsx` ·
-    `resources/js/components/finance/month-status-badge.tsx` · sidebar entry
-  - Tests: `tests/Feature/Months/MonthIndexTest.php`
-  - Commit: `feat: month status overview`
-
-- [x] **m4-month-review** — The month review screen
-  - Refs: MON-03 (steps 1–3), CMP-01, CMP-02, EDGE-01, UX-08
-  - Build: `MonthController@show` (404 when `{month}` is outside 1–12) · route `months.show` ·
-    `resources/js/pages/months/show.tsx` ·
-    `resources/js/components/finance/{variance-row,series-legend}.tsx` ·
-    `--series-plan`/`--series-actual`/`--series-forecast` and
-    `--status-ok`/`--status-warning`/`--status-over` tokens in `resources/css/app.css`, each
-    paired with an icon and a text label · every actual amount links into `/transactions?…`
-  - Tests: `tests/Feature/Months/MonthReviewTest.php`
-  - Commit: `feat: month review screen`
-
-- [x] **m4-month-close** — Completing and reopening a month
-  - Refs: MON-03 (step 5), MON-04, MON-05
-  - Build: `app/Actions/CompleteMonth.php` — blocked while the month has flagged transactions,
-    blocked when the month starts after today in the user's timezone, confirmation required to
-    complete the current month before its last day · `app/Http/Controllers/MonthCompletionController.php`
-    (store = complete, destroy = reopen, reusing `ReopenMonth`) · routes
-    `month-completion.store/destroy` · `resources/js/components/months/complete-month-card.tsx`
-  - Tests: `tests/Feature/Months/MonthCompletionTest.php`
-  - Commit: `feat: complete and reopen a month`
-
-- [x] **m4-net-worth-snapshot-entry** — Recording what you have at month end
-  - Refs: MON-06, NW-03
-  - Build: `app/Actions/SaveNetWorthSnapshots.php` ·
-    `app/Http/Requests/UpdateNetWorthSnapshotRequest.php` ·
-    `app/Http/Controllers/NetWorthSnapshotController.php@update` · route
-    `net-worth-snapshots.update` · `resources/js/components/net-worth/snapshot-form.tsx` —
-    all active items prefilled with the previous month's value (month 0 for January), liquid
-    items showing C_A(m) as a hint; saving is optional for completion
-  - Tests: `tests/Feature/Months/NetWorthSnapshotTest.php`
-  - Commit: `feat: month end net worth snapshots`
-
-- [x] **m4-comparison-screen** — Plan vs Actual
-  - Refs: CMP-03, CMP-04, CMP-05, CMP-06, CAT-08
-  - Build: `app/Http/Controllers/ComparisonController.php@index` · route `comparison.index` ·
-    `resources/js/pages/comparison/index.tsx` — month mode (default: latest Complete month,
-    else current month, else month 1) and Year-to-date mode with "Based on {n} completed
-    months"; separate income and expense sections; rows expand to subcategories plus "No
-    subcategory"; spread categories carry the explanatory tooltip · sidebar entry
-  - Tests: `tests/Feature/Reports/ComparisonTest.php`
-  - Commit: `feat: plan vs actual comparison`
-
-- [x] **m4-cash-flow-screen** — The twelve-month cash-flow table and balance chart
-  - Refs: CF-01, CF-02, NFR-04
-  - Build: `sail bunx shadcn@latest add chart` (recharts, approved by PRD §3.3) ·
-    `app/Http/Controllers/CashFlowController.php@index` · route `cash-flow.index` ·
-    `resources/js/pages/cash-flow/index.tsx` ·
-    `resources/js/components/finance/balance-chart.tsx` — three closing-balance series in the
-    §5.2 line styles with a zero line and a descriptive `aria-label` ·
-    `resources/js/components/finance/chart-data-table.tsx` — the shared "View as table"
-    alternative every later chart reuses · sidebar entry
-  - Tests: `tests/Feature/Reports/CashFlowTest.php`
-  - Commit: `feat: cash flow table and balance chart`
-
-- [x] **m4-golden-dataset-part-1** — The fixture year, actuals half
-  - Refs: TST-01, TST-02 (part)
-  - Build: `tests/Fixtures/GoldenYear.php` — a synthetic fully-specified year (Q-07 default)
-    with hand-computed expectations
-  - Tests: `tests/Feature/GoldenDataset/ActualsAndBalancesTest.php` — monthly figures, the
-    twelve-month cash-flow table and every variance
-  - Commit: `test: golden dataset for actuals and balances`
-
-- [x] **m4-month-close-browser-test** — Browser coverage for the close flow <!-- gate -->
-  - Refs: TST-04 (month close slice), UX-10
-  - Build: `tests/Browser/MonthsTest.php`
-  - Tests: months index → review → fix a flagged transaction → save snapshots → complete →
-    reopen, at 1280px and 375px
-  - Commit: `test: month close browser coverage`
-
-## M5 — Forecast, goals, emergency fund, net worth
-
-- [x] **m5-forecast-screen** — The forecast
-  - Refs: FC-01, FC-02, FC-03, FC-04, FC-05, FC-06 (consumption)
-  - Build: `app/Http/Controllers/ForecastController.php@index` · route `forecast.index` ·
-    `resources/js/pages/forecast/index.tsx` — annual income, expenses, savings and savings
-    rate; forecast year-end balance; emergency fund status; deviation from the original plan
-    with its capture date; per-month source badge "Actual" / "Plan + actual" / "Plan"; the
-    FC-04 highlight for past months that are not Complete; per-category annual Plan vs
-    Forecast table · sidebar entry
-  - Note: FC-01's emergency fund block is added by `m5-emergency-fund-calculation`, which
-    owns that calculation; everything else on the screen is done.
-  - Tests: `tests/Feature/Reports/ForecastTest.php` · browser smoke in
-    `tests/Browser/ForecastTest.php` at both widths
-  - Commit: `feat: forecast screen`
-
-- [x] **m5-emergency-fund-calculation** — The emergency fund formulas
-  - Refs: §7.6
-  - Build: `app/Data/EmergencyFundStatus.php` · `app/Actions/CalculateEmergencyFund.php` —
-    essential monthly expenses by integer division, suggested target or custom override,
-    current from the latest EmergencyFund snapshot at or before today (month 0 counts),
-    remaining, progress %, estimated achievement month, projected at year end
-  - Notes: cap the achievement search at 600 months, then "Not reachable with the current plan".
-  - Tests: `tests/Unit/Actions/CalculateEmergencyFundTest.php`
-  - Commit: `feat: emergency fund calculation`
-
-- [x] **m5-emergency-fund-screen** — The emergency fund screen
-  - Refs: EF-01, EF-02, EF-03
-  - Build: `app/Actions/UpdateEmergencyFundSettings.php` — writes `emergency_fund_months`,
-    `categories.is_essential`, the goal's contribution and custom target in one
-    `DB::transaction()` · `app/Http/Requests/UpdateEmergencyFundRequest.php` ·
-    `app/Http/Controllers/EmergencyFundController.php` (show, update) · routes
-    `emergency-fund.show/update` registered **before** any `/goals/{goal}` pattern ·
-    `resources/js/pages/goals/emergency-fund.tsx` ·
-    `resources/js/components/finance/progress-bar.tsx` — a plain div bar, **not** shadcn
-    `progress`, which pulls an unapproved dependency
-  - Tests: `tests/Feature/Goals/EmergencyFundTest.php`
-  - Commit: `feat: emergency fund screen`
-
-- [x] **m5-goal-progress-calculation** — Goal progress and the off-track rule
-  - Refs: §7.7
-  - Build: `app/Data/GoalProgress.php` · `app/Actions/CalculateGoalProgress.php` — current by
-    type (EmergencyFund from §7.6, YearEndBalance from C_F(12), others from
-    `current_amount_cents`), remaining, progress %, estimated completion date, off-track rule
-  - Notes: same 600-month cap on the estimate.
-  - Tests: `tests/Unit/Actions/CalculateGoalProgressTest.php`
-  - Commit: `feat: goal progress calculation`
-
-- [x] **m5-goals-screen** — Goals CRUD
-  - Refs: GOAL-01, GOAL-02, GOAL-03, GOAL-04
-  - Build: `app/Actions/{CreateGoal,UpdateGoal,ArchiveGoal}.php` ·
-    `app/Http/Requests/{Store,Update}GoalRequest.php` ·
-    `app/Http/Controllers/GoalController.php` (index, store, update) ·
-    `app/Http/Controllers/GoalArchiveController.php@store` · routes
-    `goals.index/store/update`, `goal-archive.store` · `resources/js/pages/goals/index.tsx` ·
-    `resources/js/components/goals/goal-card.tsx` — EmergencyFund and YearEndBalance current
-    amounts read-only with an explanation, others edited inline · sidebar entry
-  - Tests: `tests/Feature/Goals/GoalControllerTest.php` ·
-    `tests/Feature/Isolation/GoalIsolationTest.php` · browser smoke at both widths
-  - Commit: `feat: financial goals`
-
-- [x] **m5-net-worth-calculation** — Net worth and carried-forward values
-  - Refs: §7.8
-  - Build: `app/Data/{NetWorthPosition,NetWorthMonth}.php` ·
-    `app/Actions/CalculateNetWorth.php` — NW(0..12) by kind, missing snapshots carrying the
-    most recent earlier value forward and marked as such, change vs previous month and vs
-    month 0
-  - Tests: `tests/Unit/Actions/CalculateNetWorthTest.php`
-  - Commit: `feat: net worth calculation`
-
-- [x] **m5-net-worth-screen** — Net worth and its holdings
-  - Refs: NW-01, NW-02, NW-03, NW-04
-  - Build: `app/Actions/{CreateNetWorthItem,UpdateNetWorthItem,DeactivateNetWorthItem}.php` ·
-    `app/Http/Requests/{Store,Update}NetWorthItemRequest.php` ·
-    `app/Http/Controllers/NetWorthController.php@index` ·
-    `app/Http/Controllers/NetWorthItemController.php` (store, update, destroy = deactivate) ·
-    routes `net-worth.index`, `net-worth-items.store/update/destroy` ·
-    `resources/js/pages/net-worth/index.tsx` ·
-    `resources/js/components/net-worth/net-worth-chart.tsx` reusing `chart-data-table.tsx` ·
-    carried-forward values muted with a tooltip · sidebar entry
-  - Tests: `tests/Feature/NetWorth/NetWorthControllerTest.php` ·
-    `tests/Feature/Isolation/NetWorthItemIsolationTest.php` · browser smoke at both widths
-  - Commit: `feat: net worth screen`
-
-- [x] **m5-golden-dataset-part-2** — The fixture year, forecast half <!-- gate -->
-  - Refs: TST-02 (part)
-  - Build: extend `tests/Fixtures/GoldenYear.php`
-  - Tests: `tests/Feature/GoldenDataset/ForecastGoalsAndNetWorthTest.php`
-  - Commit: `test: golden dataset for forecast and goals`
-
-## M6 — Subscriptions
-
-- [x] **m6-subscription-schema-and-billing** — The subscription record and its billing sequence
-  - Refs: SUB-03, EDGE-05, §6.3
-  - Build: migrations `create_subscriptions_table`,
-    `add_subscription_id_to_plan_items_table`, `add_subscription_id_to_transactions_table`
-    (both nullable, `nullOnDelete`, indexed — they were never created and merged migrations are
-    never edited) · `app/Models/Subscription.php` with `nextBillingDateFrom(CarbonInterface)`,
-    `billingMonthsIn(int $year)` (calendar-month stepping from `billing_anchor_date`, clamped to
-    the month's last day per EDGE-05, zeroed after `deactivated_on`) and
-    `monthlyEquivalentCents()` · relation and cast on `app/Models/{PlanItem,Transaction}.php` ·
-    `database/factories/SubscriptionFactory.php` with `monthly`, `annual` and `inactive` states ·
-    `app/Policies/SubscriptionPolicy.php`
-  - Notes: the model and its methods must land **with** their tests or the coverage gate fails.
-  - Tests: `tests/Unit/Models/SubscriptionTest.php` · extend
-    `tests/Feature/Isolation/PolicyIsolationTest.php`
-  - Commit: `feat: subscription schema and billing dates`
-
-- [x] **m6-subscription-crud-screen** — Managing subscriptions
-  - Refs: SUB-01, SUB-02, CAT-07
-  - Build: `app/Actions/{CreateSubscription,UpdateSubscription,DeactivateSubscription,ActivateSubscription}.php`
-    — each creates or reuses by name a subcategory under the chosen category (SUB-02) ·
-    `app/Http/Requests/{Store,Update}SubscriptionRequest.php` ·
-    `app/Http/Controllers/SubscriptionController.php` (index, store, update) ·
-    `app/Http/Controllers/SubscriptionActivationController.php` (store, destroy) · routes
-    `subscriptions.index/store/update`, `subscription-activation.store/destroy` ·
-    `resources/js/pages/subscriptions/index.tsx` with monthly-equivalent per row and the total
-    monthly and annual cost of active subscriptions · extend `Category::isInUse()` and
-    `CategoryPolicy` so the `subscriptions` system category cannot be deactivated while active
-    subscriptions exist · sidebar entry
+- [ ] **nav-plan-subscriptions** — Subscriptions become a tab of the plan
+  - Refs: SUB-01, SUB-02, SUB-04, SUB-06, §9
+  - Build: `SubscriptionController@index` renders `plan/subscriptions` instead of
+    `subscriptions/index` — URI and route name unchanged · page moves to
+    `resources/js/pages/plan/subscriptions.tsx` and wraps in `resources/js/pages/plan/layout.tsx` ·
+    `plan/layout.tsx` gains the Subscriptions tab, built from the shared `selectedYear` prop
+    rather than the `tabs` prop, because this route is not year-scoped
+  - Notes: `PlanController::TABS` does not change — the tab row gains one fixed entry the layout
+    owns. Subscriptions are user-level: `SyncSubscriptionPlanItems` fans them into every current
+    and future year, and the page says so once so the tab's place under a year is not misread.
   - Tests: `tests/Feature/Subscriptions/SubscriptionControllerTest.php` ·
-    `tests/Feature/Isolation/SubscriptionIsolationTest.php`
-  - Commit: `feat: subscriptions crud`
+    `tests/Browser/SubscriptionsTest.php` at both widths
+  - Commit: `feat: subscriptions in the plan`
 
-- [x] **m6-subscription-plan-sync** — Generated plan items that stay in step
-  - Refs: SUB-04, SUB-05, YEAR-03
-  - Build: `app/Actions/SyncSubscriptionPlanItems.php` — exactly one `source = Subscription`
-    plan item per active subscription per financial year, months following its billing dates;
-    re-syncs the current and future years only, past years untouched; deactivation zeroes months
-    after `deactivated_on` · call it from all four subscription Actions and from
-    `app/Actions/{CreateFinancialYear,CopyFinancialYear}.php` · SUB-05 double-count warning from
-    `PlanController@expensesProps`, rendered in `resources/js/pages/plan/expenses.tsx`
-    (case-insensitive exact name match)
-  - Notes: this changes `CopyFinancialYear`, an M2 Action — re-run `tests/Feature/Planning/`
-    inside this item.
-  - Tests: `tests/Feature/Subscriptions/SyncSubscriptionPlanItemsTest.php`
-  - Commit: `feat: sync subscription plan items`
+- [ ] **nav-sidebar-groups** — Twelve sidebar entries become seven <!-- gate -->
+  - Refs: UX-05, UX-09, UX-10, NFR-06, §9 navigation
+  - Build: `resources/js/hooks/use-app-navigation.ts` — Dashboard, Transactions, Plan, Months,
+    Reports, Goals, then Settings; year-scoped entries still hidden while `selectedYear` is null ·
+    `resources/js/components/nav-main.tsx` — drop the single "Your money" group label and set
+    Settings off with a separator · active state through `isCurrentOrParentUrl` from
+    `resources/js/hooks/use-current-url.ts`, so a tab inside a hub lights its sidebar parent ·
+    breadcrumbs on every moved page
+  - Tests: `tests/Browser/NavigationTest.php` — seven entries and no more, every one reachable at
+    1280px and 375px, each hub tab lighting its parent
+  - Commit: `feat: seven entry navigation`
 
-- [x] **m6-subscription-transaction-link** — Linking a transaction to its subscription <!-- gate -->
-  - Refs: SUB-06, TST-04 (subscription slice)
-  - Build: `CreateTransaction` / `UpdateTransaction` set `subscription_id` when the chosen
-    subcategory belongs to an active subscription · surface it in the transaction row
-  - Tests: `tests/Feature/Subscriptions/SubscriptionTransactionLinkTest.php` ·
-    `tests/Browser/SubscriptionsTest.php` — create a subscription, see its generated plan item,
-    record a transaction against its subcategory, at both widths
-  - Commit: `feat: link transactions to subscriptions`
+---
 
-## M7 — Dashboard, alerts, polish
+## P2 — Identity
 
-- [x] **m7-alerts** — Derived in-app alerts
-  - Refs: ALRT-01, ALRT-02, ALRT-03, ALRT-04, ALRT-05, ALRT-06, ALRT-07
-  - Build: `app/Data/Alert.php` · `app/Actions/BuildAlerts.php` composing
-    `CalculateMonthlyFigures`, `CalculateVariances`, `CalculateCashFlow`,
-    `CalculateEmergencyFund` and `CalculateGoalProgress`, sorted 07, 06, 01/02, 03, 04, 05,
-    each with a plain-language title, a one-sentence explanation and one action link ·
-    `severity()`, `title()` and `explanation()` on `app/Enums/AlertType.php` ·
-    `resources/js/components/finance/alerts-panel.tsx`
-  - Notes: ALRT-06 for a non-current year — future year: all 12 months; past year: no alert.
-    Every enum arm needs a test for the coverage gate.
-  - Tests: `tests/Unit/Actions/BuildAlertsTest.php` — one case per alert type plus the empty case
-  - Commit: `feat: in-app alerts`
+- [ ] **ui-design-tokens** — A palette and a type scale of its own
+  - Refs: §5.2, UX-08, NFR-04, NFR-06
+  - Build: `resources/css/app.css` — `--primary` becomes indigo (`oklch(0.45 0.15 265)` light,
+    `oklch(0.72 0.14 265)` dark) instead of pure black; the neutrals pick up a faint cool cast at
+    hue 265; **`--card` must stop equalling `--background` in dark** (`oklch(0.205 0.008 265)` on
+    `oklch(0.16 0.008 265)`) so cards lift; `--radius` 0.625rem → 0.5rem; new `--shadow-card`;
+    `--chart-1..5`, defined and never used today, become a real categorical ramp off hue 265 ·
+    `--font-display` mapped in `@theme` and used for page titles and hero figures ·
+    `resources/views/app.blade.php` — add Instrument Serif beside Instrument Sans on
+    fonts.bunny.net (no npm dependency) and keep the inline pre-hydration background rule in step
+    with the new `--background` · sweep raw Tailwind colour utilities onto the semantic tokens in
+    `components/transactions/{transaction-row,issue-badge,quick-add-sheet}.tsx`,
+    `components/finance/month-status-badge.tsx`, `components/input-error.tsx`,
+    `pages/months/index.tsx`, `pages/plan/expenses.tsx`
+  - Notes: `--status-ok|warning|over` keep their hues (155, 70, 27) so they stay clear of the
+    brand; `--series-forecast` moves 258 → 265 to sit in the brand family. Contrast stays at
+    WCAG AA in both themes. `welcome.tsx` is left to `ui-landing`.
+  - Tests: new `tests/Unit/DesignTokensTest.php` — no file under `resources/js` matches a raw
+    Tailwind colour utility (`amber-`, `emerald-`, `red-`, `green-`, `sky-`, and friends) ·
+    `tests/Browser/AccessibilityTest.php` extended — in dark mode a card and the page background
+    render as different colours, and every status badge still carries its icon and text label
+  - Commit: `feat: design tokens and type scale`
 
-- [x] **m7-dashboard-cards** — The dashboard's primary and secondary blocks
-  - Refs: DASH-01, DASH-02, DASH-03, DASH-05, DASH-06, YEAR-08, UX-09
-  - Build: `app/Data/DashboardData.php` · `app/Actions/BuildDashboard.php` ·
-    `app/Http/Controllers/DashboardController.php@index` replacing the closure in
-    `routes/web.php` · rewrite `resources/js/pages/dashboard.tsx` — exactly six primary cards in
-    PRD order, the compact secondary row (net worth, completed months, issue count only when
-    above zero), every card linking to its detail screen, redirect to `/years/create` when the
-    user has no years · `resources/js/components/finance/metric-card.tsx`
-  - Tests: `tests/Feature/Dashboard/DashboardControllerTest.php`
-  - Commit: `feat: dashboard cards`
+- [ ] **ui-primitives** — One page rhythm, one figure card, and the dead code goes
+  - Refs: UX-05, UX-09, UX-13
+  - Build: `resources/js/components/page-shell.tsx` — one page gutter
+    (`px-4 md:px-6 lg:px-8`) and one section rhythm (`space-y-8`), applied to every page that
+    currently picks its own `px-4 py-6` · `components/finance/stat-card.tsx`, generalised from
+    `metric-card.tsx`, so the dashboard, month review, cash flow, forecast and net worth stop each
+    writing their own `<dl>` of figures · replace the hand-rolled `Pager` in
+    `pages/transactions/index.tsx` with `components/ui/pagination`, which is vendored and unused ·
+    delete dead code: `components/app-header.tsx`, `layouts/app/app-header-layout.tsx`,
+    `layouts/auth/auth-card-layout.tsx`, `layouts/auth/auth-split-layout.tsx`,
+    `components/ui/{icon,placeholder-pattern,toggle}.tsx`
+  - Notes: `toggle-group` stays — the comparison mode switch uses it. Deleting a file something
+    still imports fails `tsc --noEmit`, which is the check that this list is right.
+  - Tests: `tests/Browser/{DashboardTest,TransactionsTest}.php` — pagination works at both widths
+  - Commit: `feat: shared page primitives`
 
-- [x] **m7-dashboard-charts** — Five lazily loaded charts
-  - Refs: DASH-04, DASH-05, FE-08, NFR-04
-  - Build: `Inertia::defer()` prop per chart from `DashboardController` ·
-    `resources/js/components/dashboard/{closing-balance-chart,expenses-by-category-chart,income-expense-chart,net-worth-trend-chart,goals-progress-chart}.tsx`,
-    each with a pulsing skeleton and the shared "View as table" fallback · alerts panel above
-    the charts
-  - Tests: `tests/Feature/Dashboard/DashboardChartsTest.php` — each deferred prop resolves
-  - Commit: `feat: dashboard charts`
+- [ ] **ui-landing** — The landing page stops being a starter kit <!-- gate -->
+  - Refs: §1, NFR-04
+  - Build: rewrite `resources/js/pages/welcome.tsx` — 388 lines of Laravel starter kit with about
+    twenty hardcoded hex values and a large inline SVG — on the new tokens: what Fin is, one
+    "Sign in" action, nothing implying public registration exists
+  - Notes: `/register` does not exist and must never be referenced; a link to it breaks the
+    Wayfinder build.
+  - Tests: `tests/Browser/WelcomeTest.php` extended — renders at 1280px and 375px with no console
+    errors and no registration link
+  - Commit: `feat: landing page`
 
-- [x] **m7-demo-seeder** — The local demo year
-  - Refs: §12.2
-  - Build: `database/seeders/DemoSeeder.php` — a 2027 with a salary model at 1.800,00 € on 14
-    payments, a budget across the essential categories, 3 irregular items one of them Spread,
-    3 subscriptions, 2 goals, an opening position, about 60 transactions a month for
-    January–June with January–April Complete, May and June InProgress and one flagged
-    transaction in June, and net worth snapshots for months 0–4 · wired into `DatabaseSeeder`
-    behind the existing non-production guard
-  - Tests: `tests/Feature/DemoSeederTest.php` smoke test
-  - Commit: `feat: local demo dataset`
+---
 
-- [x] **m7-golden-dataset-complete** — Dashboard figures and alerts in the fixture
-  - Refs: TST-02
-  - Build: extend `tests/Fixtures/GoldenYear.php`
-  - Tests: `tests/Feature/GoldenDataset/DashboardAndAlertsTest.php` — every dashboard figure and
-    the full alert list
-  - Commit: `test: golden dataset for dashboard and alerts`
+## P3 — Easier plan setup
 
-- [x] **m7-empty-states-and-edges** — Empty, zero and edge states across every screen
-  - Refs: EDGE-01, EDGE-02, EDGE-03, EDGE-04, EDGE-05, UX-06, UX-07
-  - Build: `resources/js/components/finance/empty-state.tsx` applied to every list and chart
-    with one next action · the setup banner used on months, comparison, cash flow, forecast and
-    dashboard · "—" for every null percentage · "Future date" badge · `payment_day` clamped to
-    the month's last day
-  - Tests: `tests/Feature/EdgeStatesTest.php` including February in a leap and a non-leap year
-  - Commit: `feat: empty and edge states`
+- [ ] **plan-item-editor** — The plan tabs stop being read-only
+  - Refs: INC-01, INC-07, IRR-01, IRR-02, IRR-03, BUD-01, UX-06, UX-07
+  - Build: `resources/js/components/planning/plan-item-form.tsx` — name, category, amount and
+    frequency in front, start month, payment day, allocation and notes folded behind "More
+    details" (UX-07) · `pages/plan/income.tsx` and `pages/plan/irregular.tsx` gain inline create,
+    edit and delete through the existing `plan-items.store/update/destroy`, following the
+    inline-form pattern already proven in `pages/subscriptions/index.tsx` and
+    `pages/goals/index.tsx` · delete confirms first (UX-06) using `components/ui/dialog`
+  - Notes: no controller, Action or Form Request changes — `PlanItemController` and
+    `Store/UpdatePlanItemRequest` already do all of this and only the wizard ever reached them.
+    Salary-model and subscription-sourced items stay read-only, which `isManual` already reports.
+  - Tests: `tests/Feature/Plan/PlanItemControllerTest.php` extended for the tabs' payloads ·
+    `tests/Browser/PlanningTest.php` — add, edit and delete an income item and an irregular item
+    from the tabs at 1280px and 375px
+  - Commit: `feat: edit plan items in place`
 
-- [x] **m7-glossary-and-accessibility** — Plain language and keyboard reach
-  - Refs: UX-04, UX-08, UX-13, NFR-04, NFR-06
-  - Build: `resources/js/components/finance/glossary-term.tsx` carrying the §5.3 copy
-    **verbatim**, applied on first appearance per screen · every table over four columns audited
-    for the mobile card list (the budget grid excepted, it switches to one month at a time) ·
-    `aria-label` on every chart · labelled inputs, visible focus and keyboard-operable overlays
-  - Tests: extend the browser suite with keyboard operation of quick add
-  - Commit: `feat: glossary tooltips and accessibility pass`
+- [ ] **plan-budget-grid** — The grid says what it saved
+  - Refs: BUD-02, BUD-03, BUD-04, UX-13, EDGE-03
+  - Build: `pages/plan/expenses.tsx` — the grid PATCHes `budget-cell.update` on every blur today
+    with no saved state, no error surface and no undo. Add a per-cell saving and saved indicator,
+    surface the `amount` error `BudgetCellController` already returns (including the ambiguous
+    "more than one manual item" path), arrow-key movement between cells, and an undo on the last
+    write · the mobile one-month-at-a-time view gets the same treatment
+  - Notes: `UpdateBudgetCell` already creates a plan item named after the category on first entry
+    and already reports `isEditable`. Do not add an endpoint and do not change the Action.
+  - Tests: `tests/Feature/Plan/BudgetGridTest.php` extended for the error path ·
+    `tests/Browser/PlanningTest.php` — type a cell, see it save, see an error surface, at both widths
+  - Commit: `feat: budget grid feedback`
 
-- [x] **m7-privacy** — Financial data stays out of the logs
-  - Refs: NFR-05
-  - Build: audit Action logging so only IDs are written; confirm `/up` and exception context
-    carry no amounts or descriptions
-  - Tests: `tests/Feature/PrivacyTest.php`
-  - Commit: `test: keep financial data out of logs`
+- [ ] **plan-wizard-short** — Six setup steps become three
+  - Refs: YEAR-04, YEAR-05, OPEN-01, OPEN-02, OPEN-03, INC-01, BUD-01, UX-06, UX-07
+  - Build: `app/Http/Controllers/YearSetupController.php` — `STEPS` becomes
+    `['opening','income','expenses']`; the placeholder `goals` step and the `irregular` and
+    `review` steps go, and `YearSetupCompletionController` still runs `CompleteYearSetup` and
+    `CapturePlanBaseline` at the hand-off to `plan.show` · one shared class takes over
+    `openingProps()` and `presentSalaryModel()`, which `YearSetupController` and `PlanController`
+    copy from each other today · `resources/js/pages/years/setup.tsx` drops from 619 lines to the
+    three remaining steps and reuses `plan-item-form.tsx` and the opening form rather than
+    carrying its own near-verbatim copies
+  - Notes: the baseline must come out identical to what six steps produced —
+    `CapturePlanBaseline::build()` reads plan items, not the wizard, so shortening the wizard
+    cannot move it, and `tests/Feature/GoldenDataset/*` proves it.
+  - Tests: `tests/Feature/Years/YearSetupControllerTest.php` — three steps, an unknown step 404s,
+    completion still captures the baseline · `tests/Browser/PlanningTest.php` — the wizard end to
+    end at 375px
+  - Commit: `feat: three step year setup`
 
-- [x] **m7-browser-core-flows** — The remaining browser coverage <!-- gate -->
-  - Refs: TST-04, TST-05, UX-10, §2.2
-  - Build: `tests/Browser/DashboardTest.php` · extend `tests/Browser/PlanningTest.php` with the
-    wizard end to end at 375px · a §2.2 acceptance walk over the demo dataset
-  - Tests: every authenticated page visited with no JavaScript and no console errors, at 1280px
-    and 375px
-  - Commit: `test: core flow browser coverage`
+- [ ] **plan-overview** — The plan's totals are always in view <!-- gate -->
+  - Refs: UX-05, UX-09, FC-06, EDGE-02
+  - Build: an annual totals rail at the top of every plan tab in `resources/js/pages/plan/layout.tsx`
+    — planned income, planned expenses, planned savings, planned year-end balance — fed by the
+    `summary` prop `CapturePlanBaseline::build()` already returns, with whichever tab is still
+    empty named as the next thing to do
+  - Notes: `summary` is passed only on the income tab today; `PlanController::show()` moves it
+    into the shared props so every tab has it. That is a prop move, not a new calculation.
+  - Tests: `tests/Feature/Plan/PlanControllerTest.php` — `summary` present on all four tabs ·
+    `tests/Browser/PlanningTest.php`
+  - Commit: `feat: plan overview rail`
+
+---
+
+## P4 — Easier transactions
+
+- [ ] **tx-filter-bar** — Filters survive the next page
+  - Refs: TXL-02, TXL-03, EDGE-01, UX-07, UX-09
+  - Build: `components/transactions/transaction-filters.tsx` — 298 lines of always-open controls
+    become a search field, the filters actually reached for as chips, and the rest behind a "More
+    filters" popover carrying a count of what is set · `pages/transactions/index.tsx` — **the
+    `Pager` carries only `q`, `type`, `category_id` and `issues` forward, so changing page
+    silently drops the date, month, year, subcategory, account and amount filters.** Build the
+    page link from the whole `filters` prop instead
+  - Notes: `IndexTransactionRequest` coerces and never validates, so no filter combination can
+    422 and a redesign here cannot break the request.
+  - Tests: `tests/Feature/Transactions/TransactionListTest.php` — every filter survives a page
+    change, and the footer totals still cover the whole filter rather than the page ·
+    `tests/Browser/TransactionsTest.php` at both widths
+  - Commit: `fix: keep every filter when paging`
+
+- [ ] **tx-list-polish** — The list reads and moves better
+  - Refs: TXL-01, TXL-04, TXL-05, UX-05, UX-13, NFR-06
+  - Build: `pages/transactions/index.tsx` — totals move above the list and stick while it scrolls
+    (they are below the fold today, which is backwards for UX-05), rows take keyboard navigation
+    with Enter to edit, and the selection count says plainly that it covers this page only ·
+    `components/transactions/transaction-row.tsx` onto the new tokens
+  - Tests: `tests/Browser/{TransactionsTest,BulkRecategoriseTest}.php`
+  - Commit: `feat: transaction list polish`
+
+- [ ] **tx-quick-add-polish** — Quick add gets out of its own way
+  - Refs: TXQ-01, TXQ-02, TXQ-03, TXQ-04, TXQ-06, TXQ-10, UX-01, UX-11, UX-12, UX-14, §2.3
+  - Build: split `components/transactions/quick-add-sheet.tsx` — 496 lines serving create, edit
+    and duplicate — into the sheet shell plus `quick-add-form.tsx` and `quick-add-date.tsx` ·
+    a Today / Yesterday / pick control replacing the bare `<input type="date">` · larger amount
+    and category targets below 768px
+  - Notes: `entry_source` and `entry_duration_ms` must keep being sent — they are how §2.3's
+    fifteen-second target is measured. The Radix Popover inside the Dialog still needs `modal`.
+  - Tests: `tests/Browser/QuickAddTest.php` — the common path still lands in six interactions or
+    fewer at both widths, save-and-add-another, the `12,50` comma decimal, and the complete-month
+    reopen-and-save path
+  - Commit: `feat: quick add polish`
+
+- [ ] **tx-command-palette** — One key reaches anything <!-- gate -->
+  - Refs: UX-05, NFR-06, §9 navigation
+  - Build: `resources/js/components/command-palette.tsx` on the already-vendored `cmdk`
+    (`components/ui/command`), mounted beside `QuickAddProvider` in
+    `layouts/app/app-sidebar-layout.tsx` — ⌘K and Ctrl+K jump to any of the seven destinations
+    and their tabs, switch year from the shared `years` prop, and start a transaction through
+    `useQuickAdd()`
+  - Notes: the shortcut is ignored while an input is focused, reusing `isTypingInto()` from
+    `hooks/use-quick-add.ts`. `N` keeps working exactly as it does.
+  - Tests: `tests/Browser/CommandPaletteTest.php` — open with the shortcut, navigate, switch
+    year, start a transaction, at 1280px and 375px
+  - Commit: `feat: command palette`
+
+---
+
+## P5 — Easier reporting
+
+- [ ] **reports-summary** — The year in one screen
+  - Refs: FC-01, CF-01, ALRT-01, ALRT-06, UX-05, UX-09
+  - Build: `app/Http/Controllers/ReportSummaryController.php@index` at `years/{year}/reports`
+    (name `reports.index`), composing `CalculateAnnualSummary`, `CalculateCashFlow` and
+    `BuildAlerts` — **no new calculation code and no new Action** ·
+    `resources/js/pages/reports/summary.tsx`, linking into each of the other three tabs ·
+    Summary joins `reports/layout.tsx` as the first tab and becomes the Reports sidebar destination
+  - Tests: `tests/Feature/Reports/ReportSummaryTest.php` · `tests/Feature/GoldenDataset/*`
+    untouched and green · `tests/Browser/NavigationTest.php`
+  - Commit: `feat: reports summary tab`
+
+- [ ] **reports-charts** — Plan vs actual and forecast get a picture
+  - Refs: CMP-01, CMP-03, CMP-04, FC-02, FC-05, §5.2, UX-08
+  - Build: a plan-against-actual bar chart on `pages/reports/comparison.tsx` and a forecast line
+    chart on `pages/reports/forecast.tsx` — both on recharts through `components/ui/chart.tsx`,
+    both on the `--series-*` tokens with the §5.2 line styles, both wrapped in
+    `components/finance/chart-data-table.tsx` so the table twin stays one click away ·
+    `aria-label` on each
+  - Notes: `components/finance/balance-chart.tsx` is the model for dash patterns and the zero
+    `ReferenceLine`. No new props — both pages already receive everything the charts need, so no
+    controller changes.
+  - Tests: `tests/Browser/{ForecastTest,NavigationTest}.php` — chart and table views both render
+    with no console errors at both widths
+  - Commit: `feat: charts on comparison and forecast`
+
+- [ ] **dashboard-simplify** — Six cards, two charts, then drill down <!-- gate -->
+  - Refs: DASH-01, DASH-02, DASH-03, DASH-04, UX-05, UX-09
+  - Build: `pages/dashboard.tsx` — six cards above the fold and no more (UX-09), the secondary
+    pill row folded into them, and of the five deferred charts only the two that answer "how is
+    the year going" left above the fold; the rest move behind a disclosure and into the Reports
+    hub · `components/finance/metric-card.tsx` onto `stat-card.tsx`
+  - Notes: the five `Build*Chart` Actions and their tests stay, and so does every
+    `Inertia::defer` prop — a chart behind a disclosure keeps its deferred prop and its coverage.
+    Nothing under `app/` is deleted by this item.
+  - Tests: `tests/Feature/Dashboard/{DashboardControllerTest,DashboardChartsTest}.php` unchanged
+    and green · `tests/Browser/DashboardTest.php` — at most six cards above the fold at 1280px
+  - Commit: `feat: simpler dashboard`
+
+---
+
+## P6 — Close
+
+- [ ] **ui-states** — Nothing is ever blank without saying why
+  - Refs: EDGE-01, EDGE-02, EDGE-03, EDGE-04, EDGE-05, UX-06, UX-07, NFR-04
+  - Build: `components/finance/empty-state.tsx` applied with exactly one next action on every
+    list and chart · a skeleton at every `<Deferred>` boundary shaped like what it replaces
+    rather than a generic bar · error surfaces on the forms that show none today (the budget grid
+    is already covered by `plan-budget-grid`; this catches the rest) · "—" for every null
+    percentage
+  - Tests: `tests/Feature/EdgeStatesTest.php` · `tests/Browser/EmptyStatesTest.php`
+  - Commit: `feat: loading and empty states`
+
+- [ ] **ui-final-pass** — Both widths, every screen, keyboard throughout <!-- gate -->
+  - Refs: UX-10, UX-13, NFR-04, NFR-06, TST-04, TST-05, §2.2
+  - Build: a sweep of every screen this backlog touched at 1280px and 375px — keyboard reach,
+    visible focus, labelled inputs, no horizontal scroll, tables over four columns as card lists
+    (the budget grid excepted) · `tests/Browser/AcceptanceWalkTest.php` rewalks §2.2 over the
+    new navigation
+  - Tests: every authenticated page visited at both widths with `assertNoJavascriptErrors()` and
+    no console errors
+  - Commit: `test: full ui browser coverage`
 
 ---
 
 ## Known gaps
 
-- ~~**The snapshot form's save button does not dispatch under Playwright.**~~ **Fixed in
-  `m7-browser-core-flows`.** The form kept two sources of truth — component state for the
-  inputs and `form.data` for the request — bridged only by `transform()`, so what was sent
-  was the prefilled figures rather than the typed ones: a request that succeeded and wrote
-  nothing new. `form.data` is now the only copy. The earlier attempts failed because they
-  asserted on the flash toast, which is gone by the time anything looks for it; the test
-  now asserts the saved figure on a later page load.
+Nothing outstanding. A blocked item records its reason here.
 
 ## Deferred — SHOULD items
 
@@ -497,3 +335,5 @@ Not scheduled. The loop stops before these; the user decides whether to pick the
 - SUB-07 — widget listing subscriptions charging in the next 30 days
 - MET-02 — `docs/metrics.md` with read-only SQL for each brief metric
 - TST-06 — the NFR-01 performance benchmark in its own Pest group, excluded from the default run
+- CSV export of the transaction list and of any report
+- Cross-year reporting (every report route is year-scoped today)

@@ -75,13 +75,18 @@ and descriptions.
 
 ## The remaining work is driven by a backlog and a loop
 
-`.claude/backlog.md` holds every remaining v1 item in dependency order, and
-`.claude/commands/next-item.md` implements exactly one of them per invocation — read the PRD for
-its requirement IDs, build, test, commit, tick. The last item of each milestone carries
+`.claude/backlog.md` holds the outstanding work in dependency order, and
+`.claude/commands/next-item.md` implements exactly one item per invocation — read the PRD for
+its requirement IDs, build, test, commit, tick. The last item of each phase carries
 `<!-- gate -->`, which is where the full `sail composer test` runs; other items run targeted
 Pest plus `test:lint` and `test:types`.
 
-All of it stays local on one branch. The loop never pushes and never opens a pull request.
+v1 shipped this way across seven milestones; the backlog now holds the UI modernisation pass,
+whose items may not change any `Calculate*` or `Build*` result — the golden-dataset tests are
+the tripwire.
+
+All of it stays local, committing to `main`. The loop never pushes and never opens a pull
+request.
 
 ## The test suite runs three workers, and browser tests get a minute
 
