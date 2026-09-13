@@ -12,6 +12,7 @@ use App\Enums\PlanItemKind;
 use App\Enums\TransactionType;
 use App\Models\Category;
 use App\Models\FinancialYear;
+use App\Models\NetWorthSnapshot;
 use App\Models\PlanItem;
 use App\Models\PlanItemAmount;
 use App\Models\SalaryModel;
@@ -53,6 +54,10 @@ final readonly class PlanController
                 'hasBaseline' => $year->hasBaseline(),
                 'baselineCapturedAt' => $year->baseline_captured_at?->toIso8601String(),
             ],
+            // Every tab shows what the plan adds up to, not just the one that happened
+            // to be built first (UX-05).
+            'planTotals' => $this->planTotals($year),
+            'emptyTabs' => $this->emptyTabs($year),
             ...$this->tabProps($year, $tab),
         ]);
     }
@@ -80,7 +85,6 @@ final readonly class PlanController
             'defaultPayments' => SalaryModel::defaultPayments(),
             'items' => $this->items($year, fn (HasMany $query): HasMany => $query->where('type', TransactionType::Income)),
             'categories' => $this->categories($year, TransactionType::Income),
-            'summary' => $this->baseline->build($year),
         ];
     }
 
@@ -260,5 +264,60 @@ final readonly class PlanController
             ->where('type', TransactionType::Expense)
             ->orderBy('sort_order')
             ->get();
+    }
+
+    /**
+     * What the plan adds up to over the year (FC-06).
+     *
+     * The same figures `CapturePlanBaseline` freezes, read back into the camelCase the
+     * rest of the interface speaks — the snake_case keys are the stored baseline's
+     * shape, and the screen should not have to know that.
+     *
+     * @return array<string, int>
+     */
+    private function planTotals(FinancialYear $year): array
+    {
+        $summary = $this->baseline->build($year);
+
+        return [
+            'incomeCents' => $this->toInt($summary['annual_income_cents'] ?? 0),
+            'expensesCents' => $this->toInt($summary['annual_expenses_cents'] ?? 0),
+            'savingsCents' => $this->toInt($summary['annual_savings_cents'] ?? 0),
+            'yearEndCents' => $this->toInt($summary['year_end_balance_cents'] ?? 0),
+        ];
+    }
+
+    /**
+     * The tabs with nothing in them yet, so the plan can name what is left to do rather
+     * than leaving the user to find it (UX-05, EDGE-02).
+     *
+     * @return list<string>
+     */
+    private function emptyTabs(FinancialYear $year): array
+    {
+        $empty = [];
+
+        if (! $year->planItems()->where('type', TransactionType::Income)->exists()) {
+            $empty[] = 'income';
+        }
+
+        if (! $year->planItems()->where('type', TransactionType::Expense)->where('kind', PlanItemKind::Recurring)->exists()) {
+            $empty[] = 'expenses';
+        }
+
+        if (! $year->planItems()->where('kind', PlanItemKind::Irregular)->exists()) {
+            $empty[] = 'irregular';
+        }
+
+        if (! $year->netWorthSnapshots()->where('month', NetWorthSnapshot::OPENING_MONTH)->where('value_cents', '>', 0)->exists()) {
+            $empty[] = 'opening';
+        }
+
+        return $empty;
+    }
+
+    private function toInt(mixed $value): int
+    {
+        return is_int($value) ? $value : 0;
     }
 }

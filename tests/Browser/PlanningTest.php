@@ -301,3 +301,37 @@ it('edits the budget one month at a time on a phone', function (): void {
         ->assertNoJavascriptErrors()
         ->assertNoConsoleLogs();
 });
+
+it('shows what the plan adds up to from every tab', function (string $tab): void {
+    [$user] = userWithYear(2027);
+
+    $this->actingAs($user)
+        ->visit('/years/2027/plan/'.$tab)
+        ->assertSee('Planned income')
+        ->assertSee('Balance at the end of the year')
+        ->assertNoJavascriptErrors();
+})->with(['income', 'expenses', 'irregular', 'opening']);
+
+it('names the next thing the plan is missing', function (): void {
+    [$user] = userWithYear(2027);
+
+    // A plan with nothing in it says what to do rather than showing four zeroes and
+    // leaving the user to work it out (UX-05, EDGE-02).
+    $this->actingAs($user)
+        ->visit('/years/2027/plan/income')
+        ->assertSee('Nothing in income yet')
+        ->click('@plan-next-step')
+        ->assertPathIs('/years/2027/plan/income')
+        ->assertNoJavascriptErrors();
+});
+
+it('reads the plan totals on a phone', function (): void {
+    [$user] = userWithYear(2027);
+
+    $this->actingAs($user)
+        ->visit('/years/2027/plan/expenses')
+        ->on()->mobile()
+        ->assertSee('Planned income')
+        ->assertNoJavascriptErrors()
+        ->assertNoConsoleLogs();
+});

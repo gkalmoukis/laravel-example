@@ -12,7 +12,7 @@ import PlanItemList from '@/components/planning/plan-item-list';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { usePreferences } from '@/hooks/use-preferences';
-import PlanLayout, { type PlanYear } from './layout';
+import PlanLayout, { type PlanTotals, type PlanYear } from './layout';
 
 type Item = {
     id: number;
@@ -56,12 +56,16 @@ export default function PlanIrregular({
     year,
     tab,
     tabs,
+    planTotals,
+    emptyTabs,
     items,
     categories,
 }: {
     year: PlanYear;
     tab: string;
     tabs: string[];
+    planTotals: PlanTotals;
+    emptyTabs: string[];
     items: Item[];
     categories: PlanCategoryOption[];
 }) {
@@ -90,6 +94,8 @@ export default function PlanIrregular({
             year={year}
             tab={tab}
             tabs={tabs}
+            planTotals={planTotals}
+            emptyTabs={emptyTabs}
             title="Irregular"
             description={
                 <>

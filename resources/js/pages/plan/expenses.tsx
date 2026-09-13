@@ -29,7 +29,7 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { usePreferences } from '@/hooks/use-preferences';
-import PlanLayout, { type PlanYear } from './layout';
+import PlanLayout, { type PlanTotals, type PlanYear } from './layout';
 
 type Row = {
     categoryId: number;
@@ -45,6 +45,8 @@ type Props = {
     year: PlanYear;
     tab: string;
     tabs: string[];
+    planTotals: PlanTotals;
+    emptyTabs: string[];
     rows: Row[];
     footerMonths: Record<number, number>;
     footerAnnualCents: number;
@@ -89,6 +91,8 @@ export default function PlanExpenses({
     year,
     tab,
     tabs,
+    planTotals,
+    emptyTabs,
     rows,
     footerMonths,
     footerAnnualCents,
@@ -104,6 +108,8 @@ export default function PlanExpenses({
             year={year}
             tab={tab}
             tabs={tabs}
+            planTotals={planTotals}
+            emptyTabs={emptyTabs}
             title="Monthly budget"
             description="What you expect to spend, by category and month."
         >

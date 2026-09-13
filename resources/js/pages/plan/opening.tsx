@@ -5,7 +5,7 @@ import Money from '@/components/planning/money';
 import MoneyInput from '@/components/planning/money-input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import PlanLayout, { type PlanYear } from './layout';
+import PlanLayout, { type PlanTotals, type PlanYear } from './layout';
 
 type Holding = {
     id: number;
@@ -18,6 +18,8 @@ export default function PlanOpening({
     year,
     tab,
     tabs,
+    planTotals,
+    emptyTabs,
     holdings,
     openingLiquidCents,
     openingNetWorthCents,
@@ -25,6 +27,8 @@ export default function PlanOpening({
     year: PlanYear;
     tab: string;
     tabs: string[];
+    planTotals: PlanTotals;
+    emptyTabs: string[];
     holdings: Holding[];
     openingLiquidCents: number;
     openingNetWorthCents: number;
@@ -34,6 +38,8 @@ export default function PlanOpening({
             year={year}
             tab={tab}
             tabs={tabs}
+            planTotals={planTotals}
+            emptyTabs={emptyTabs}
             title="Opening position"
             description={`Where ${year.year} starts. Everything else is measured from here.`}
         >

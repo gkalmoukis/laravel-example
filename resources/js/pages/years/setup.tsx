@@ -69,7 +69,6 @@ type Props = {
     } | null;
     defaultPayments?: Record<string, Payment>;
     salaryPayments?: number;
-    summary?: Record<string, number | Record<number, number>>;
 };
 
 const stepLabels: Record<string, string> = {

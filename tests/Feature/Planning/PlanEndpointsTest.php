@@ -2,11 +2,13 @@
 
 declare(strict_types=1);
 use App\Actions\ProvisionUserDefaults;
+use App\Actions\UpdateOpeningPosition;
 use App\Enums\NetWorthItemKind;
 use App\Enums\PlanItemSource;
 use App\Models\PlanItem;
 use App\Models\SalaryModel;
 use App\Models\User;
+use App\ValueObjects\Money;
 
 it('creates an empty year and lands on the first wizard step', function (): void {
     $user = User::factory()->create();
@@ -470,5 +472,86 @@ it('marks a row with several planned items as one the grid cannot edit', functio
 
             expect($row['isEditable'])->toBeFalse()
                 ->and($row['itemCount'])->toBe(2);
+        });
+});
+
+it('carries what the plan adds up to on every tab', function (string $tab): void {
+    [$user, $year] = userWithYear();
+
+    $category = $user->categories()->where('name', 'Salary')->whereNull('parent_id')->firstOrFail();
+
+    $this->actingAs($user)
+        ->post(route('plan-items.store', ['year' => 2027]), [
+            'name' => 'Freelance',
+            'type' => 'income',
+            'kind' => 'recurring',
+            'frequency' => 'monthly',
+            'start_month' => 1,
+            'category_id' => $category->id,
+            'amount' => '400,00',
+        ])
+        ->assertSessionHasNoErrors();
+
+    // The totals used to reach the income tab alone, so three of the four screens that
+    // change the plan never showed what the plan came to (UX-05).
+    $this->actingAs($user)
+        ->get(route('plan.show', ['year' => 2027, 'tab' => $tab]))
+        ->assertInertia(fn ($page) => $page
+            ->where('planTotals.incomeCents', 4_800_00)
+            ->where('planTotals.expensesCents', 0)
+            ->where('planTotals.savingsCents', 4_800_00)
+            ->has('emptyTabs'));
+})->with(['income', 'expenses', 'irregular', 'opening']);
+
+it('names the tabs with nothing in them', function (): void {
+    [$user, $year] = userWithYear();
+
+    $this->actingAs($user)
+        ->get(route('plan.show', ['year' => 2027, 'tab' => 'income']))
+        ->assertInertia(function ($page): void {
+            expect($page->toArray()['props']['emptyTabs'])
+                ->toBe(['income', 'expenses', 'irregular', 'opening']);
+        });
+
+    $category = $user->categories()->where('name', 'Housing')->whereNull('parent_id')->firstOrFail();
+
+    $this->actingAs($user)
+        ->post(route('plan-items.store', ['year' => 2027]), [
+            'name' => 'Rent',
+            'type' => 'expense',
+            'kind' => 'recurring',
+            'frequency' => 'monthly',
+            'start_month' => 1,
+            'category_id' => $category->id,
+            'amount' => '700,00',
+        ])
+        ->assertSessionHasNoErrors();
+
+    $this->actingAs($user)
+        ->get(route('plan.show', ['year' => 2027, 'tab' => 'income']))
+        ->assertInertia(function ($page): void {
+            expect($page->toArray()['props']['emptyTabs'])
+                ->not->toContain('expenses')
+                ->toContain('income');
+        });
+});
+
+it('counts an irregular item and an opening balance as filling their tabs', function (): void {
+    [$user, $year] = userWithYear();
+
+    PlanItem::factory()->for($year, 'financialYear')->irregular()->create([
+        'category_id' => $user->categories()->where('name', 'Holidays')->firstOrFail()->id,
+    ]);
+
+    resolve(UpdateOpeningPosition::class)->handle($year, [
+        $user->netWorthItems()->where('kind', NetWorthItemKind::Cash)->firstOrFail()->id => Money::fromCents(250_000),
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('plan.show', ['year' => 2027, 'tab' => 'opening']))
+        ->assertInertia(function ($page): void {
+            expect($page->toArray()['props']['emptyTabs'])
+                ->not->toContain('irregular')
+                ->not->toContain('opening');
         });
 });

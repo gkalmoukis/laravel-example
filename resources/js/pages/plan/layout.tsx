@@ -1,15 +1,24 @@
-import { Head, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import type { PropsWithChildren, ReactNode } from 'react';
 import SetupBanner, {
     SelectedYearSetupBanner,
 } from '@/components/finance/setup-banner';
+import { Stat, StatGrid } from '@/components/finance/stat-card';
 import Heading from '@/components/heading';
 import PageShell from '@/components/page-shell';
 import YearNav from '@/components/planning/year-nav';
+import { usePreferences } from '@/hooks/use-preferences';
 import AppLayout from '@/layouts/app-layout';
 import { show as showPlan } from '@/routes/plan';
 import { index as subscriptionsIndex } from '@/routes/subscriptions';
 import type { BreadcrumbItem } from '@/types';
+
+export type PlanTotals = {
+    incomeCents: number;
+    expensesCents: number;
+    savingsCents: number;
+    yearEndCents: number;
+};
 
 export type PlanYear = {
     year: number;
@@ -42,6 +51,8 @@ export default function PlanLayout({
     title,
     description,
     action,
+    planTotals,
+    emptyTabs = [],
     children,
 }: PropsWithChildren<{
     year?: PlanYear | null;
@@ -50,6 +61,8 @@ export default function PlanLayout({
     title: string;
     description: ReactNode;
     action?: ReactNode;
+    planTotals?: PlanTotals;
+    emptyTabs?: string[];
 }>) {
     const { selectedYear } = usePage().props;
 
@@ -97,6 +110,14 @@ export default function PlanLayout({
                     <SetupReminder year={year} />
 
                     <YearNav current={tab} steps={steps} />
+
+                    {planTotals && (
+                        <PlanTotalsRail
+                            totals={planTotals}
+                            emptyTabs={emptyTabs}
+                            year={linkYear}
+                        />
+                    )}
                 </div>
 
                 <div className="mt-8">{children}</div>
@@ -119,4 +140,81 @@ function SetupReminder({ year }: { year: PlanYear | null }) {
     }
 
     return <SetupBanner year={year.year} />;
+}
+
+/**
+ * What the plan adds up to, on every tab rather than only the one it was first built
+ * for. The primary block of the plan is its annual totals (UX-05).
+ */
+function PlanTotalsRail({
+    totals,
+    emptyTabs,
+    year,
+}: {
+    totals: PlanTotals;
+    emptyTabs: string[];
+    year: number | null;
+}) {
+    const { formatMoney } = usePreferences();
+
+    return (
+        <div className="space-y-2" data-testid="plan-totals">
+            <StatGrid>
+                <Stat
+                    label="Planned income"
+                    value={formatMoney(totals.incomeCents)}
+                    tone="plan"
+                />
+                <Stat
+                    label="Planned expenses"
+                    value={formatMoney(totals.expensesCents)}
+                    tone="plan"
+                />
+                <Stat
+                    label="Planned savings"
+                    value={formatMoney(totals.savingsCents)}
+                    tone={totals.savingsCents < 0 ? 'bad' : 'plan'}
+                />
+                <Stat
+                    label="Balance at the end of the year"
+                    value={formatMoney(totals.yearEndCents)}
+                    tone={totals.yearEndCents < 0 ? 'bad' : 'plan'}
+                />
+            </StatGrid>
+
+            <NextStep emptyTabs={emptyTabs} year={year} />
+        </div>
+    );
+}
+
+/**
+ * The first tab with nothing in it, named rather than left to be found.
+ */
+function NextStep({
+    emptyTabs,
+    year,
+}: {
+    emptyTabs: string[];
+    year: number | null;
+}) {
+    const next = emptyTabs[0];
+
+    if (next === undefined || year === null) {
+        return null;
+    }
+
+    return (
+        <p
+            className="text-sm text-muted-foreground"
+            data-testid="plan-next-step"
+        >
+            Nothing in {tabLabels[next]?.toLowerCase() ?? next} yet.{' '}
+            <Link
+                className="underline underline-offset-4"
+                href={showPlan({ year, tab: next })}
+            >
+                Add it
+            </Link>
+        </p>
+    );
 }

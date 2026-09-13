@@ -187,7 +187,7 @@ Conventions for every item:
     end at 375px
   - Commit: `feat: three step year setup`
 
-- [ ] **plan-overview** — The plan's totals are always in view <!-- gate -->
+- [x] **plan-overview** — The plan's totals are always in view <!-- gate -->
   - Refs: UX-05, UX-09, FC-06, EDGE-02
   - Build: an annual totals rail at the top of every plan tab in `resources/js/pages/plan/layout.tsx`
     — planned income, planned expenses, planned savings, planned year-end balance — fed by the

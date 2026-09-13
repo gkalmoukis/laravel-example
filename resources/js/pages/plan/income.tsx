@@ -13,7 +13,7 @@ import PlanItemForm, {
 import PlanItemList from '@/components/planning/plan-item-list';
 import { Button } from '@/components/ui/button';
 import { usePreferences } from '@/hooks/use-preferences';
-import PlanLayout, { type PlanYear } from './layout';
+import PlanLayout, { type PlanTotals, type PlanYear } from './layout';
 
 type Item = {
     id: number;
@@ -34,10 +34,11 @@ type Props = {
     year: PlanYear;
     tab: string;
     tabs: string[];
+    planTotals: PlanTotals;
+    emptyTabs: string[];
     items: Item[];
     categories: PlanCategoryOption[];
     salaryModel: { baseAmountCents: number } | null;
-    summary: Record<string, number | Record<number, number>>;
 };
 
 /**
@@ -65,6 +66,8 @@ export default function PlanIncome({
     year,
     tab,
     tabs,
+    planTotals,
+    emptyTabs,
     items,
     categories,
     salaryModel,
@@ -94,6 +97,8 @@ export default function PlanIncome({
             year={year}
             tab={tab}
             tabs={tabs}
+            planTotals={planTotals}
+            emptyTabs={emptyTabs}
             title="Income"
             description="What you expect to earn this year."
             action={
