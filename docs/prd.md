@@ -483,7 +483,7 @@ For any category/period with plan *P* and actual *A*:
 |---|---|---|
 | CMP-01 | Every month view shows total actual income, total actual expenses, actual per category (expandable to subcategories), net cash flow, and opening and closing balance (7.2). | MUST |
 | CMP-02 | Actuals are read-only everywhere. Each actual amount links to the filtered transaction list that produces it ("Fix it in the transaction"). | MUST |
-| CMP-03 | `/years/{year}/comparison` shows, per category and for a selectable month (default: latest Complete month, else current month), Plan, Actual, Variance, Variance %, and status (7.4). Income and expense sections are separate. | MUST |
+| CMP-03 | `/years/{year}/reports/comparison` shows, per category and for a selectable month (default: latest Complete month, else current month), Plan, Actual, Variance, Variance %, and status (7.4). Income and expense sections are separate. | MUST |
 | CMP-04 | The same page has a **Year to date** mode that sums Complete months only and compares them with the plan of the same months. The header states "Based on {n} completed months". | MUST |
 | CMP-05 | Spread-only categories show a YTD variance in both modes, with a tooltip explaining why. | MUST |
 | CMP-06 | Categories are sorted by variance severity (Over, then Warning, then Ok, then NoPlan), then by absolute variance descending, so the problem categories come first (brief goal 7). | MUST |
@@ -499,7 +499,7 @@ For any category/period with plan *P* and actual *A*:
 
 | ID | Requirement | Level |
 |---|---|---|
-| FC-01 | `/years/{year}/forecast` shows forecast annual income, expenses, savings, and savings rate; forecast year-end balance; emergency fund status (7.6: projected at year end and estimated achievement month); and deviation from the original plan (7.3). | MUST |
+| FC-01 | `/years/{year}/reports/forecast` shows forecast annual income, expenses, savings, and savings rate; forecast year-end balance; emergency fund status (7.6: projected at year end and estimated achievement month); and deviation from the original plan (7.3). | MUST |
 | FC-02 | Per month, a badge shows which source feeds the forecast: "Actual" (Complete), "Plan + actual" (InProgress, 7.1 max rule), or "Plan" (NotStarted). | MUST |
 | FC-03 | The forecast recalculates on every request; there is no cache invalidation to get wrong (the NFR-01 performance budget applies). | MUST |
 | FC-04 | Past months that are not Complete are highlighted: "March isn't marked complete, so the forecast still uses your plan for it." | MUST |
@@ -592,9 +592,9 @@ All authenticated routes use `auth` and `verified` middleware. Year-scoped route
 | Plan | `GET /years/{year}/plan/{tab}` (income, expenses, irregular, opening) | `plan/{tab}` | Annual totals |
 | Months | `GET /years/{year}/months` | `months/index` | 12 status cards |
 | Month review | `GET /years/{year}/months/{month}` | `months/show` | Totals + issues |
-| Plan vs Actual | `GET /years/{year}/comparison` | `comparison/index` | Categories by severity |
-| Cash flow | `GET /years/{year}/cash-flow` | `cash-flow/index` | Balance chart |
-| Forecast | `GET /years/{year}/forecast` | `forecast/index` | Year-end balance |
+| Plan vs Actual | `GET /years/{year}/reports/comparison` | `reports/comparison` | Categories by severity |
+| Cash flow | `GET /years/{year}/reports/cash-flow` | `reports/cash-flow` | Balance chart |
+| Forecast | `GET /years/{year}/reports/forecast` | `reports/forecast` | Year-end balance |
 | Transactions | `GET /transactions` | `transactions/index` | List + filters |
 | Goals | `GET /goals` | `goals/index` | Goal cards |
 | Emergency fund | `GET /goals/emergency-fund` | `goals/emergency-fund` | Progress |

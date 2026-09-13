@@ -70,13 +70,13 @@ it('links every card to the screen that explains it', function (): void {
     $this->actingAs($user)
         ->visit('/dashboard')
         ->click('@card-available')
-        ->assertPathIs('/years/'.$year.'/cash-flow')
+        ->assertPathIs('/years/'.$year.'/reports/cash-flow')
         ->assertNoJavascriptErrors();
 
     $this->actingAs($user)
         ->visit('/dashboard')
         ->click('@card-year-end')
-        ->assertPathIs('/years/'.$year.'/forecast')
+        ->assertPathIs('/years/'.$year.'/reports/forecast')
         ->assertNoJavascriptErrors();
 
     $this->actingAs($user)

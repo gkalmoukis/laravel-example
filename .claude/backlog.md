@@ -26,7 +26,7 @@ Conventions for every item:
 
 ## P1 — Structure
 
-- [ ] **nav-reports-hub** — Plan vs actual, cash flow and forecast become one hub
+- [x] **nav-reports-hub** — Plan vs actual, cash flow and forecast become one hub
   - Refs: UX-05, UX-09, §9 screens and routes
   - Build: `routes/web.php` — the three report URIs move under `years/{year}/reports/`
     (`reports/comparison`, `reports/cash-flow`, `reports/forecast`) keeping the names

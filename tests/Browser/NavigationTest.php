@@ -149,6 +149,22 @@ it('reviews a month on a phone', function (): void {
         ->assertNoConsoleLogs();
 });
 
+it('moves between the three reports from one tab row', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    $year = date('Y');
+
+    $this->actingAs($user)
+        ->visit('/years/'.$year.'/reports/comparison')
+        ->assertSee($year.' reports')
+        ->click('@tab-cash-flow')
+        ->assertPathIs('/years/'.$year.'/reports/cash-flow')
+        ->click('@tab-forecast')
+        ->assertPathIs('/years/'.$year.'/reports/forecast')
+        ->assertSee('Forecast')
+        ->assertNoJavascriptErrors();
+});
+
 it('switches the comparison between one month and the year so far', function (): void {
     [$user, $year] = userWithYear((int) date('Y'));
 
@@ -158,7 +174,7 @@ it('switches the comparison between one month and the year so far', function ():
     ]);
 
     $this->actingAs($user)
-        ->visit('/years/'.date('Y').'/comparison')
+        ->visit('/years/'.date('Y').'/reports/comparison')
         ->assertSee('Plan vs actual')
         ->click('@mode-ytd')
         ->assertSee('Based on 1 completed month')
@@ -171,7 +187,7 @@ it('compares plan and actual on a phone', function (): void {
     [$user] = userWithYear((int) date('Y'));
 
     $this->actingAs($user)
-        ->visit('/years/'.date('Y').'/comparison')
+        ->visit('/years/'.date('Y').'/reports/comparison')
         ->on()->mobile()
         ->assertSee('Plan vs actual')
         ->assertNoJavascriptErrors()
@@ -190,7 +206,7 @@ it('reads the cash flow as a chart or as a table', function (): void {
         ->update(['value_cents' => 250_000]);
 
     $this->actingAs($user)
-        ->visit('/years/'.date('Y').'/cash-flow')
+        ->visit('/years/'.date('Y').'/reports/cash-flow')
         ->assertSee('Cash flow')
         ->assertSee('2.500,00')
         // Every chart can be read as a table (NFR-04).
@@ -203,7 +219,7 @@ it('reads the cash flow on a phone', function (): void {
     [$user] = userWithYear((int) date('Y'));
 
     $this->actingAs($user)
-        ->visit('/years/'.date('Y').'/cash-flow')
+        ->visit('/years/'.date('Y').'/reports/cash-flow')
         ->on()->mobile()
         ->assertSee('Cash flow')
         ->assertNoJavascriptErrors()

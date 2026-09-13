@@ -41,7 +41,7 @@ final readonly class CashFlowController
             ];
         }
 
-        return Inertia::render('cash-flow/index', [
+        return Inertia::render('reports/cash-flow', [
             'year' => $year->year,
             'openingBalanceCents' => $flow->openingBalanceCents,
             'lastActualMonth' => $flow->lastActualMonth,

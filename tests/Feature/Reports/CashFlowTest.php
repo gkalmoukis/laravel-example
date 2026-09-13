@@ -54,7 +54,7 @@ it('shows twelve months of balances', function (): void {
     $this->actingAs($user)
         ->get(route('cash-flow.index', ['year' => 2027]))
         ->assertInertia(fn ($page) => $page
-            ->component('cash-flow/index')
+            ->component('reports/cash-flow')
             ->where('year', 2027)
             ->where('openingBalanceCents', 100_000)
             ->has('months', 12)
@@ -166,4 +166,15 @@ it('reports another user year as missing', function (): void {
         ->assertNotFound();
 
     expect($owner->financialYears()->where('year', 2027)->exists())->toBeTrue();
+});
+
+it('lives under the reports hub and redirects from where it used to be', function (): void {
+    [$user] = userWithYear();
+
+    expect(route('cash-flow.index', ['year' => 2027], absolute: false))
+        ->toBe('/years/2027/reports/cash-flow');
+
+    $this->actingAs($user)
+        ->get('/years/2027/cash-flow')
+        ->assertRedirect(route('cash-flow.index', ['year' => 2027]));
 });

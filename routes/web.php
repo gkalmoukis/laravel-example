@@ -43,6 +43,8 @@ use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\UserTwoFactorAuthenticationController;
 use App\Http\Controllers\YearSetupCompletionController;
 use App\Http\Controllers\YearSetupController;
+use App\Models\FinancialYear;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -141,10 +143,16 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::patch('net-worth/items/{netWorthItem}', [NetWorthItemController::class, 'update'])->name('net-worth-items.update');
     Route::delete('net-worth/items/{netWorthItem}', [NetWorthItemController::class, 'destroy'])->name('net-worth-items.destroy');
 
-    // Reports...
-    Route::get('years/{year}/comparison', [ComparisonController::class, 'index'])->name('comparison.index');
-    Route::get('years/{year}/cash-flow', [CashFlowController::class, 'index'])->name('cash-flow.index');
-    Route::get('years/{year}/forecast', [ForecastController::class, 'index'])->name('forecast.index');
+    // Reports. The three of them read the same figures and were three separate
+    // destinations, so they are one hub with three tabs now. The names are unchanged; the
+    // flat URIs they used to live at redirect, so a bookmark still lands.
+    Route::get('years/{year}/reports/comparison', [ComparisonController::class, 'index'])->name('comparison.index');
+    Route::get('years/{year}/reports/cash-flow', [CashFlowController::class, 'index'])->name('cash-flow.index');
+    Route::get('years/{year}/reports/forecast', [ForecastController::class, 'index'])->name('forecast.index');
+
+    Route::get('years/{year}/comparison', fn (FinancialYear $year): RedirectResponse => to_route('comparison.index', ['year' => $year->year]));
+    Route::get('years/{year}/cash-flow', fn (FinancialYear $year): RedirectResponse => to_route('cash-flow.index', ['year' => $year->year]));
+    Route::get('years/{year}/forecast', fn (FinancialYear $year): RedirectResponse => to_route('forecast.index', ['year' => $year->year]));
 
     // Preferences...
     Route::get('settings/preferences', [PreferencesController::class, 'edit'])->name('preferences.edit');

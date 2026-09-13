@@ -174,7 +174,7 @@ it('carries the alerts so the panel can show them', function (): void {
     expect($alerts)->not->toBe([])
         ->and($alerts[0]['type'])->toBe(AlertType::NegativeForecastBalance->value)
         ->and($alerts[0]['title'])->not->toBe('')
-        ->and($alerts[0]['actionUrl'])->toContain('/years/2027/forecast');
+        ->and($alerts[0]['actionUrl'])->toContain('/years/2027/reports/forecast');
 });
 
 it('follows the year the user has selected', function (): void {

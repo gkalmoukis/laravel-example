@@ -79,8 +79,9 @@ vendor/bin/sail exec -e COMPOSER_PROCESS_TIMEOUT=0 laravel.test composer test
 
 ## 7. Commit
 
-Tick the item in `.claude/backlog.md` (`[ ]` → `[x]`), stage everything including the generated
-Wayfinder output, and commit with the item's `Commit:` line **verbatim**:
+Tick the item in `.claude/backlog.md` (`[ ]` → `[x]`), stage everything, and commit with the
+item's `Commit:` line **verbatim**. `resources/js/{actions,routes,wayfinder}` are gitignored and
+rebuilt by Vite, so there is nothing of theirs to stage:
 
 ```bash
 git add -A
@@ -142,8 +143,9 @@ One line, nothing else:
 - **Moved routes keep their name.** Change the URI and the page component path; leave the route
   name alone so the existing `route()` call sites and Wayfinder imports keep working. Add a
   redirect from the old URI in the same item, and regenerate Wayfinder.
-- **Never hand-edit** `resources/js/actions` or `resources/js/routes` — regenerate them, always
-  with `--with-form`, or the `.form()` helpers vanish and the build breaks.
+- **Never hand-edit** `resources/js/actions` or `resources/js/routes` — they are gitignored
+  generated output. Regenerate them, always with `--with-form`, or the `.form()` helpers vanish
+  and the build breaks.
 - Glossary tooltip copy is PRD §5.3 **verbatim**, on first appearance of a term per screen.
 
 ### Testing traps, learned the hard way

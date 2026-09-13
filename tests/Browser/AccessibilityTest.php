@@ -21,15 +21,15 @@ it('explains a financial term where the reader first meets it', function (string
 
     return [
         'cash flow' => [
-            '/years/'.$year.'/cash-flow',
+            '/years/'.$year.'/reports/cash-flow',
             'Money in minus money out for a period.',
         ],
         'forecast' => [
-            '/years/'.$year.'/forecast',
+            '/years/'.$year.'/reports/forecast',
             'Our best guess for the whole year',
         ],
         'comparison' => [
-            '/years/'.$year.'/comparison',
+            '/years/'.$year.'/reports/comparison',
             'The difference between Actual and Plan.',
         ],
         'months' => [
@@ -49,7 +49,7 @@ it('opens a glossary tooltip from the keyboard', function (): void {
     // A button rather than a bare span, so it is in the tab order and can be opened
     // without a mouse (NFR-04).
     $this->actingAs($user)
-        ->visit('/years/'.date('Y').'/cash-flow')
+        ->visit('/years/'.date('Y').'/reports/cash-flow')
         ->click('@glossary-cashFlow')
         ->assertSee('Money in minus money out for a period.')
         ->assertNoJavascriptErrors();
@@ -69,8 +69,8 @@ it('turns wide tables into card lists on a phone', function (string $path, strin
     $year = (int) date('Y');
 
     return [
-        'cash flow' => ['/years/'.$year.'/cash-flow', 'cash-flow-cards'],
-        'forecast' => ['/years/'.$year.'/forecast', 'forecast-month-cards'],
+        'cash flow' => ['/years/'.$year.'/reports/cash-flow', 'cash-flow-cards'],
+        'forecast' => ['/years/'.$year.'/reports/forecast', 'forecast-month-cards'],
     ];
 });
 

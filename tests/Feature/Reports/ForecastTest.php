@@ -44,7 +44,7 @@ it('reports where the year is heading', function (): void {
     $this->actingAs($user)
         ->get(route('forecast.index', ['year' => 2027]))
         ->assertInertia(fn ($page) => $page
-            ->component('forecast/index')
+            ->component('reports/forecast')
             ->where('year', 2027)
             ->where('summary.incomeCents', 2_400_000)
             ->where('summary.expenseCents', 840_000)
@@ -240,4 +240,15 @@ it('reports another user year as missing', function (): void {
         ->assertNotFound();
 
     expect($owner->financialYears()->where('year', 2027)->exists())->toBeTrue();
+});
+
+it('lives under the reports hub and redirects from where it used to be', function (): void {
+    [$user] = userWithYear();
+
+    expect(route('forecast.index', ['year' => 2027], absolute: false))
+        ->toBe('/years/2027/reports/forecast');
+
+    $this->actingAs($user)
+        ->get('/years/2027/forecast')
+        ->assertRedirect(route('forecast.index', ['year' => 2027]));
 });

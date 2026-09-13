@@ -47,9 +47,9 @@ it('walks the acceptance criteria over the demo year', function (): void {
         ->assertNoJavascriptErrors();
 
     // "Compare Plan and Actual, and see an updated Forecast."
-    $page->navigate('/years/'.$year.'/comparison')
+    $page->navigate('/years/'.$year.'/reports/comparison')
         ->assertSee('Plan vs actual')
-        ->navigate('/years/'.$year.'/forecast')
+        ->navigate('/years/'.$year.'/reports/forecast')
         ->assertSee('Forecast')
         ->assertNoJavascriptErrors();
 
@@ -59,7 +59,7 @@ it('walks the acceptance criteria over the demo year', function (): void {
         ->assertNoJavascriptErrors();
 
     // "Track cash flow and balance, emergency fund, and net worth."
-    $page->navigate('/years/'.$year.'/cash-flow')
+    $page->navigate('/years/'.$year.'/reports/cash-flow')
         ->assertSee('Cash flow')
         ->navigate('/goals/emergency-fund')
         ->assertSee('Emergency fund')
@@ -84,9 +84,9 @@ it('walks the same criteria on a phone', function (): void {
         '/dashboard?year='.$year,
         '/transactions?year='.$year,
         '/years/'.$year.'/months',
-        '/years/'.$year.'/comparison',
-        '/years/'.$year.'/cash-flow',
-        '/years/'.$year.'/forecast',
+        '/years/'.$year.'/reports/comparison',
+        '/years/'.$year.'/reports/cash-flow',
+        '/years/'.$year.'/reports/forecast',
         '/net-worth',
         '/goals',
         '/subscriptions',
@@ -141,9 +141,9 @@ function everyAuthenticatedPage(): array
         '/settings/invitations',
         '/years/'.$year.'/months',
         '/years/'.$year.'/months/1',
-        '/years/'.$year.'/comparison',
-        '/years/'.$year.'/cash-flow',
-        '/years/'.$year.'/forecast',
+        '/years/'.$year.'/reports/comparison',
+        '/years/'.$year.'/reports/cash-flow',
+        '/years/'.$year.'/reports/forecast',
     ];
 
     foreach (['income', 'expenses', 'irregular', 'opening'] as $tab) {

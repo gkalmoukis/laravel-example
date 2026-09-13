@@ -43,7 +43,7 @@ final readonly class ForecastController
         $flow = $cashFlow->handle($year, $today);
         $summary = $annualSummary->handle($year, $today);
 
-        return Inertia::render('forecast/index', [
+        return Inertia::render('reports/forecast', [
             'year' => $year->year,
             'summary' => [
                 'incomeCents' => $summary->forecastIncomeCents,

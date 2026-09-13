@@ -194,8 +194,8 @@ it('renders every list screen with nothing recorded', function (string $route): 
     'subscriptions' => ['/subscriptions'],
     'net worth' => ['/net-worth'],
     'months' => ['/years/2027/months'],
-    'comparison' => ['/years/2027/comparison'],
-    'cash flow' => ['/years/2027/cash-flow'],
-    'forecast' => ['/years/2027/forecast'],
+    'comparison' => ['/years/2027/reports/comparison'],
+    'cash flow' => ['/years/2027/reports/cash-flow'],
+    'forecast' => ['/years/2027/reports/forecast'],
     'dashboard' => ['/dashboard'],
 ]);

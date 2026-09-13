@@ -1,10 +1,8 @@
-import { Head, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import GlossaryTerm from '@/components/finance/glossary-term';
-import { SelectedYearSetupBanner } from '@/components/finance/setup-banner';
 import VarianceRow, {
     type VarianceRowData,
 } from '@/components/finance/variance-row';
-import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -15,9 +13,8 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { usePreferences } from '@/hooks/use-preferences';
-import AppLayout from '@/layouts/app-layout';
+import ReportsLayout from '@/pages/reports/layout';
 import { index as comparisonIndex } from '@/routes/comparison';
-import type { BreadcrumbItem } from '@/types';
 
 const MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
@@ -38,10 +35,6 @@ export default function ComparisonIndex({
 }) {
     const { formatLocale } = usePreferences();
 
-    const breadcrumbs: BreadcrumbItem[] = [
-        { title: `${year} plan vs actual`, href: comparisonIndex({ year }) },
-    ];
-
     const monthName = (value: number) =>
         new Intl.DateTimeFormat(formatLocale, { month: 'long' }).format(
             new Date(2000, value - 1, 1),
@@ -61,29 +54,21 @@ export default function ComparisonIndex({
     const isYearToDate = mode === 'ytd';
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Plan vs actual · ${year}`} />
-
-            <div className="space-y-6 px-4 py-6">
-                <Heading
-                    title="Plan vs actual"
-                    description={
-                        <>
-                            Where the{' '}
-                            <GlossaryTerm term="actual">actual</GlossaryTerm>{' '}
-                            matched the{' '}
-                            <GlossaryTerm term="plan">plan</GlossaryTerm>, and
-                            where the{' '}
-                            <GlossaryTerm term="variance">
-                                variance
-                            </GlossaryTerm>{' '}
-                            is worth a look.
-                        </>
-                    }
-                />
-
-                <SelectedYearSetupBanner />
-
+        <ReportsLayout
+            year={year}
+            tab="comparison"
+            title="Plan vs actual"
+            description={
+                <>
+                    Where the <GlossaryTerm term="actual">actual</GlossaryTerm>{' '}
+                    matched the <GlossaryTerm term="plan">plan</GlossaryTerm>,
+                    and where the{' '}
+                    <GlossaryTerm term="variance">variance</GlossaryTerm> is
+                    worth a look.
+                </>
+            }
+        >
+            <div className="space-y-6">
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="flex gap-1 rounded-md border p-1">
                         <Button
@@ -186,6 +171,6 @@ export default function ComparisonIndex({
                     </CardContent>
                 </Card>
             </div>
-        </AppLayout>
+        </ReportsLayout>
     );
 }

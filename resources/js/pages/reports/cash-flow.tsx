@@ -1,12 +1,9 @@
-import { Head } from '@inertiajs/react';
 import BalanceChart, {
     type BalancePoint,
 } from '@/components/finance/balance-chart';
 import ChartDataTable from '@/components/finance/chart-data-table';
 import GlossaryTerm from '@/components/finance/glossary-term';
 import RecordCards from '@/components/finance/record-cards';
-import { SelectedYearSetupBanner } from '@/components/finance/setup-banner';
-import Heading from '@/components/heading';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Table,
@@ -17,9 +14,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { usePreferences } from '@/hooks/use-preferences';
-import AppLayout from '@/layouts/app-layout';
-import { index as cashFlowIndex } from '@/routes/cash-flow';
-import type { BreadcrumbItem } from '@/types';
+import ReportsLayout from '@/pages/reports/layout';
 
 type Line = {
     openingCents: number;
@@ -55,10 +50,6 @@ export default function CashFlowIndex({
 }) {
     const { formatMoney, formatAmount, formatLocale } = usePreferences();
 
-    const breadcrumbs: BreadcrumbItem[] = [
-        { title: `${year} cash flow`, href: cashFlowIndex({ year }) },
-    ];
-
     const shortMonth = (month: number) =>
         new Intl.DateTimeFormat(formatLocale, { month: 'short' }).format(
             new Date(2000, month - 1, 1),
@@ -79,29 +70,23 @@ export default function CashFlowIndex({
     ]);
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Cash flow · ${year}`} />
-
-            <div className="space-y-6 px-4 py-6">
-                <Heading
-                    title="Cash flow"
-                    description={
-                        <>
-                            What your{' '}
-                            <GlossaryTerm term="cashFlow">
-                                cash flow
-                            </GlossaryTerm>{' '}
-                            does over the year, and whether the{' '}
-                            <GlossaryTerm term="closingBalance">
-                                closing balance
-                            </GlossaryTerm>{' '}
-                            ever runs out.
-                        </>
-                    }
-                />
-
-                <SelectedYearSetupBanner />
-
+        <ReportsLayout
+            year={year}
+            tab="cash-flow"
+            title="Cash flow"
+            description={
+                <>
+                    What your{' '}
+                    <GlossaryTerm term="cashFlow">cash flow</GlossaryTerm> does
+                    over the year, and whether the{' '}
+                    <GlossaryTerm term="closingBalance">
+                        closing balance
+                    </GlossaryTerm>{' '}
+                    ever runs out.
+                </>
+            }
+        >
+            <div className="space-y-6">
                 <dl className="grid gap-4 rounded-lg border p-4 sm:grid-cols-4">
                     <div>
                         <dt className="text-sm text-muted-foreground">
@@ -283,6 +268,6 @@ export default function CashFlowIndex({
                     </CardContent>
                 </Card>
             </div>
-        </AppLayout>
+        </ReportsLayout>
     );
 }

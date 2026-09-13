@@ -47,7 +47,7 @@ it('compares one month against its plan', function (): void {
     $this->actingAs($user)
         ->get(route('comparison.index', ['year' => 2027, 'month' => 3]))
         ->assertInertia(function ($page): void {
-            $page->component('comparison/index')
+            $page->component('reports/comparison')
                 ->where('mode', 'month')
                 ->where('month', 3);
 
@@ -257,4 +257,15 @@ it('reports another user year as missing', function (): void {
         ->assertNotFound();
 
     expect($owner->financialYears()->where('year', 2027)->exists())->toBeTrue();
+});
+
+it('lives under the reports hub and redirects from where it used to be', function (): void {
+    [$user] = userWithYear();
+
+    expect(route('comparison.index', ['year' => 2027], absolute: false))
+        ->toBe('/years/2027/reports/comparison');
+
+    $this->actingAs($user)
+        ->get('/years/2027/comparison')
+        ->assertRedirect(route('comparison.index', ['year' => 2027]));
 });

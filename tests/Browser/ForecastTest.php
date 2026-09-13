@@ -23,7 +23,7 @@ it('shows where the year is heading', function (): void {
     ], Money::fromCents(200_000));
 
     $this->actingAs($user)
-        ->visit('/years/'.date('Y').'/forecast')
+        ->visit('/years/'.date('Y').'/reports/forecast')
         ->assertSee('Forecast')
         ->assertSee('Year end balance')
         // Twelve months of 2.000,00 with nothing going out.
@@ -45,7 +45,7 @@ it('shows a dash rather than a rate when nothing is earned', function (): void {
 
     // Dividing by no income has no answer, so the page says so (EDGE-03).
     $this->actingAs($user)
-        ->visit('/years/'.date('Y').'/forecast')
+        ->visit('/years/'.date('Y').'/reports/forecast')
         ->assertSee('— of what you earn')
         ->assertNoJavascriptErrors();
 });
@@ -54,7 +54,7 @@ it('reads the forecast on a phone', function (): void {
     [$user] = userWithYear((int) date('Y'));
 
     $this->actingAs($user)
-        ->visit('/years/'.date('Y').'/forecast')
+        ->visit('/years/'.date('Y').'/reports/forecast')
         ->on()->mobile()
         ->assertSee('Forecast')
         ->assertNoJavascriptErrors()

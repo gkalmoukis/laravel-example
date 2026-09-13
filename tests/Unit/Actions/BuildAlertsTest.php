@@ -133,7 +133,7 @@ it('warns when the forecast goes below zero', function (): void {
         ->and($alert?->detail)->toBe('January')
         ->and($alert?->toArray()['explanation'])
         ->toBe('On current figures your balance goes below zero in January.')
-        ->and($alert?->toArray()['actionUrl'])->toContain('/years/2027/forecast');
+        ->and($alert?->toArray()['actionUrl'])->toContain('/years/2027/reports/forecast');
 });
 
 it('warns when the forecast dips into the emergency fund', function (): void {
@@ -244,7 +244,7 @@ it('names a category that has gone over budget this month', function (): void {
 
     expect($alert?->detail)->toBe('Housing')
         ->and($alert?->toArray()['explanation'])->toBe('Housing has spent more than it planned to.')
-        ->and($alert?->toArray()['actionUrl'])->toContain('/years/2027/comparison');
+        ->and($alert?->toArray()['actionUrl'])->toContain('/years/2027/reports/comparison');
 });
 
 it('names a category that went over in the last month signed off', function (): void {

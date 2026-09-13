@@ -1,9 +1,7 @@
-import { Head, Link } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import { AlertTriangle } from 'lucide-react';
 import GlossaryTerm from '@/components/finance/glossary-term';
 import RecordCards from '@/components/finance/record-cards';
-import { SelectedYearSetupBanner } from '@/components/finance/setup-banner';
-import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -15,10 +13,8 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { usePreferences } from '@/hooks/use-preferences';
-import AppLayout from '@/layouts/app-layout';
-import { index as forecastIndex } from '@/routes/forecast';
+import ReportsLayout from '@/pages/reports/layout';
 import { show as monthShow } from '@/routes/months';
-import type { BreadcrumbItem } from '@/types';
 
 type Summary = {
     incomeCents: number;
@@ -77,10 +73,6 @@ export default function ForecastIndex({
     const { formatMoney, formatAmount, formatDate, formatLocale } =
         usePreferences();
 
-    const breadcrumbs: BreadcrumbItem[] = [
-        { title: `${year} forecast`, href: forecastIndex({ year }) },
-    ];
-
     const monthName = (month: number) =>
         new Intl.DateTimeFormat(formatLocale, { month: 'long' }).format(
             new Date(year, month - 1, 1),
@@ -132,26 +124,19 @@ export default function ForecastIndex({
     );
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Forecast · ${year}`} />
-
-            <div className="space-y-6 px-4 py-6">
-                <Heading
-                    title="Forecast"
-                    description={
-                        <>
-                            The{' '}
-                            <GlossaryTerm term="forecast">
-                                forecast
-                            </GlossaryTerm>{' '}
-                            for the whole year, if the rest of it goes to{' '}
-                            <GlossaryTerm term="plan">plan</GlossaryTerm>.
-                        </>
-                    }
-                />
-
-                <SelectedYearSetupBanner />
-
+        <ReportsLayout
+            year={year}
+            tab="forecast"
+            title="Forecast"
+            description={
+                <>
+                    The <GlossaryTerm term="forecast">forecast</GlossaryTerm>{' '}
+                    for the whole year, if the rest of it goes to{' '}
+                    <GlossaryTerm term="plan">plan</GlossaryTerm>.
+                </>
+            }
+        >
+            <div className="space-y-6">
                 <dl className="grid gap-4 rounded-lg border p-4 sm:grid-cols-2 lg:grid-cols-4">
                     <div>
                         <dt className="text-sm text-muted-foreground">
@@ -362,6 +347,6 @@ export default function ForecastIndex({
                 {categoryTable(categories.expenses, 'Expenses by category')}
                 {categoryTable(categories.income, 'Income by category')}
             </div>
-        </AppLayout>
+        </ReportsLayout>
     );
 }

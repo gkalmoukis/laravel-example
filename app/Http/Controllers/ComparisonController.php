@@ -44,7 +44,7 @@ final readonly class ComparisonController
         $report = $variances->handle($year, $month);
         $breakdown = $this->breakdown($year, $month, $monthly);
 
-        return Inertia::render('comparison/index', [
+        return Inertia::render('reports/comparison', [
             'year' => $year->year,
             'mode' => $isYearToDate ? 'ytd' : 'month',
             'month' => $month,

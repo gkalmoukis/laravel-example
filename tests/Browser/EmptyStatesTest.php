@@ -37,9 +37,9 @@ it('says a year was never finished, wherever that year is on screen', function (
     return [
         'dashboard' => ['/dashboard'],
         'months' => ['/years/'.$year.'/months'],
-        'comparison' => ['/years/'.$year.'/comparison'],
-        'cash flow' => ['/years/'.$year.'/cash-flow'],
-        'forecast' => ['/years/'.$year.'/forecast'],
+        'comparison' => ['/years/'.$year.'/reports/comparison'],
+        'cash flow' => ['/years/'.$year.'/reports/cash-flow'],
+        'forecast' => ['/years/'.$year.'/reports/forecast'],
     ];
 });
 
