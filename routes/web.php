@@ -10,6 +10,7 @@ use App\Http\Controllers\FinancialYearController;
 use App\Http\Controllers\InvitationAcceptanceController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\InvitationResendController;
+use App\Http\Controllers\MonthController;
 use App\Http\Controllers\OpeningPositionController;
 use App\Http\Controllers\PlanBaselineController;
 use App\Http\Controllers\PlanController;
@@ -110,6 +111,9 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::patch('transaction-category', [TransactionCategoryController::class, 'update'])->name('transaction-category.update');
     Route::patch('transactions/{transaction}', [TransactionController::class, 'update'])->name('transactions.update');
     Route::delete('transactions/{transaction}', [TransactionController::class, 'destroy'])->name('transactions.destroy');
+
+    // Months...
+    Route::get('years/{year}/months', [MonthController::class, 'index'])->name('months.index');
 
     // Preferences...
     Route::get('settings/preferences', [PreferencesController::class, 'edit'])->name('preferences.edit');

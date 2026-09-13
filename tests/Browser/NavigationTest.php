@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Models\MonthClosure;
+
 /*
  * Browser tests assert through the interface. The application runs in a separate process,
  * so a model re-read here would return a stale snapshot.
@@ -58,4 +60,33 @@ it('nudges a year whose setup was never finished', function (): void {
         ->visit('/years/2027/plan/income')
         ->assertSee('Finish setting up 2027')
         ->assertNoJavascriptErrors();
+});
+
+it('shows the year month by month', function (): void {
+    [$user, $year] = userWithYear((int) date('Y'));
+
+    MonthClosure::factory()->for($year)->create([
+        'month' => 1,
+        'completed_at' => now(),
+    ]);
+
+    $this->actingAs($user)
+        ->visit('/settings/preferences')
+        ->click('Months')
+        ->assertPathBeginsWith('/years/')
+        ->assertSee('month by month')
+        ->assertSee('Complete')
+        ->assertSee('Not started')
+        ->assertNoJavascriptErrors();
+});
+
+it('reads the month cards on a phone', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    $this->actingAs($user)
+        ->visit('/years/'.date('Y').'/months')
+        ->on()->mobile()
+        ->assertSee('month by month')
+        ->assertNoJavascriptErrors()
+        ->assertNoConsoleLogs();
 });

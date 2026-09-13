@@ -123,11 +123,18 @@ export default function QuickAddSheet({
         }
     }, [options]);
 
+    // Seeded once, the moment the options land. A ref rather than a check on the current
+    // value, so a user who deliberately clears the account does not have it put back.
+    const seededAccount = useRef(false);
+
     useEffect(() => {
-        if (options && mode.kind === 'create' && form.data.account_id === '') {
-            form.setData('account_id', options.defaultAccountId ?? '');
+        if (!options || seededAccount.current || mode.kind !== 'create') {
+            return;
         }
-    }, [options]);
+
+        seededAccount.current = true;
+        form.setData('account_id', options.defaultAccountId ?? '');
+    }, [options, mode.kind, form]);
 
     const plannedYears = years.map((year) => year.year);
     const datedYear = Number(form.data.occurred_on.slice(0, 4));

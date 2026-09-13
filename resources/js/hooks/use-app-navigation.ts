@@ -1,6 +1,13 @@
 import { usePage } from '@inertiajs/react';
-import { LayoutGrid, Receipt, Settings, Wallet } from 'lucide-react';
+import {
+    CalendarDays,
+    LayoutGrid,
+    Receipt,
+    Settings,
+    Wallet,
+} from 'lucide-react';
 import { dashboard } from '@/routes';
+import { index as months } from '@/routes/months';
 import { show as showPlan } from '@/routes/plan';
 import { edit as preferences } from '@/routes/preferences';
 import { index as transactions } from '@/routes/transactions';
@@ -21,6 +28,12 @@ export function useAppNavigation(): NavItem[] {
     ];
 
     if (selectedYear !== null) {
+        items.push({
+            title: 'Months',
+            href: months({ year: selectedYear }),
+            icon: CalendarDays,
+        });
+
         items.push({
             title: 'Plan',
             href: showPlan({ year: selectedYear, tab: 'income' }),

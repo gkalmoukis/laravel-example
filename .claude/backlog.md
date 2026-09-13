@@ -165,7 +165,7 @@ Conventions for every item:
   - Tests: `tests/Unit/Actions/CalculateVariancesTest.php`
   - Commit: `feat: budget variance calculation`
 
-- [ ] **m4-months-index** — Twelve month cards
+- [x] **m4-months-index** — Twelve month cards
   - Refs: MON-01, MON-02, EDGE-01
   - Build: `app/Http/Controllers/MonthController.php@index` · route `months.index`
     (`GET /years/{year}/months`) · `resources/js/pages/months/index.tsx` ·
