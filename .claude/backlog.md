@@ -366,7 +366,7 @@ Conventions for every item:
     `tests/Feature/Isolation/SubscriptionIsolationTest.php`
   - Commit: `feat: subscriptions crud`
 
-- [ ] **m6-subscription-plan-sync** — Generated plan items that stay in step
+- [x] **m6-subscription-plan-sync** — Generated plan items that stay in step
   - Refs: SUB-04, SUB-05, YEAR-03
   - Build: `app/Actions/SyncSubscriptionPlanItems.php` — exactly one `source = Subscription`
     plan item per active subscription per financial year, months following its billing dates;

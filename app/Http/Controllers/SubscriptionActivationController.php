@@ -17,11 +17,11 @@ use Illuminate\Support\Facades\Gate;
  */
 final readonly class SubscriptionActivationController
 {
-    public function store(Subscription $subscription, ActivateSubscription $action): RedirectResponse
+    public function store(Subscription $subscription, #[CurrentUser] User $user, ActivateSubscription $action): RedirectResponse
     {
         Gate::authorize('update', $subscription);
 
-        $action->handle($subscription);
+        $action->handle($subscription, $user->today());
 
         return back()->with('status', 'Subscription started again.');
     }

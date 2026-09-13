@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\DB;
  */
 final readonly class DeactivateSubscription
 {
+    public function __construct(private SyncSubscriptionPlanItems $planItems) {}
+
     public function handle(Subscription $subscription, CarbonInterface $on): Subscription
     {
         return DB::transaction(function () use ($subscription, $on): Subscription {
@@ -24,6 +26,8 @@ final readonly class DeactivateSubscription
                 'is_active' => false,
                 'deactivated_on' => $on->toDateString(),
             ]);
+
+            $this->planItems->forUser($subscription->user, $on);
 
             return $subscription;
         });

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Models\Subscription;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -15,11 +16,14 @@ use Illuminate\Support\Facades\DB;
  */
 final readonly class ActivateSubscription
 {
-    public function __construct(private EnsureSubscriptionSubcategory $subcategory) {}
+    public function __construct(
+        private EnsureSubscriptionSubcategory $subcategory,
+        private SyncSubscriptionPlanItems $planItems,
+    ) {}
 
-    public function handle(Subscription $subscription): Subscription
+    public function handle(Subscription $subscription, CarbonInterface $today): Subscription
     {
-        return DB::transaction(function () use ($subscription): Subscription {
+        return DB::transaction(function () use ($subscription, $today): Subscription {
             $subscription->update(['is_active' => true, 'deactivated_on' => null]);
 
             // Its subcategory may have been retired along with it, so make sure charges
@@ -31,6 +35,8 @@ final readonly class ActivateSubscription
             );
 
             $subscription->update(['subcategory_id' => $subcategory->id]);
+
+            $this->planItems->forUser($subscription->user, $today);
 
             return $subscription;
         });

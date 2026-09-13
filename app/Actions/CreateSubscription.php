@@ -6,6 +6,7 @@ namespace App\Actions;
 
 use App\Models\Subscription;
 use App\Models\User;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -17,14 +18,17 @@ use Illuminate\Support\Facades\DB;
  */
 final readonly class CreateSubscription
 {
-    public function __construct(private EnsureSubscriptionSubcategory $subcategory) {}
+    public function __construct(
+        private EnsureSubscriptionSubcategory $subcategory,
+        private SyncSubscriptionPlanItems $planItems,
+    ) {}
 
     /**
      * @param  array<string, mixed>  $attributes
      */
-    public function handle(User $user, array $attributes): Subscription
+    public function handle(User $user, array $attributes, CarbonInterface $today): Subscription
     {
-        return DB::transaction(function () use ($user, $attributes): Subscription {
+        return DB::transaction(function () use ($user, $attributes, $today): Subscription {
             $subscription = $user->subscriptions()->create([
                 ...$attributes,
                 'is_active' => true,
@@ -38,6 +42,8 @@ final readonly class CreateSubscription
             );
 
             $subscription->update(['subcategory_id' => $subcategory->id]);
+
+            $this->planItems->forUser($user, $today);
 
             return $subscription;
         });

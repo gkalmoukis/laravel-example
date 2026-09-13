@@ -77,16 +77,20 @@ final readonly class SubscriptionController
 
     public function store(StoreSubscriptionRequest $request, #[CurrentUser] User $user, CreateSubscription $action): RedirectResponse
     {
-        $action->handle($user, $request->subscriptionAttributes());
+        $action->handle($user, $request->subscriptionAttributes(), $user->today());
 
         return back()->with('status', 'Subscription added.');
     }
 
-    public function update(UpdateSubscriptionRequest $request, Subscription $subscription, UpdateSubscription $action): RedirectResponse
-    {
+    public function update(
+        UpdateSubscriptionRequest $request,
+        Subscription $subscription,
+        #[CurrentUser] User $user,
+        UpdateSubscription $action,
+    ): RedirectResponse {
         Gate::authorize('update', $subscription);
 
-        $action->handle($subscription, $request->subscriptionAttributes());
+        $action->handle($subscription, $request->subscriptionAttributes(), $user->today());
 
         return back()->with('status', 'Subscription updated.');
     }
