@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Enums\NetWorthItemKind;
 use App\Enums\TransactionType;
 use App\Models\MonthClosure;
+use App\Models\NetWorthSnapshot;
 use App\Models\Transaction;
 
 /*
@@ -172,6 +174,38 @@ it('compares plan and actual on a phone', function (): void {
         ->visit('/years/'.date('Y').'/comparison')
         ->on()->mobile()
         ->assertSee('Plan vs actual')
+        ->assertNoJavascriptErrors()
+        ->assertNoConsoleLogs();
+});
+
+it('reads the cash flow as a chart or as a table', function (): void {
+    [$user, $year] = userWithYear((int) date('Y'));
+
+    $cash = $user->netWorthItems()->where('kind', NetWorthItemKind::Cash)->firstOrFail();
+
+    NetWorthSnapshot::query()
+        ->where('net_worth_item_id', $cash->id)
+        ->where('financial_year_id', $year->id)
+        ->where('month', NetWorthSnapshot::OPENING_MONTH)
+        ->update(['value_cents' => 250_000]);
+
+    $this->actingAs($user)
+        ->visit('/years/'.date('Y').'/cash-flow')
+        ->assertSee('Cash flow')
+        ->assertSee('2.500,00')
+        // Every chart can be read as a table (NFR-04).
+        ->click('@toggle-chart-table')
+        ->assertSee('View as chart')
+        ->assertNoJavascriptErrors();
+});
+
+it('reads the cash flow on a phone', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    $this->actingAs($user)
+        ->visit('/years/'.date('Y').'/cash-flow')
+        ->on()->mobile()
+        ->assertSee('Cash flow')
         ->assertNoJavascriptErrors()
         ->assertNoConsoleLogs();
 });

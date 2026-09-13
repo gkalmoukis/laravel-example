@@ -215,7 +215,7 @@ Conventions for every item:
   - Tests: `tests/Feature/Reports/ComparisonTest.php`
   - Commit: `feat: plan vs actual comparison`
 
-- [ ] **m4-cash-flow-screen** — The twelve-month cash-flow table and balance chart
+- [x] **m4-cash-flow-screen** — The twelve-month cash-flow table and balance chart
   - Refs: CF-01, CF-02, NFR-04
   - Build: `sail bunx shadcn@latest add chart` (recharts, approved by PRD §3.3) ·
     `app/Http/Controllers/CashFlowController.php@index` · route `cash-flow.index` ·

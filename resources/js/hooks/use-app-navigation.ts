@@ -4,10 +4,12 @@ import {
     LayoutGrid,
     Receipt,
     Scale,
+    TrendingUp,
     Settings,
     Wallet,
 } from 'lucide-react';
 import { dashboard } from '@/routes';
+import { index as cashFlow } from '@/routes/cash-flow';
 import { index as comparison } from '@/routes/comparison';
 import { index as months } from '@/routes/months';
 import { show as showPlan } from '@/routes/plan';
@@ -46,6 +48,12 @@ export function useAppNavigation(): NavItem[] {
             title: 'Plan vs actual',
             href: comparison({ year: selectedYear }),
             icon: Scale,
+        });
+
+        items.push({
+            title: 'Cash flow',
+            href: cashFlow({ year: selectedYear }),
+            icon: TrendingUp,
         });
     }
 
