@@ -140,7 +140,7 @@ Conventions for every item:
 
 ## P3 — Easier plan setup
 
-- [ ] **plan-item-editor** — The plan tabs stop being read-only
+- [x] **plan-item-editor** — The plan tabs stop being read-only
   - Refs: INC-01, INC-07, IRR-01, IRR-02, IRR-03, BUD-01, UX-06, UX-07
   - Build: `resources/js/components/planning/plan-item-form.tsx` — name, category, amount and
     frequency in front, start month, payment day, allocation and notes folded behind "More

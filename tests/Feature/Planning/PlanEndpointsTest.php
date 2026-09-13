@@ -296,3 +296,113 @@ it('marks the opening step done once there is something in it', function (): voi
         ->get(route('year-setup.show', ['year' => 2027, 'step' => 'opening']))
         ->assertInertia(fn ($page) => $page->where('completedSteps', ['opening']));
 });
+
+it('carries the categories every editable tab needs', function (string $tab): void {
+    [$user] = userWithYear();
+
+    // The tabs could only ever list plan items because nothing was passed to build a
+    // form with. Both editable tabs get their own side of the taxonomy (INC-01, IRR-01).
+    $this->actingAs($user)
+        ->get(route('plan.show', ['year' => 2027, 'tab' => $tab]))
+        ->assertInertia(function ($page): void {
+            $categories = $page->toArray()['props']['categories'];
+
+            expect($categories)->not->toBe([]);
+        });
+})->with(['income', 'irregular']);
+
+it('carries what an item needs to be edited back into a form', function (): void {
+    [$user, $year] = userWithYear();
+
+    $category = $user->categories()->where('name', 'Housing')->whereNull('parent_id')->firstOrFail();
+
+    $this->actingAs($user)
+        ->post(route('plan-items.store', ['year' => 2027]), [
+            'name' => 'Insurance',
+            'type' => 'expense',
+            'kind' => 'irregular',
+            'frequency' => 'annual',
+            'start_month' => 4,
+            'category_id' => $category->id,
+            'amount' => '300,00',
+        ])
+        ->assertSessionHasNoErrors();
+
+    $this->actingAs($user)
+        ->get(route('plan.show', ['year' => 2027, 'tab' => 'irregular']))
+        ->assertInertia(function ($page): void {
+            $item = collect($page->toArray()['props']['items'])
+                ->firstWhere('name', 'Insurance');
+
+            // The form reads the amount back out of the month it lands in rather than
+            // dividing the annual figure, so every frequency round-trips exactly.
+            expect($item['categoryId'])->not->toBeNull()
+                ->and($item['startMonth'])->toBe(4)
+                ->and($item['allocation'])->toBe('lump_sum')
+                ->and($item['months'][4])->toBe(30_000)
+                ->and($item['isManual'])->toBeTrue();
+        });
+});
+
+it('changes a plan item from the tab it is listed on', function (): void {
+    [$user, $year] = userWithYear();
+
+    $category = $user->categories()->where('name', 'Salary')->whereNull('parent_id')->firstOrFail();
+
+    $this->actingAs($user)
+        ->post(route('plan-items.store', ['year' => 2027]), [
+            'name' => 'Freelance',
+            'type' => 'income',
+            'kind' => 'recurring',
+            'frequency' => 'monthly',
+            'start_month' => 1,
+            'category_id' => $category->id,
+            'amount' => '400,00',
+        ])
+        ->assertSessionHasNoErrors();
+
+    $item = $year->planItems()->where('name', 'Freelance')->firstOrFail();
+
+    $this->actingAs($user)
+        ->patch(route('plan-items.update', ['year' => 2027, 'planItem' => $item->id]), [
+            'name' => 'Freelance work',
+            'type' => 'income',
+            'kind' => 'recurring',
+            'frequency' => 'monthly',
+            'start_month' => 1,
+            'category_id' => $category->id,
+            'amount' => '500,00',
+        ])
+        ->assertSessionHasNoErrors();
+
+    $item->refresh();
+
+    expect($item->name)->toBe('Freelance work')
+        ->and((int) $item->amounts()->sum('amount_cents'))->toBe(600_000);
+});
+
+it('removes a plan item from the tab it is listed on', function (): void {
+    [$user, $year] = userWithYear();
+
+    $category = $user->categories()->where('name', 'Housing')->whereNull('parent_id')->firstOrFail();
+
+    $this->actingAs($user)
+        ->post(route('plan-items.store', ['year' => 2027]), [
+            'name' => 'Holiday',
+            'type' => 'expense',
+            'kind' => 'irregular',
+            'frequency' => 'annual',
+            'start_month' => 7,
+            'category_id' => $category->id,
+            'amount' => '900,00',
+        ])
+        ->assertSessionHasNoErrors();
+
+    $item = $year->planItems()->where('name', 'Holiday')->firstOrFail();
+
+    $this->actingAs($user)
+        ->delete(route('plan-items.destroy', ['year' => 2027, 'planItem' => $item->id]))
+        ->assertSessionHasNoErrors();
+
+    expect($year->planItems()->where('name', 'Holiday')->exists())->toBeFalse();
+});

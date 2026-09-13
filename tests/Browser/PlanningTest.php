@@ -162,3 +162,81 @@ it('reminds the user when a year was never finished', function (): void {
         ->assertSee('Finish setting up 2027')
         ->assertNoJavascriptErrors();
 });
+
+it('adds, changes and removes an irregular cost from the plan tab', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    $year = date('Y');
+
+    // Until now the wizard was the only place a plan item could be created, so a year
+    // could be planned once and never corrected (IRR-01, IRR-02).
+    $page = $this->actingAs($user)->visit('/years/'.$year.'/plan/irregular');
+
+    $page->click('@add-irregular')
+        ->fill('plan-item-name', 'Summer holiday')
+        ->click('#plan-item-category')
+        ->click('[role="option"]:has-text("Housing")')
+        ->fill('plan-item-amount', '1.200,00')
+        ->click('@save-plan-item')
+        ->assertSee('Summer holiday')
+        ->assertSee('1.200,00')
+        ->assertNoJavascriptErrors();
+
+    $page->click('[aria-label="Edit Summer holiday"]')
+        ->fill('plan-item-name', 'Winter holiday')
+        ->click('@save-plan-item')
+        ->assertSee('Winter holiday')
+        ->assertNoJavascriptErrors();
+
+    $page->click('[aria-label="Remove Winter holiday"]')
+        ->assertSee('Remove Winter holiday?')
+        ->click('@confirm-remove-plan-item')
+        ->assertDontSee('Winter holiday')
+        ->assertNoJavascriptErrors();
+});
+
+it('adds an income line from the plan tab', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    $this->actingAs($user)
+        ->visit('/years/'.date('Y').'/plan/income')
+        ->click('@add-income')
+        ->fill('plan-item-name', 'Freelance')
+        ->click('#plan-item-category')
+        ->click('[role="option"]:has-text("Salary")')
+        ->fill('plan-item-amount', '400,00')
+        ->click('@save-plan-item')
+        ->assertSee('Freelance')
+        ->assertNoJavascriptErrors();
+});
+
+it('folds the rarely needed fields away until asked', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    // Four fields carry the common case; the rest is one click away (UX-07).
+    $this->actingAs($user)
+        ->visit('/years/'.date('Y').'/plan/irregular')
+        ->click('@add-irregular')
+        ->assertDontSee('Day of the month it is paid')
+        ->click('@plan-item-more')
+        ->assertSee('Day of the month it is paid')
+        ->assertSee('Set money aside for it every month')
+        ->assertNoJavascriptErrors();
+});
+
+it('plans an irregular cost on a phone', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    $this->actingAs($user)
+        ->visit('/years/'.date('Y').'/plan/irregular')
+        ->on()->mobile()
+        ->click('@add-irregular')
+        ->fill('plan-item-name', 'New boiler')
+        ->click('#plan-item-category')
+        ->click('[role="option"]:has-text("Housing")')
+        ->fill('plan-item-amount', '850,00')
+        ->click('@save-plan-item')
+        ->assertSee('New boiler')
+        ->assertNoJavascriptErrors()
+        ->assertNoConsoleLogs();
+});
