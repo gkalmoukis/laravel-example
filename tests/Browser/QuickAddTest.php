@@ -221,3 +221,58 @@ it('offers to reopen a finished month rather than refusing outright', function (
         ->assertSee('Late entry')
         ->assertNoJavascriptErrors();
 });
+
+it('records the common case in six interactions', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    // §2.3: amount, category, description and save. The date needs no interaction at
+    // all because today is already chosen — which is what the shortcut row makes
+    // visible rather than hiding behind a picker (UX-01).
+    $this->actingAs($user)
+        ->visit('/transactions')
+        ->click('@new-transaction')
+        ->fill('amount', '18,40')
+        ->click('@category-combobox')
+        ->click('[data-slot="command-item"]:has-text("Housing")')
+        ->fill('description', 'Six taps')
+        ->click('@quick-add-save')
+        ->assertSee('Six taps')
+        ->assertNoJavascriptErrors();
+});
+
+it('dates a transaction yesterday in one tap', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    $this->actingAs($user)
+        ->visit('/transactions')
+        ->click('@new-transaction')
+        ->click('@date-yesterday')
+        ->fill('amount', '9,90')
+        ->click('@category-combobox')
+        ->click('[data-slot="command-item"]:has-text("Housing")')
+        ->fill('description', 'Late entry')
+        ->click('@quick-add-save')
+        ->assertSee('Late entry')
+        ->assertNoJavascriptErrors();
+
+    // Yesterday is a calendar date, not a timezone-shifted instant.
+    $yesterday = now()->subDay()->toDateString();
+
+    $this->actingAs($user)
+        ->visit('/transactions?from='.$yesterday.'&to='.$yesterday)
+        ->assertSee('Late entry')
+        ->assertNoJavascriptErrors();
+});
+
+it('offers the date shortcuts on a phone too', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    $this->actingAs($user)
+        ->visit('/transactions')
+        ->on()->mobile()
+        ->click('@new-transaction-fab')
+        ->assertSee('Today')
+        ->assertSee('Yesterday')
+        ->assertNoJavascriptErrors()
+        ->assertNoConsoleLogs();
+});

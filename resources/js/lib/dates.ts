@@ -56,3 +56,25 @@ export function shortMonth(month: number, locale: string): string {
         new Date(2000, month - 1, 1),
     );
 }
+
+/**
+ * A calendar date shifted by whole days, staying a calendar date.
+ *
+ * Built from the parts and formatted back the same way, so "yesterday" never drifts into
+ * the day before across a timezone boundary.
+ */
+export function addDays(isoDate: string, days: number): string {
+    const [year, month, day] = isoDate.slice(0, 10).split('-').map(Number);
+
+    if (!year || !month || !day) {
+        return isoDate;
+    }
+
+    const shifted = new Date(year, month - 1, day + days);
+
+    return [
+        String(shifted.getFullYear()).padStart(4, '0'),
+        String(shifted.getMonth() + 1).padStart(2, '0'),
+        String(shifted.getDate()).padStart(2, '0'),
+    ].join('-');
+}

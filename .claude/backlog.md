@@ -227,7 +227,7 @@ Conventions for every item:
   - Tests: `tests/Browser/{TransactionsTest,BulkRecategoriseTest}.php`
   - Commit: `feat: transaction list polish`
 
-- [ ] **tx-quick-add-polish** — Quick add gets out of its own way
+- [x] **tx-quick-add-polish** — Quick add gets out of its own way
   - Refs: TXQ-01, TXQ-02, TXQ-03, TXQ-04, TXQ-06, TXQ-10, UX-01, UX-11, UX-12, UX-14, §2.3
   - Build: split `components/transactions/quick-add-sheet.tsx` — 496 lines serving create, edit
     and duplicate — into the sheet shell plus `quick-add-form.tsx` and `quick-add-date.tsx` ·
