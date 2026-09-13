@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Models\MonthClosure;
+
 /*
  * Browser tests assert through the interface. The application runs in a separate process,
  * so a model re-read here would return a stale snapshot.
@@ -89,5 +91,37 @@ it('records a transaction without touching the mouse', function (): void {
         // A real form with a submit button, so Enter saves it (NFR-04).
         ->keys('description', 'Enter')
         ->assertSee('Keyboard entry')
+        ->assertNoJavascriptErrors();
+});
+
+it('lifts a card off the page in dark mode', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    // --card equalled --background in dark, so every card, sheet and popover dissolved
+    // into the page. Read the rendered colours rather than the tokens: what matters is
+    // what the browser paints (§5.2, NFR-04).
+    $page = $this->actingAs($user)->visit('/dashboard');
+
+    $page->script("document.documentElement.classList.add('dark')");
+
+    $page->assertScript(
+        "getComputedStyle(document.querySelector('[data-slot=card]')).backgroundColor "
+        .'!== getComputedStyle(document.body).backgroundColor',
+    )->assertNoJavascriptErrors();
+});
+
+it('says what a status means rather than only colouring it', function (): void {
+    [$user, $year] = userWithYear((int) date('Y'));
+
+    MonthClosure::factory()->for($year)->create([
+        'month' => 1,
+        'completed_at' => now(),
+    ]);
+
+    // Colour is never the only signal (§5.2): the badge carries the word too, so the
+    // month reads the same to someone who cannot tell the two colours apart.
+    $this->actingAs($user)
+        ->visit('/years/'.date('Y').'/months')
+        ->assertSee('Complete')
         ->assertNoJavascriptErrors();
 });

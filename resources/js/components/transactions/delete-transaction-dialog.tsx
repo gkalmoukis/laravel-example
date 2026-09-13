@@ -58,7 +58,7 @@ export default function DeleteTransactionDialog({
 
                 {blockedMonth && (
                     <p
-                        className="text-sm text-amber-700 dark:text-amber-400"
+                        className="text-sm text-status-warning"
                         data-testid="delete-month-complete"
                     >
                         {monthName} is marked complete. Reopen it to delete

@@ -21,12 +21,12 @@ const STATUSES: Record<
     in_progress: {
         label: 'In progress',
         icon: CircleDot,
-        className: 'text-amber-700 dark:text-amber-400',
+        className: 'text-status-warning',
     },
     complete: {
         label: 'Complete',
         icon: CircleCheck,
-        className: 'text-emerald-700 dark:text-emerald-400',
+        className: 'text-status-ok',
     },
 };
 

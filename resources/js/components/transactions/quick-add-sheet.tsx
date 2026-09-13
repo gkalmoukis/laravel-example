@@ -317,7 +317,7 @@ export default function QuickAddSheet({
 
                 {hasNoPlan && (
                     <p
-                        className="mt-1 text-xs text-amber-700 dark:text-amber-400"
+                        className="mt-1 text-xs text-status-warning"
                         data-testid="no-plan-warning"
                     >
                         You don't have a {datedYear} plan yet. This transaction
@@ -394,10 +394,10 @@ export default function QuickAddSheet({
 
             {blockedMonth && (
                 <div
-                    className="rounded-md border border-amber-500/50 p-3 text-sm"
+                    className="rounded-md border border-status-warning/50 p-3 text-sm"
                     data-testid="reopen-and-save"
                 >
-                    <p className="text-amber-700 dark:text-amber-400">
+                    <p className="text-status-warning">
                         {form.errors.occurred_on}
                     </p>
                     <Button

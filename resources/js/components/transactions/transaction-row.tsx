@@ -24,9 +24,7 @@ function Amount({ row }: { row: Row }) {
         <span
             className={cn(
                 'font-medium tabular-nums',
-                isIncome
-                    ? 'text-emerald-700 dark:text-emerald-400'
-                    : 'text-foreground',
+                isIncome ? 'text-status-ok' : 'text-foreground',
             )}
         >
             {isIncome ? '+' : '−'} {formatMoney(row.amountCents)}

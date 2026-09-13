@@ -46,7 +46,7 @@ export default function MetricCard({
 
                 <p
                     className={cn(
-                        'text-2xl font-semibold tabular-nums',
+                        'font-display text-3xl font-normal tabular-nums',
                         tone === 'good' && 'text-status-ok',
                         tone === 'bad' && 'text-status-over',
                     )}

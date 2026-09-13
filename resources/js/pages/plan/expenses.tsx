@@ -329,7 +329,7 @@ function DoubleCountWarning({ row }: { row: Row }) {
         <Tooltip>
             <TooltipTrigger asChild>
                 <span
-                    className="ml-1 inline-flex cursor-help align-middle text-amber-600 dark:text-amber-500"
+                    className="ml-1 inline-flex cursor-help align-middle text-status-warning"
                     data-testid={`double-count-${row.categoryId}`}
                 >
                     <TriangleAlert className="size-4" aria-hidden="true" />

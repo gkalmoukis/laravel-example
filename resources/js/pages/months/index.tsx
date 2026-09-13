@@ -100,7 +100,7 @@ export default function MonthsIndex({
 
                                 {month.issueCount > 0 && (
                                     <Link
-                                        className="mt-2 flex items-center gap-1 text-amber-700 underline underline-offset-4 dark:text-amber-400"
+                                        className="mt-2 flex items-center gap-1 text-status-warning underline underline-offset-4"
                                         href={transactionsIndex.url({
                                             query: {
                                                 month: String(month.month),

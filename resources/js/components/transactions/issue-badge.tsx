@@ -25,7 +25,7 @@ export default function IssueBadge({ issues }: { issues: TransactionIssue[] }) {
             <TooltipTrigger asChild>
                 <Badge
                     variant="outline"
-                    className="gap-1 border-amber-500/50 text-amber-700 dark:text-amber-400"
+                    className="gap-1 border-status-warning/50 text-status-warning"
                     data-testid="issue-badge"
                 >
                     <AlertTriangle className="size-3" aria-hidden="true" />

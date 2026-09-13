@@ -86,7 +86,7 @@ Conventions for every item:
 
 ## P2 — Identity
 
-- [ ] **ui-design-tokens** — A palette and a type scale of its own
+- [x] **ui-design-tokens** — A palette and a type scale of its own
   - Refs: §5.2, UX-08, NFR-04, NFR-06
   - Build: `resources/css/app.css` — `--primary` becomes indigo (`oklch(0.45 0.15 265)` light,
     `oklch(0.72 0.14 265)` dark) instead of pure black; the neutrals pick up a faint cool cast at
