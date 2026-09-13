@@ -240,7 +240,7 @@ Conventions for every item:
     reopen-and-save path
   - Commit: `feat: quick add polish`
 
-- [ ] **tx-command-palette** — One key reaches anything <!-- gate -->
+- [x] **tx-command-palette** — One key reaches anything <!-- gate -->
   - Refs: UX-05, NFR-06, §9 navigation
   - Build: `resources/js/components/command-palette.tsx` on the already-vendored `cmdk`
     (`components/ui/command`), mounted beside `QuickAddProvider` in
