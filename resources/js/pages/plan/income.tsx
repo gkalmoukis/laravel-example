@@ -147,6 +147,7 @@ export default function PlanIncome({
                         monthLabel="Starting month"
                         namePlaceholder="Freelance work"
                         onDone={() => setOpen(null)}
+                        onCancel={() => setOpen(null)}
                     />
                 )}
 
@@ -165,6 +166,7 @@ export default function PlanIncome({
                         monthLabel="Starting month"
                         namePlaceholder="Freelance work"
                         onDone={() => setOpen(null)}
+                        onCancel={() => setOpen(null)}
                     />
                 )}
 

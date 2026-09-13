@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Actions\CapturePlanBaseline;
+use App\Actions\PresentOpeningPosition;
+use App\Actions\PresentSalaryModel;
 use App\Actions\UpdateBudgetCell;
-use App\Actions\UpdateOpeningPosition;
 use App\Enums\PlanItemKind;
 use App\Enums\TransactionType;
 use App\Models\Category;
 use App\Models\FinancialYear;
-use App\Models\NetWorthSnapshot;
 use App\Models\PlanItem;
 use App\Models\PlanItemAmount;
 use App\Models\SalaryModel;
@@ -33,7 +33,8 @@ final readonly class PlanController
 
     public function __construct(
         private UpdateBudgetCell $budgetCell,
-        private UpdateOpeningPosition $openingPosition,
+        private PresentOpeningPosition $openingPosition,
+        private PresentSalaryModel $salaryModel,
         private CapturePlanBaseline $baseline,
     ) {}
 
@@ -65,7 +66,7 @@ final readonly class PlanController
             'income' => $this->incomeProps($year),
             'expenses' => $this->expensesProps($year),
             'irregular' => $this->irregularProps($year),
-            default => $this->openingProps($year),
+            default => $this->openingPosition->handle($year),
         };
     }
 
@@ -75,7 +76,7 @@ final readonly class PlanController
     private function incomeProps(FinancialYear $year): array
     {
         return [
-            'salaryModel' => $this->presentSalaryModel($year),
+            'salaryModel' => $this->salaryModel->handle($year),
             'defaultPayments' => SalaryModel::defaultPayments(),
             'items' => $this->items($year, fn (HasMany $query): HasMany => $query->where('type', TransactionType::Income)),
             'categories' => $this->categories($year, TransactionType::Income),
@@ -147,33 +148,6 @@ final readonly class PlanController
         return [
             'items' => $this->items($year, fn (HasMany $query): HasMany => $query->where('kind', PlanItemKind::Irregular)),
             'categories' => $this->categories($year, TransactionType::Expense),
-        ];
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function openingProps(FinancialYear $year): array
-    {
-        $snapshots = $year->netWorthSnapshots()
-            ->with('netWorthItem')
-            ->where('month', NetWorthSnapshot::OPENING_MONTH)
-            ->get();
-
-        return [
-            'holdings' => $snapshots
-                ->filter(fn (NetWorthSnapshot $snapshot): bool => $snapshot->netWorthItem->is_active)
-                ->sortBy(fn (NetWorthSnapshot $snapshot): int => $snapshot->netWorthItem->sort_order)
-                ->map(fn (NetWorthSnapshot $snapshot): array => [
-                    'id' => $snapshot->netWorthItem->id,
-                    'name' => $snapshot->netWorthItem->name,
-                    'kind' => $snapshot->netWorthItem->kind->value,
-                    'valueCents' => $snapshot->value_cents->cents,
-                ])
-                ->values()
-                ->all(),
-            'openingLiquidCents' => $this->openingPosition->openingLiquidBalance($year)->cents,
-            'openingNetWorthCents' => $this->openingPosition->openingNetWorth($year),
         ];
     }
 
@@ -286,25 +260,5 @@ final readonly class PlanController
             ->where('type', TransactionType::Expense)
             ->orderBy('sort_order')
             ->get();
-    }
-
-    /**
-     * The salary arrangement, or nothing when the year has none.
-     *
-     * @return array<string, mixed>|null
-     */
-    private function presentSalaryModel(FinancialYear $year): ?array
-    {
-        $salaryModel = $year->salaryModel()->first();
-
-        if (! $salaryModel instanceof SalaryModel) {
-            return null;
-        }
-
-        return [
-            'name' => $salaryModel->name,
-            'baseAmountCents' => $salaryModel->base_amount_cents->cents,
-            'payments' => $salaryModel->payments,
-        ];
     }
 }

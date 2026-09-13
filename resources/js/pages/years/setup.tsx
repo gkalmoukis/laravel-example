@@ -8,9 +8,11 @@ import InputError from '@/components/input-error';
 import PageShell from '@/components/page-shell';
 import Money from '@/components/planning/money';
 import MoneyInput from '@/components/planning/money-input';
+import PlanItemForm, {
+    blankPlanItem,
+} from '@/components/planning/plan-item-form';
 import YearNav from '@/components/planning/year-nav';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
     Select,
@@ -74,9 +76,6 @@ const stepLabels: Record<string, string> = {
     opening: 'Opening position',
     income: 'Income',
     expenses: 'Monthly budget',
-    irregular: 'Irregular costs',
-    goals: 'Goals',
-    review: 'Review',
 };
 
 const bonusLabels: Record<string, string> = {
@@ -121,7 +120,7 @@ export default function YearSetup(props: Props) {
             <PageShell stacked={false} className="mx-auto w-full max-w-3xl">
                 <Heading
                     title={`Set up ${year.year}`}
-                    description="Six short steps. Everything can be changed later, and you can skip anything except the first."
+                    description="Three short steps to get the year going. Everything can be changed afterwards from the plan, and you can skip anything except the first."
                 />
 
                 <div className="mt-4">
@@ -139,11 +138,7 @@ export default function YearSetup(props: Props) {
                 <div className="mt-8 space-y-6">
                     {step === 'opening' && <OpeningStep {...props} />}
                     {step === 'income' && <IncomeStep {...props} />}
-                    {(step === 'expenses' || step === 'irregular') && (
-                        <PlanStep {...props} />
-                    )}
-                    {step === 'goals' && <GoalsStep />}
-                    {step === 'review' && <ReviewStep {...props} />}
+                    {step === 'expenses' && <PlanStep {...props} />}
                 </div>
 
                 {/*
@@ -399,196 +394,34 @@ function IncomeStep({
     );
 }
 
-function PlanStep({ step, year, planItems = [], categories = [] }: Props) {
-    const irregular = step === 'irregular';
-
-    const shown = planItems.filter((item) =>
-        irregular ? item.kind === 'irregular' : item.kind === 'recurring',
-    );
+/**
+ * The monthly budget, built from the same form the plan tab uses.
+ *
+ * This step used to carry its own copy of the whole plan-item form, which is how the
+ * wizard and the plan drifted apart in the first place.
+ */
+function PlanStep({ year, planItems = [], categories = [] }: Props) {
+    const recurring = planItems.filter((item) => item.kind === 'recurring');
 
     return (
         <div className="space-y-8">
-            <Form
-                {...PlanItemController.store.form({ year: year.year })}
-                options={{ preserveScroll: true }}
-                resetOnSuccess
-                className="space-y-4"
-            >
-                {({ processing, errors }) => (
-                    <>
-                        <input type="hidden" name="type" value="expense" />
-                        <input
-                            type="hidden"
-                            name="kind"
-                            value={irregular ? 'irregular' : 'recurring'}
-                        />
-                        <input
-                            type="hidden"
-                            name="frequency"
-                            value={irregular ? 'annual' : 'monthly'}
-                        />
-
-                        <div className="grid gap-4 sm:grid-cols-2">
-                            <div className="grid gap-2">
-                                <Label htmlFor="name">What is it?</Label>
-
-                                <Input
-                                    id="name"
-                                    name="name"
-                                    required
-                                    placeholder={
-                                        irregular ? 'Summer holiday' : 'Rent'
-                                    }
-                                />
-
-                                <InputError message={errors.name} />
-                            </div>
-
-                            <div className="grid gap-2">
-                                <Label htmlFor="category_id">Category</Label>
-
-                                <Select name="category_id" required>
-                                    <SelectTrigger id="category_id">
-                                        <SelectValue placeholder="Pick a category" />
-                                    </SelectTrigger>
-
-                                    <SelectContent>
-                                        {categories.map((category) => (
-                                            <SelectItem
-                                                key={category.id}
-                                                value={String(category.id)}
-                                            >
-                                                {category.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-
-                                <InputError message={errors.category_id} />
-                            </div>
-
-                            <div className="grid gap-2">
-                                <Label htmlFor="amount">
-                                    {irregular
-                                        ? 'Amount for the year'
-                                        : 'Amount each month'}
-                                </Label>
-
-                                <MoneyInput name="amount" required />
-
-                                <InputError message={errors.amount} />
-                            </div>
-
-                            <div className="grid gap-2">
-                                <Label htmlFor="start_month">
-                                    {irregular
-                                        ? 'Month it is paid'
-                                        : 'Starting month'}
-                                </Label>
-
-                                <Select name="start_month" defaultValue="1">
-                                    <SelectTrigger id="start_month">
-                                        <SelectValue />
-                                    </SelectTrigger>
-
-                                    <SelectContent>
-                                        {monthNames.map((name, index) => (
-                                            <SelectItem
-                                                key={name}
-                                                value={String(index + 1)}
-                                            >
-                                                {name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-
-                        {irregular && (
-                            <div className="flex items-center gap-2">
-                                <Switch
-                                    id="allocation"
-                                    name="allocation"
-                                    value="spread"
-                                />
-
-                                <Label
-                                    htmlFor="allocation"
-                                    className="font-normal"
-                                >
-                                    Set money aside for it every month
-                                </Label>
-                            </div>
-                        )}
-
-                        <Button
-                            type="submit"
-                            disabled={processing}
-                            data-test="add-plan-item-button"
-                        >
-                            Add to plan
-                        </Button>
-                    </>
-                )}
-            </Form>
+            <PlanItemForm
+                title="A monthly cost"
+                submitLabel="Add to plan"
+                url={PlanItemController.store.url({ year: year.year })}
+                method="post"
+                initial={blankPlanItem('expense', 'recurring')}
+                categories={categories}
+                amountLabel="Amount each month"
+                monthLabel="Starting month"
+                namePlaceholder="Rent"
+                onDone={() => undefined}
+            />
 
             <PlannedList
-                items={shown}
-                empty={
-                    irregular
-                        ? 'Nothing irregular planned yet.'
-                        : 'No monthly costs planned yet.'
-                }
+                items={recurring}
+                empty="No monthly costs planned yet."
             />
-        </div>
-    );
-}
-
-function GoalsStep() {
-    return (
-        <p className="rounded-md border p-4 text-sm text-muted-foreground">
-            Your emergency fund goal is already set up. Other goals arrive with
-            the goals screen — skip this for now.
-        </p>
-    );
-}
-
-function ReviewStep({ summary }: Props) {
-    const value = (key: string): number => {
-        const found = summary?.[key];
-
-        return typeof found === 'number' ? found : 0;
-    };
-
-    const rows = [
-        ['Planned income', value('annual_income_cents')],
-        ['Planned expenses', value('annual_expenses_cents')],
-        ['Planned savings', value('annual_savings_cents')],
-        ['Balance at the end of the year', value('year_end_balance_cents')],
-    ] as const;
-
-    return (
-        <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-                This is what your plan says for the year. Finishing setup saves
-                it as your original plan, so you can see later how far things
-                drifted. You can still change anything.
-            </p>
-
-            <dl className="divide-y rounded-md border">
-                {rows.map(([label, cents]) => (
-                    <div
-                        key={label}
-                        className="flex items-center justify-between p-4"
-                    >
-                        <dt className="text-sm">{label}</dt>
-                        <dd className="font-medium">
-                            <Money cents={cents} />
-                        </dd>
-                    </div>
-                ))}
-            </dl>
         </div>
     );
 }

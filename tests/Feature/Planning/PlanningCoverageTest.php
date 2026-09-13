@@ -11,7 +11,9 @@ use App\Actions\UpdateBudgetCell;
 use App\Actions\UpdateOpeningPosition;
 use App\Enums\Frequency;
 use App\Enums\NetWorthItemKind;
+use App\Enums\PlanItemKind;
 use App\Enums\PlanItemSource;
+use App\Enums\TransactionType;
 use App\Models\Category;
 use App\Models\FinancialYear;
 use App\Models\Goal;
@@ -352,7 +354,6 @@ it("offers only categories of the step's own type", function (string $step, stri
 })->with([
     'income offers income only' => ['income', 'Salary', 'Housing'],
     'expenses offer expenses only' => ['expenses', 'Housing', 'Salary'],
-    'irregular offers expenses only' => ['irregular', 'Holidays', 'Salary'],
 ]);
 
 it('shows the salary arrangement once it exists', function (): void {
@@ -392,17 +393,33 @@ it("totals a category's planned months in the grid", function (): void {
             ->where('footerAnnualCents', 60_000));
 });
 
-it('counts the irregular step as done once something is planned there', function (): void {
+it('counts a step as done from what is planned, and irregular no longer among them', function (): void {
     [$user, $year] = userWithYear();
 
+    // Irregular costs left the wizard for the plan tab that can also edit and remove
+    // them, so planning one marks no wizard step done (YEAR-04).
     PlanItem::factory()->for($year, 'financialYear')->irregular()->create([
         'category_id' => $user->categories()->where('name', 'Holidays')->firstOrFail()->id,
     ]);
 
     $this->actingAs($user)
-        ->get(route('year-setup.show', ['year' => 2027, 'step' => 'irregular']))
+        ->get(route('year-setup.show', ['year' => 2027, 'step' => 'expenses']))
         ->assertInertia(function ($page): void {
-            expect($page->toArray()['props']['completedSteps'])->toContain('irregular');
+            expect($page->toArray()['props']['completedSteps'])
+                ->not->toContain('irregular')
+                ->not->toContain('expenses');
+        });
+
+    PlanItem::factory()->for($year, 'financialYear')->create([
+        'type' => TransactionType::Expense,
+        'kind' => PlanItemKind::Recurring,
+        'category_id' => $user->categories()->where('name', 'Housing')->whereNull('parent_id')->firstOrFail()->id,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('year-setup.show', ['year' => 2027, 'step' => 'expenses']))
+        ->assertInertia(function ($page): void {
+            expect($page->toArray()['props']['completedSteps'])->toContain('expenses');
         });
 });
 

@@ -99,6 +99,7 @@ export default function PlanItemForm({
     monthLabel,
     namePlaceholder,
     onDone,
+    onCancel,
 }: {
     title: string;
     submitLabel: string;
@@ -110,6 +111,7 @@ export default function PlanItemForm({
     monthLabel: string;
     namePlaceholder: string;
     onDone: () => void;
+    onCancel?: () => void;
 }) {
     const form = useForm<PlanItemValues>(initial);
     const [more, setMore] = useState(false);
@@ -119,7 +121,12 @@ export default function PlanItemForm({
     const submit = () => {
         form.submit(method, url, {
             preserveScroll: true,
-            onSuccess: onDone,
+            onSuccess: () => {
+                // The wizard keeps this form open to add the next item, so it has to
+                // come back empty; a tab unmounts it and does not care either way.
+                form.reset();
+                onDone();
+            },
         });
     };
 
@@ -359,14 +366,16 @@ export default function PlanItemForm({
                             {submitLabel}
                         </Button>
 
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            onClick={onDone}
-                            data-testid="cancel-plan-item"
-                        >
-                            Cancel
-                        </Button>
+                        {onCancel && (
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={onCancel}
+                                data-testid="cancel-plan-item"
+                            >
+                                Cancel
+                            </Button>
+                        )}
                     </div>
                 </form>
             </CardContent>

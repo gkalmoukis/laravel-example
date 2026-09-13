@@ -55,15 +55,18 @@ it('shows each wizard step', function (string $step): void {
         ->get(route('year-setup.show', ['year' => 2027, 'step' => $step]))
         ->assertOk()
         ->assertInertia(fn ($page) => $page->component('years/setup')->where('step', $step));
-})->with(['opening', 'income', 'expenses', 'irregular', 'goals', 'review']);
+})->with(['opening', 'income', 'expenses']);
 
-it('rejects a step that does not exist', function (): void {
+it('rejects a step that does not exist', function (string $step): void {
     [$user] = userWithYear();
 
     $this->actingAs($user)
-        ->get(route('year-setup.show', ['year' => 2027, 'step' => 'nonsense']))
+        ->get(route('year-setup.show', ['year' => 2027, 'step' => $step]))
         ->assertNotFound();
-});
+    // Setup is three steps now. Irregular costs and goals are edited on their own
+    // screens, and the review step's job — showing what is about to be frozen — is done
+    // by the plan itself (YEAR-04).
+})->with(['nonsense', 'irregular', 'goals', 'review']);
 
 it('saves the opening position from typed amounts', function (): void {
     [$user, $year] = userWithYear();

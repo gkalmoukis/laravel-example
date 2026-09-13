@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Actions\CapturePlanBaseline;
-use App\Actions\UpdateOpeningPosition;
+use App\Actions\PresentOpeningPosition;
+use App\Actions\PresentSalaryModel;
 use App\Enums\PlanItemKind;
 use App\Enums\TransactionType;
 use App\Models\Category;
@@ -29,9 +29,12 @@ final readonly class YearSetupController
     /**
      * @var list<string>
      */
-    public const array STEPS = ['opening', 'income', 'expenses', 'irregular', 'goals', 'review'];
+    public const array STEPS = ['opening', 'income', 'expenses'];
 
-    public function __construct(private UpdateOpeningPosition $openingPosition) {}
+    public function __construct(
+        private PresentOpeningPosition $openingPosition,
+        private PresentSalaryModel $salaryModel,
+    ) {}
 
     public function show(FinancialYear $year, string $step): Response
     {
@@ -57,39 +60,10 @@ final readonly class YearSetupController
     private function stepProps(FinancialYear $year, string $step): array
     {
         return match ($step) {
-            'opening' => $this->openingProps($year),
+            'opening' => $this->openingPosition->handle($year),
             'income' => $this->incomeProps($year),
-            'review' => $this->reviewProps($year),
             default => $this->planProps($year, $step),
         };
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function openingProps(FinancialYear $year): array
-    {
-        $snapshots = $year->netWorthSnapshots()
-            ->with('netWorthItem')
-            ->where('month', NetWorthSnapshot::OPENING_MONTH)
-            ->get();
-
-        return [
-            'holdings' => $snapshots
-                ->filter(fn (NetWorthSnapshot $snapshot): bool => $snapshot->netWorthItem->is_active)
-                ->sortBy(fn (NetWorthSnapshot $snapshot): int => $snapshot->netWorthItem->sort_order)
-                ->map(fn (NetWorthSnapshot $snapshot): array => [
-                    'id' => $snapshot->netWorthItem->id,
-                    'name' => $snapshot->netWorthItem->name,
-                    'kind' => $snapshot->netWorthItem->kind->value,
-                    'valueCents' => $snapshot->value_cents->cents,
-                ])
-                ->values()
-                ->all(),
-            // Shown live as the user types (OPEN-03).
-            'openingLiquidCents' => $this->openingPosition->openingLiquidBalance($year)->cents,
-            'openingNetWorthCents' => $this->openingPosition->openingNetWorth($year),
-        ];
     }
 
     /**
@@ -98,7 +72,7 @@ final readonly class YearSetupController
     private function incomeProps(FinancialYear $year): array
     {
         return [
-            'salaryModel' => $this->presentSalaryModel($year),
+            'salaryModel' => $this->salaryModel->handle($year),
             'defaultPayments' => SalaryModel::defaultPayments(),
             // Preselected from the user's own preference (INC-03).
             'salaryPayments' => $year->user->preference->salary_payments ?? 14,
@@ -135,17 +109,6 @@ final readonly class YearSetupController
                     'isIrregular' => $category->is_irregular,
                 ])
                 ->all(),
-        ];
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function reviewProps(FinancialYear $year): array
-    {
-        return [
-            // What finishing setup would freeze as the baseline (YEAR-05).
-            'summary' => resolve(CapturePlanBaseline::class)->build($year),
         ];
     }
 
@@ -196,30 +159,6 @@ final readonly class YearSetupController
             $done[] = 'expenses';
         }
 
-        if ($year->planItems()->where('kind', PlanItemKind::Irregular)->exists()) {
-            $done[] = 'irregular';
-        }
-
         return $done;
-    }
-
-    /**
-     * The salary arrangement, or nothing when the year has none.
-     *
-     * @return array<string, mixed>|null
-     */
-    private function presentSalaryModel(FinancialYear $year): ?array
-    {
-        $salaryModel = $year->salaryModel()->first();
-
-        if (! $salaryModel instanceof SalaryModel) {
-            return null;
-        }
-
-        return [
-            'name' => $salaryModel->name,
-            'baseAmountCents' => $salaryModel->base_amount_cents->cents,
-            'payments' => $salaryModel->payments,
-        ];
     }
 }

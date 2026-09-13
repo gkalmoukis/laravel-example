@@ -169,7 +169,7 @@ Conventions for every item:
     `tests/Browser/PlanningTest.php` — type a cell, see it save, see an error surface, at both widths
   - Commit: `feat: budget grid feedback`
 
-- [ ] **plan-wizard-short** — Six setup steps become three
+- [x] **plan-wizard-short** — Six setup steps become three
   - Refs: YEAR-04, YEAR-05, OPEN-01, OPEN-02, OPEN-03, INC-01, BUD-01, UX-06, UX-07
   - Build: `app/Http/Controllers/YearSetupController.php` — `STEPS` becomes
     `['opening','income','expenses']`; the placeholder `goals` step and the `irregular` and

@@ -123,6 +123,7 @@ export default function PlanIrregular({
                         monthLabel="Month it is paid"
                         namePlaceholder="Summer holiday"
                         onDone={() => setOpen(null)}
+                        onCancel={() => setOpen(null)}
                     />
                 )}
 
@@ -141,6 +142,7 @@ export default function PlanIrregular({
                         monthLabel="Month it is paid"
                         namePlaceholder="Summer holiday"
                         onDone={() => setOpen(null)}
+                        onCancel={() => setOpen(null)}
                     />
                 )}
 

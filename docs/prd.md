@@ -376,8 +376,8 @@ For any category/period with plan *P* and actual *A*:
 | YEAR-01 | Users can create a financial year for any calendar year from 2000 to the current year + 5. One per year per user. | MUST |
 | YEAR-02 | On creation, the user chooses **Start empty** or **Copy from {previous year}**, shown only if an earlier year exists. | MUST |
 | YEAR-03 | Copying duplicates all Manual and SalaryModel plan items with their 12 monthly amounts and the salary model. Subscription plan items are regenerated from active subscriptions (SUB-04). Opening position items are copied with values prefilled from the source year's month-12 snapshots; if none exist, the liquid total is prefilled with C_A(12) if December is Complete, else C_F(12). Goals are not copied (they are user-level). Transactions are never copied. | MUST |
-| YEAR-04 | Creating a year starts a **setup wizard** with these steps: 1 Opening position → 2 Income → 3 Monthly budget → 4 Irregular expenses → 5 Goals → 6 Review. Steps 2–5 can be skipped; progress is saved per step; leaving and returning resumes at the first incomplete step. | MUST |
-| YEAR-05 | The Review step shows the initial forecast summary (planned income, expenses, savings, year-end balance, and emergency fund status). **Finish setup** sets `setup_completed_at` and captures the baseline (FC-06). | MUST |
+| YEAR-04 | Creating a year starts a **setup wizard** with these steps: 1 Opening position → 2 Income → 3 Monthly budget. Steps 2–3 can be skipped; progress is saved per step; leaving and returning resumes at the first incomplete step. Irregular expenses and goals are set on their own screens, which can also change and remove them; the wizard hands off to the plan when it finishes. | MUST |
+| YEAR-05 | **Finish setup**, on the wizard's last step, sets `setup_completed_at` and captures the baseline (FC-06), then lands on the plan, where the totals it froze are shown. | MUST |
 | YEAR-06 | Plan amounts can be changed at any time after setup. Plan changes never modify transactions (UX-02). | MUST |
 | YEAR-07 | A year switcher in the top bar lists the user's years and defaults to the current calendar year if it exists, otherwise the latest year. The selected year is kept in the URL (`/years/{year}/…`). | MUST |
 | YEAR-08 | A user with no financial years is redirected from the dashboard to "Create your first plan". | MUST |
@@ -588,7 +588,7 @@ All authenticated routes use `auth` and `verified` middleware. Year-scoped route
 |---|---|---|---|
 | Dashboard | `GET /dashboard` | `dashboard` | Primary cards |
 | Create year | `GET /years/create` | `years/create` | Year + empty/copy choice |
-| Setup wizard | `GET /years/{year}/setup/{step}` | `years/setup/{step}` | Current step form |
+| Setup wizard | `GET /years/{year}/setup/{step}` | `years/setup` (opening, income, expenses) | Current step form |
 | Plan | `GET /years/{year}/plan/{tab}` (income, expenses, irregular, opening) | `plan/{tab}` | Annual totals |
 | Months | `GET /years/{year}/months` | `months/index` | 12 status cards |
 | Month review | `GET /years/{year}/months/{month}` | `months/show` | Totals + issues |

@@ -38,12 +38,10 @@ it('walks through setting up a year from nothing', function (): void {
         ->assertSee('Salary')
         ->assertNoJavascriptErrors();
 
-    // The remaining steps are optional, so the wizard can be walked to its end from here.
-    foreach (['expenses', 'irregular', 'goals', 'review'] as $step) {
-        $page->navigate('/years/'.date('Y').'/setup/'.$step)
-            ->assertPathIs('/years/'.date('Y').'/setup/'.$step)
-            ->assertNoJavascriptErrors();
-    }
+    // One step left, and it is optional, so the wizard can be walked to its end.
+    $page->navigate('/years/'.date('Y').'/setup/expenses')
+        ->assertPathIs('/years/'.date('Y').'/setup/expenses')
+        ->assertNoJavascriptErrors();
 
     $page->click('@finish-setup-button')
         ->assertPathBeginsWith('/years/')
@@ -67,7 +65,7 @@ it('walks the setup wizard end to end on a phone', function (): void {
         ->fill('base_amount', '1.500,00')
         ->click('@save-salary-button')
         ->assertSee('Salary')
-        ->navigate('/years/'.date('Y').'/setup/review')
+        ->navigate('/years/'.date('Y').'/setup/expenses')
         ->click('@finish-setup-button')
         ->assertPathBeginsWith('/years/')
         ->assertNoJavascriptErrors()
@@ -94,18 +92,18 @@ it('adds a monthly cost to the budget', function (): void {
 
     $this->actingAs($user)
         ->visit('/years/2027/setup/expenses')
-        ->fill('name', 'Rent')
-        ->fill('amount', '700,00')
+        ->fill('plan-item-name', 'Rent')
+        ->fill('plan-item-amount', '700,00')
         // The category picker is a composed listbox in a portal rather than a native
         // select, so it is opened and its option clicked by role.
-        ->click('#category_id')
+        ->click('#plan-item-category')
         ->click('[role="option"]:has-text("'.$housing->name.'")')
-        ->click('@add-plan-item-button')
+        ->click('@save-plan-item')
         ->assertSee('Rent')
         ->assertNoJavascriptErrors();
 });
 
-it('shows what the plan adds up to before finishing', function (): void {
+it('finishes setup from the last step and lands on the plan', function (): void {
     [$user] = userWithYear();
 
     $this->actingAs($user)->patch(route('salary-model.update', ['year' => 2027]), [
@@ -113,10 +111,10 @@ it('shows what the plan adds up to before finishing', function (): void {
         'payments' => SalaryModel::defaultPayments(),
     ]);
 
+    // The review step is gone: the plan's own screens show what was frozen, and the
+    // last step of the wizard is where setup is finished (YEAR-04, YEAR-05).
     $this->actingAs($user)
-        ->visit('/years/2027/setup/review')
-        ->assertSee('Planned income')
-        ->assertSee('Balance at the end of the year')
+        ->visit('/years/2027/setup/expenses')
         ->click('@finish-setup-button')
         ->assertPathBeginsWith('/years/2027/plan')
         // Reaching the plan without the unfinished-setup reminder is what proves it.
@@ -146,7 +144,7 @@ it('renders the plan on a phone without errors', function (string $path): void {
     '/years/create',
     '/years/2027/setup/opening',
     '/years/2027/setup/income',
-    '/years/2027/setup/review',
+    '/years/2027/setup/expenses',
     '/years/2027/plan/income',
     '/years/2027/plan/expenses',
     '/years/2027/plan/irregular',
