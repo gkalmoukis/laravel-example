@@ -71,3 +71,30 @@ export default function EmptyState({
         </div>
     );
 }
+
+/**
+ * The same idea inside a list that already has its own border (EDGE-01).
+ *
+ * Four screens wrote their own one-line "nothing here" and none of them said what to do
+ * next. A full `EmptyState` inside a bordered list would be a box within a box, so this
+ * is the same promise in the shape a list row can take.
+ */
+export function EmptyRow({
+    message,
+    hint,
+    testId,
+}: {
+    message: string;
+    hint?: string;
+    testId?: string;
+}) {
+    return (
+        <li
+            className="p-4 text-sm text-muted-foreground"
+            data-testid={testId ?? 'empty-row'}
+        >
+            {message}
+            {hint !== undefined && <span className="mt-1 block">{hint}</span>}
+        </li>
+    );
+}

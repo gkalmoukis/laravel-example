@@ -66,3 +66,52 @@ it('reads the empty states on a phone', function (): void {
         ->assertNoJavascriptErrors()
         ->assertNoConsoleLogs();
 });
+
+it('says what to do next rather than only that a list is empty', function (): void {
+    [$user] = userWithYear(2027);
+
+    // EDGE-01: four screens said "nothing here" and stopped, leaving the user to work
+    // out what they were supposed to do.
+    $this->actingAs($user)
+        ->visit('/years/2027/plan/irregular')
+        ->assertSee('Nothing irregular planned yet')
+        ->assertSee('Add a holiday, an annual insurance or a tax bill')
+        ->assertNoJavascriptErrors();
+
+    // Income says the same for its own side of the plan. Accounts and categories carry
+    // the same treatment, but every user is provisioned with one of each, so those rows
+    // are defensive rather than reachable.
+    $this->actingAs($user)
+        ->visit('/years/2027/plan/income')
+        ->assertSee('No income planned yet')
+        ->assertSee('Add a salary or a freelance line')
+        ->assertNoJavascriptErrors();
+});
+
+it('writes a share as a dash when there is nothing to divide by', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    // EDGE-03: a year with no income has no savings rate. The dashboard and the forecast
+    // used to disagree about this — one dashed, the other divided anyway.
+    $this->actingAs($user)
+        ->visit('/dashboard')
+        ->assertSee('Savings rate')
+        ->assertSee('—')
+        ->assertNoJavascriptErrors();
+
+    $this->actingAs($user)
+        ->visit('/years/'.date('Y').'/reports/forecast')
+        ->assertSee('of what you earn')
+        ->assertSee('—')
+        ->assertNoJavascriptErrors();
+});
+
+it('holds the shape of a chart while it loads', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    $this->actingAs($user)
+        ->visit('/dashboard')
+        ->assertSee('Closing balance')
+        ->assertNoJavascriptErrors()
+        ->assertNoConsoleLogs();
+});

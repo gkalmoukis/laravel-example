@@ -15,6 +15,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { usePreferences } from '@/hooks/use-preferences';
+import { formatShare } from '@/lib/money';
 import ReportsLayout from '@/pages/reports/layout';
 import { show as monthShow } from '@/routes/months';
 
@@ -47,19 +48,6 @@ type CategoryRow = {
     forecastCents: number;
     differenceCents: number;
 };
-
-/**
- * The share of income kept, computed here rather than server-side: the rule is full
- * precision, rounded only for display — and there is no rate at all without income
- * (EDGE-03).
- */
-function savingsRate(savings: number, income: number): string {
-    if (income === 0) {
-        return '—';
-    }
-
-    return `${((savings / income) * 100).toFixed(1)}%`;
-}
 
 export default function ForecastIndex({
     year,
@@ -153,7 +141,7 @@ export default function ForecastIndex({
                         value={formatMoney(summary.savingsCents)}
                         sub={
                             <span data-testid="savings-rate">
-                                {savingsRate(
+                                {formatShare(
                                     summary.savingsCents,
                                     summary.incomeCents,
                                 )}{' '}

@@ -179,6 +179,7 @@ export default function PlanIncome({
                     year={year.year}
                     items={items}
                     empty="No income planned yet."
+                    emptyHint="Add a salary or a freelance line so the year expects it."
                     onEdit={(item) => setOpen(item.id)}
                     detail={(item) => {
                         const row = items.find(

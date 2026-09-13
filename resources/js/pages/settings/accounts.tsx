@@ -1,6 +1,7 @@
 import { Form, Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 import AccountController from '@/actions/App/Http/Controllers/AccountController';
+import { EmptyRow } from '@/components/finance/empty-state';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
@@ -125,9 +126,10 @@ export default function Accounts({ accounts }: { accounts: Account[] }) {
 
                     <ul className="divide-y rounded-md border">
                         {accounts.length === 0 && (
-                            <li className="p-4 text-sm text-muted-foreground">
-                                No accounts yet.
-                            </li>
+                            <EmptyRow
+                                message="No accounts yet."
+                                hint="Add one above to say where money moves."
+                            />
                         )}
 
                         {[...active, ...inactive].map((account) => (

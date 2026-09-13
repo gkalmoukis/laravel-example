@@ -2,6 +2,7 @@ import { router } from '@inertiajs/react';
 import { Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import PlanItemController from '@/actions/App/Http/Controllers/PlanItemController';
+import { EmptyRow } from '@/components/finance/empty-state';
 import Money from '@/components/planning/money';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -34,12 +35,14 @@ export default function PlanItemList({
     year,
     items,
     empty,
+    emptyHint,
     detail,
     onEdit,
 }: {
     year: number;
     items: PlanListItem[];
     empty: string;
+    emptyHint?: string;
     detail: (item: PlanListItem) => React.ReactNode;
     onEdit: (item: PlanListItem) => void;
 }) {
@@ -59,9 +62,7 @@ export default function PlanItemList({
         <>
             <ul className="divide-y rounded-md border bg-card">
                 {items.length === 0 && (
-                    <li className="p-4 text-sm text-muted-foreground">
-                        {empty}
-                    </li>
+                    <EmptyRow message={empty} hint={emptyHint} />
                 )}
 
                 {items.map((item) => (

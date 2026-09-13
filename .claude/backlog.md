@@ -299,7 +299,7 @@ Conventions for every item:
 
 ## P6 — Close
 
-- [ ] **ui-states** — Nothing is ever blank without saying why
+- [x] **ui-states** — Nothing is ever blank without saying why
   - Refs: EDGE-01, EDGE-02, EDGE-03, EDGE-04, EDGE-05, UX-06, UX-07, NFR-04
   - Build: `components/finance/empty-state.tsx` applied with exactly one next action on every
     list and chart · a skeleton at every `<Deferred>` boundary shaped like what it replaces

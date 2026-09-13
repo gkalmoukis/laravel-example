@@ -155,7 +155,8 @@ export default function PlanIrregular({
                 <PlanItemList
                     year={year.year}
                     items={items}
-                    empty="Nothing irregular planned yet — add a holiday, an annual insurance or a tax bill so the year expects it."
+                    empty="Nothing irregular planned yet."
+                    emptyHint="Add a holiday, an annual insurance or a tax bill so the year expects it."
                     onEdit={(item) => setOpen(item.id)}
                     detail={(item) => {
                         const row = items.find(

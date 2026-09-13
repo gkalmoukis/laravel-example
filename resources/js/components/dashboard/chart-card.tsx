@@ -45,9 +45,33 @@ export function ChartSkeleton({ title }: { title: string }) {
             <CardHeader>
                 <CardTitle className="text-base">{title}</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-                <Skeleton className="h-64 w-full" />
-                <Skeleton className="h-4 w-32" />
+            <CardContent>
+                {/*
+                 * Shaped like a chart rather than one grey slab: an axis down the left,
+                 * a baseline, and bars of uneven height. A block the size of the chart
+                 * reserves the space but still reads as "something is broken".
+                 */}
+                <div className="flex h-64 gap-3">
+                    <div className="flex w-16 shrink-0 flex-col justify-between py-1">
+                        {[0, 1, 2, 3, 4].map((tick) => (
+                            <Skeleton key={tick} className="h-3 w-full" />
+                        ))}
+                    </div>
+
+                    <div className="flex flex-1 items-end gap-2 border-b border-l pb-2 pl-2">
+                        {[45, 70, 55, 85, 40, 65, 75, 50].map(
+                            (height, index) => (
+                                <Skeleton
+                                    key={`${height}-${index}`}
+                                    className="flex-1"
+                                    style={{ height: `${height}%` }}
+                                />
+                            ),
+                        )}
+                    </div>
+                </div>
+
+                <Skeleton className="mt-3 h-4 w-32" />
                 <span className="sr-only">Loading {title}</span>
             </CardContent>
         </Card>

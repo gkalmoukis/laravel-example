@@ -4,6 +4,7 @@ import { useState } from 'react';
 import CategoryActivationController from '@/actions/App/Http/Controllers/CategoryActivationController';
 import CategoryController from '@/actions/App/Http/Controllers/CategoryController';
 import SubcategoryParentController from '@/actions/App/Http/Controllers/SubcategoryParentController';
+import { EmptyRow } from '@/components/finance/empty-state';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
@@ -136,9 +137,10 @@ export default function Categories({
 
                     <ul className="divide-y rounded-md border">
                         {visible.length === 0 && (
-                            <li className="p-4 text-sm text-muted-foreground">
-                                No {type} categories yet.
-                            </li>
+                            <EmptyRow
+                                message={`No ${type} categories yet.`}
+                                hint="Add one above to start filing transactions under it."
+                            />
                         )}
 
                         {visible.map((category, position) => (

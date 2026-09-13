@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/collapsible';
 import { usePreferences } from '@/hooks/use-preferences';
 import AppLayout from '@/layouts/app-layout';
+import { formatShare } from '@/lib/money';
 import { dashboard } from '@/routes';
 import { index as cashFlow } from '@/routes/cash-flow';
 import { index as comparison } from '@/routes/comparison';
@@ -82,18 +83,6 @@ type Props = {
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: dashboard() },
 ];
-
-/**
- * A share written as a percentage, or a dash when there is nothing to divide by. The
- * figures cross the wire as cents and are divided here, so nothing is rounded twice.
- */
-function rate(part: number, whole: number): string {
-    if (whole <= 0) {
-        return '—';
-    }
-
-    return `${Math.round((part / whole) * 1000) / 10}%`;
-}
 
 export default function Dashboard({
     year,
@@ -240,7 +229,7 @@ export default function Dashboard({
                                 },
                                 {
                                     label: 'Savings rate',
-                                    value: rate(
+                                    value: formatShare(
                                         savings.actualCents,
                                         savings.actualIncomeCents,
                                     ),

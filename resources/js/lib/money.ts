@@ -24,3 +24,23 @@ export function formatAmount(cents: number, locale: string): string {
         maximumFractionDigits: 2,
     }).format(cents / 100);
 }
+
+/**
+ * One figure as a share of another, written as a percentage — or "—" when there is
+ * nothing meaningful to divide by (EDGE-03).
+ *
+ * There were two of these, on the dashboard and on the forecast, and they disagreed:
+ * one returned a dash for any non-positive denominator, the other only for exactly
+ * zero, so a year with negative income showed a negative savings rate on one screen and
+ * a dash on the other. They also rounded by different rules.
+ *
+ * Rounded half up to one decimal for display only, from figures divided at full
+ * precision — never from an already-rounded value.
+ */
+export function formatShare(part: number, whole: number): string {
+    if (whole <= 0) {
+        return '—';
+    }
+
+    return `${Math.round((part / whole) * 1000) / 10}%`;
+}
