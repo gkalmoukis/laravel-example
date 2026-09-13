@@ -203,7 +203,7 @@ Conventions for every item:
 
 ## P4 — Easier transactions
 
-- [ ] **tx-filter-bar** — Filters survive the next page
+- [x] **tx-filter-bar** — Filters survive the next page
   - Refs: TXL-02, TXL-03, EDGE-01, UX-07, UX-09
   - Build: `components/transactions/transaction-filters.tsx` — 298 lines of always-open controls
     become a search field, the filters actually reached for as chips, and the rest behind a "More

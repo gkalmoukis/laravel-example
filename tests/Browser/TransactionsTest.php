@@ -144,3 +144,84 @@ it('shows the filtered list with nothing in it', function (): void {
         ->assertSee('Clear the filters')
         ->assertNoJavascriptErrors();
 });
+
+it('keeps every filter when the page is turned', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    $housing = $user->categories()->where('name', 'Housing')->whereNull('parent_id')->firstOrFail();
+
+    // 55 in range so there is a second page, and one out of range that must not come
+    // back when it is turned (TXL-02).
+    Transaction::factory()->count(55)->for($user)->create([
+        'type' => TransactionType::Expense,
+        'category_id' => $housing->id,
+        'occurred_on' => date('Y').'-03-10',
+        'amount_cents' => 5_000,
+        'description' => 'In range',
+    ]);
+
+    Transaction::factory()->for($user)->create([
+        'type' => TransactionType::Expense,
+        'category_id' => $housing->id,
+        'occurred_on' => date('Y').'-09-10',
+        'amount_cents' => 90_000,
+        'description' => 'Out of range',
+    ]);
+
+    $this->actingAs($user)
+        ->visit('/transactions?from='.date('Y').'-03-01&to='.date('Y').'-03-31')
+        ->assertSee('In range')
+        ->assertDontSee('Out of range')
+        ->assertSee('Page 1 of 2')
+        ->click('Next')
+        ->assertSee('Page 2 of 2')
+        // The pager used to carry four of the ten filters, so this row reappeared.
+        ->assertDontSee('Out of range')
+        ->assertNoJavascriptErrors();
+});
+
+it('shows what is narrowing the list and takes it off again', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    $housing = $user->categories()->where('name', 'Housing')->whereNull('parent_id')->firstOrFail();
+
+    Transaction::factory()->for($user)->create([
+        'type' => TransactionType::Expense,
+        'category_id' => $housing->id,
+        'occurred_on' => date('Y').'-03-10',
+        'description' => 'Only one',
+    ]);
+
+    $this->actingAs($user)
+        ->visit('/transactions?type=expense')
+        ->assertSee('Expense')
+        ->click('@chip-type')
+        ->assertQueryStringMissing('type')
+        ->assertNoJavascriptErrors();
+});
+
+it('folds the rest of the filters behind one button', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    // Eleven controls used to sit open above the list (UX-09).
+    $this->actingAs($user)
+        ->visit('/transactions')
+        ->assertDontSee('Least')
+        ->click('@more-filters')
+        ->assertSee('Least')
+        ->assertSee('Only with issues')
+        ->assertNoJavascriptErrors();
+});
+
+it('filters the list on a phone', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    $this->actingAs($user)
+        ->visit('/transactions?type=expense')
+        ->on()->mobile()
+        ->assertSee('Expense')
+        ->click('@more-filters')
+        ->assertSee('Least')
+        ->assertNoJavascriptErrors()
+        ->assertNoConsoleLogs();
+});

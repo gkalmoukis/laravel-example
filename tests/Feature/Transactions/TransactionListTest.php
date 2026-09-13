@@ -392,3 +392,83 @@ it('explains a subcategory that has been moved away', function (): void {
             ->where('transactions.0.issues.0.key', TransactionIssue::SubcategoryParentMismatch->value)
             ->where('transactions.0.issues.0.reason', TransactionIssue::SubcategoryParentMismatch->reason()));
 });
+
+it('applies every filter alongside a page, so paging cannot widen the list', function (): void {
+    [$user] = userWithYear();
+
+    $account = Account::factory()->for($user)->create(['name' => 'Bank']);
+    $other = Account::factory()->for($user)->create(['name' => 'Cash box']);
+
+    // 55 matches, so there is a second page to turn to, and one row that must never
+    // reappear when the page changes.
+    Transaction::factory()->count(55)->for($user)->create([
+        'type' => TransactionType::Expense,
+        'category_id' => listCategory($user)->id,
+        'account_id' => $account->id,
+        'occurred_on' => '2027-03-10',
+        'amount_cents' => 5_000,
+        'description' => 'Groceries',
+    ]);
+
+    Transaction::factory()->for($user)->create([
+        'type' => TransactionType::Expense,
+        'category_id' => listCategory($user)->id,
+        'account_id' => $other->id,
+        'occurred_on' => '2027-09-10',
+        'amount_cents' => 90_000,
+        'description' => 'Something else',
+    ]);
+
+    $filters = [
+        'from' => '2027-03-01',
+        'to' => '2027-03-31',
+        // The month is read within the filtered year, which defaults to the current
+        // calendar year rather than the plan's — so it travels with it.
+        'year' => 2027,
+        'month' => 3,
+        'type' => 'expense',
+        'category_id' => listCategory($user)->id,
+        'account_id' => $account->id,
+        'min_amount' => '10,00',
+        'max_amount' => '600,00',
+        'q' => 'Groceries',
+    ];
+
+    // The list the filter describes, and the second page of that same list. The bug was
+    // in the link the pager built, so what matters is that the server honours every
+    // filter when a page is asked for too (TXL-02, TXL-05).
+    $this->actingAs($user)
+        ->get(route('transactions.index', $filters))
+        ->assertInertia(fn ($page) => $page
+            ->has('transactions', 50)
+            ->where('pagination.total', 55)
+            ->where('totals.expenseCents', 275_000));
+
+    $this->actingAs($user)
+        ->get(route('transactions.index', [...$filters, 'page' => 2]))
+        ->assertInertia(fn ($page) => $page
+            ->has('transactions', 5)
+            ->where('pagination.total', 55)
+            // Still the whole filter, not the five rows on screen.
+            ->where('totals.expenseCents', 275_000)
+            ->where('filters.from', '2027-03-01')
+            ->where('filters.to', '2027-03-31')
+            ->where('filters.month', 3)
+            ->where('filters.year', 2027)
+            ->where('filters.accountId', $account->id)
+            ->where('filters.minAmount', 1_000)
+            ->where('filters.maxAmount', 60_000)
+            ->where('filters.q', 'Groceries'));
+});
+
+it('reads an amount filter back as cents so the field can show it again', function (): void {
+    [$user] = userWithYear();
+
+    recordExpense($user, '2027-03-01', 5_000);
+
+    // The field takes a typed amount and the prop carries cents; a link that echoed the
+    // cents straight back would read 1250 as 1.250,00.
+    $this->actingAs($user)
+        ->get(route('transactions.index', ['min_amount' => '12,50']))
+        ->assertInertia(fn ($page) => $page->where('filters.minAmount', 1_250));
+});

@@ -1,10 +1,16 @@
 import { router } from '@inertiajs/react';
-import { Search, X } from 'lucide-react';
+import { ListFilter, Search, X } from 'lucide-react';
 import { useState } from 'react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
 import {
     Select,
     SelectContent,
@@ -12,6 +18,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { usePreferences } from '@/hooks/use-preferences';
+import { filterQuery, narrowingFilterCount } from '@/lib/transaction-filters';
 import { index as transactionsIndex } from '@/routes/transactions';
 import type {
     TransactionFilters as Filters,
@@ -20,11 +28,18 @@ import type {
 
 const ANY = 'any';
 
+type Change = Record<string, string | number | boolean | null>;
+
 /**
  * Filter state lives in the address, not in this component (TXL-01).
  *
  * That is what makes a filtered list linkable: every "fix it in the transaction" link from
  * a report is just a URL, and the back button behaves the way the user expects.
+ *
+ * Eleven controls used to sit open at once, which pushed the list itself off the screen.
+ * The search is in front because it is what people reach for; whatever is actually
+ * narrowing the list shows as a chip that can be taken off; the rest is behind one button
+ * that says how many are set (UX-07, UX-09).
  */
 export default function TransactionFilters({
     filters,
@@ -33,50 +48,121 @@ export default function TransactionFilters({
     filters: Filters;
     options: TransactionOptions;
 }) {
+    const { formatAmount, formatDate } = usePreferences();
+
     const [search, setSearch] = useState(filters.q ?? '');
+    const [open, setOpen] = useState(false);
 
-    const apply = (changes: Record<string, string | number | null>) => {
-        const next: Record<string, string> = {};
-
-        const merged = {
-            from: filters.from,
-            to: filters.to,
-            month: filters.month,
-            year: filters.year,
-            type: filters.type,
-            category_id: filters.categoryId,
-            subcategory_id: filters.subcategoryId,
-            account_id: filters.accountId,
-            q: filters.q,
-            issues: filters.onlyIssues ? '1' : null,
-            ...changes,
-        };
-
-        for (const [key, value] of Object.entries(merged)) {
-            if (value !== null && value !== '') {
-                next[key] = String(value);
-            }
-        }
-
-        router.get(transactionsIndex.url(), next, {
-            preserveState: true,
-            preserveScroll: true,
-            replace: true,
-        });
+    const apply = (changes: Change) => {
+        router.get(
+            transactionsIndex.url(),
+            filterQuery(filters, formatAmount, changes),
+            {
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+            },
+        );
     };
 
-    const subcategories =
-        options.categories.find((c) => c.id === filters.categoryId)
-            ?.subcategories ?? [];
+    const category = options.categories.find(
+        (candidate) => candidate.id === filters.categoryId,
+    );
+
+    const subcategories = category?.subcategories ?? [];
+
+    const active = narrowingFilterCount(filters);
+
+    const chips: { key: string; label: string; clears: Change }[] = [];
+
+    if (filters.type !== null) {
+        chips.push({
+            key: 'type',
+            label: filters.type === 'income' ? 'Income' : 'Expense',
+            clears: { type: null },
+        });
+    }
+
+    if (category !== undefined) {
+        chips.push({
+            key: 'category',
+            label: category.name,
+            clears: { category_id: null, subcategory_id: null },
+        });
+    }
+
+    const subcategory = subcategories.find(
+        (candidate) => candidate.id === filters.subcategoryId,
+    );
+
+    if (subcategory !== undefined) {
+        chips.push({
+            key: 'subcategory',
+            label: subcategory.name,
+            clears: { subcategory_id: null },
+        });
+    }
+
+    const account = options.accounts.find(
+        (candidate) => candidate.id === filters.accountId,
+    );
+
+    if (account !== undefined) {
+        chips.push({
+            key: 'account',
+            label: account.name,
+            clears: { account_id: null },
+        });
+    }
+
+    if (filters.from !== null) {
+        chips.push({
+            key: 'from',
+            label: `From ${formatDate(filters.from)}`,
+            clears: { from: null },
+        });
+    }
+
+    if (filters.to !== null) {
+        chips.push({
+            key: 'to',
+            label: `To ${formatDate(filters.to)}`,
+            clears: { to: null },
+        });
+    }
+
+    if (filters.minAmount !== null) {
+        chips.push({
+            key: 'min',
+            label: `At least ${formatAmount(filters.minAmount)}`,
+            clears: { min_amount: null },
+        });
+    }
+
+    if (filters.maxAmount !== null) {
+        chips.push({
+            key: 'max',
+            label: `At most ${formatAmount(filters.maxAmount)}`,
+            clears: { max_amount: null },
+        });
+    }
+
+    if (filters.onlyIssues) {
+        chips.push({
+            key: 'issues',
+            label: 'Only with issues',
+            clears: { issues: null },
+        });
+    }
 
     return (
-        <div className="grid gap-3 rounded-lg border p-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="sm:col-span-2">
-                <Label htmlFor="q">Description contains</Label>
-                <div className="mt-1 flex gap-2">
+        <div className="space-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+                <div className="flex min-w-0 flex-1 gap-2">
                     <Input
                         id="q"
                         name="q"
+                        aria-label="Description contains"
                         value={search}
                         onChange={(event) => setSearch(event.target.value)}
                         onKeyDown={(event) => {
@@ -84,8 +170,9 @@ export default function TransactionFilters({
                                 apply({ q: search });
                             }
                         }}
-                        placeholder="Rent, coffee…"
+                        placeholder="Search descriptions…"
                     />
+
                     <Button
                         variant="secondary"
                         onClick={() => apply({ q: search })}
@@ -95,204 +182,249 @@ export default function TransactionFilters({
                         <span className="sr-only">Search</span>
                     </Button>
                 </div>
+
+                <Popover open={open} onOpenChange={setOpen}>
+                    <PopoverTrigger asChild>
+                        <Button variant="outline" data-testid="more-filters">
+                            <ListFilter className="size-4" />
+                            More filters
+                            {active > 0 && (
+                                <Badge variant="secondary">{active}</Badge>
+                            )}
+                        </Button>
+                    </PopoverTrigger>
+
+                    <PopoverContent
+                        align="end"
+                        className="grid w-80 gap-3 sm:w-96 sm:grid-cols-2"
+                    >
+                        <Choice
+                            id="type"
+                            label="Type"
+                            value={filters.type}
+                            onChange={(value) => apply({ type: value })}
+                            choices={[
+                                { value: 'expense', label: 'Expense' },
+                                { value: 'income', label: 'Income' },
+                            ]}
+                        />
+
+                        <Choice
+                            id="category_id"
+                            label="Category"
+                            value={
+                                filters.categoryId === null
+                                    ? null
+                                    : String(filters.categoryId)
+                            }
+                            onChange={(value) =>
+                                apply({
+                                    category_id: value,
+                                    subcategory_id: null,
+                                })
+                            }
+                            choices={options.categories.map((option) => ({
+                                value: String(option.id),
+                                label: option.name,
+                            }))}
+                        />
+
+                        {subcategories.length > 0 && (
+                            <Choice
+                                id="subcategory_id"
+                                label="Subcategory"
+                                value={
+                                    filters.subcategoryId === null
+                                        ? null
+                                        : String(filters.subcategoryId)
+                                }
+                                onChange={(value) =>
+                                    apply({ subcategory_id: value })
+                                }
+                                choices={subcategories.map((option) => ({
+                                    value: String(option.id),
+                                    label: option.name,
+                                }))}
+                            />
+                        )}
+
+                        {options.accounts.length > 0 && (
+                            <Choice
+                                id="account_id"
+                                label="Account"
+                                value={
+                                    filters.accountId === null
+                                        ? null
+                                        : String(filters.accountId)
+                                }
+                                onChange={(value) =>
+                                    apply({ account_id: value })
+                                }
+                                choices={options.accounts.map((option) => ({
+                                    value: String(option.id),
+                                    label: option.name,
+                                }))}
+                            />
+                        )}
+
+                        <div className="grid gap-1">
+                            <Label htmlFor="from">From</Label>
+                            <Input
+                                id="from"
+                                name="from"
+                                type="date"
+                                value={filters.from ?? ''}
+                                onChange={(event) =>
+                                    apply({ from: event.target.value })
+                                }
+                            />
+                        </div>
+
+                        <div className="grid gap-1">
+                            <Label htmlFor="to">To</Label>
+                            <Input
+                                id="to"
+                                name="to"
+                                type="date"
+                                value={filters.to ?? ''}
+                                onChange={(event) =>
+                                    apply({ to: event.target.value })
+                                }
+                            />
+                        </div>
+
+                        <div className="grid gap-1">
+                            <Label htmlFor="min_amount">Least</Label>
+                            <Input
+                                id="min_amount"
+                                name="min_amount"
+                                inputMode="decimal"
+                                // Cents on the wire, a typed amount in the field: the
+                                // request reads this back through Money::fromInput.
+                                defaultValue={
+                                    filters.minAmount === null
+                                        ? ''
+                                        : formatAmount(filters.minAmount)
+                                }
+                                onBlur={(event) =>
+                                    apply({ min_amount: event.target.value })
+                                }
+                            />
+                        </div>
+
+                        <div className="grid gap-1">
+                            <Label htmlFor="max_amount">Most</Label>
+                            <Input
+                                id="max_amount"
+                                name="max_amount"
+                                inputMode="decimal"
+                                defaultValue={
+                                    filters.maxAmount === null
+                                        ? ''
+                                        : formatAmount(filters.maxAmount)
+                                }
+                                onBlur={(event) =>
+                                    apply({ max_amount: event.target.value })
+                                }
+                            />
+                        </div>
+
+                        <label className="flex items-center gap-2 text-sm sm:col-span-2">
+                            <Checkbox
+                                checked={filters.onlyIssues}
+                                onCheckedChange={(checked) =>
+                                    apply({
+                                        issues: checked === true ? '1' : null,
+                                    })
+                                }
+                                data-testid="only-issues"
+                            />
+                            Only with issues
+                        </label>
+                    </PopoverContent>
+                </Popover>
+
+                {(active > 0 || filters.q !== null) && (
+                    <Button
+                        variant="ghost"
+                        onClick={() => {
+                            setSearch('');
+                            router.get(
+                                transactionsIndex.url(),
+                                {},
+                                { replace: true },
+                            );
+                        }}
+                        data-testid="clear-filters"
+                    >
+                        <X className="size-4" />
+                        Clear
+                    </Button>
+                )}
             </div>
 
-            <div>
-                <Label htmlFor="type">Type</Label>
-                <Select
-                    value={filters.type ?? ANY}
-                    onValueChange={(value) =>
-                        apply({ type: value === ANY ? null : value })
-                    }
-                >
-                    <SelectTrigger id="type" className="mt-1 w-full">
-                        <SelectValue placeholder="Any" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value={ANY}>Any</SelectItem>
-                        <SelectItem value="expense">Expense</SelectItem>
-                        <SelectItem value="income">Income</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-
-            <div>
-                <Label htmlFor="category_id">Category</Label>
-                <Select
-                    value={
-                        filters.categoryId ? String(filters.categoryId) : ANY
-                    }
-                    onValueChange={(value) =>
-                        apply({
-                            category_id: value === ANY ? null : value,
-                            subcategory_id: null,
-                        })
-                    }
-                >
-                    <SelectTrigger id="category_id" className="mt-1 w-full">
-                        <SelectValue placeholder="Any" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value={ANY}>Any</SelectItem>
-                        {options.categories.map((category) => (
-                            <SelectItem
-                                key={category.id}
-                                value={String(category.id)}
+            {chips.length > 0 && (
+                <ul className="flex flex-wrap gap-2" data-testid="filter-chips">
+                    {chips.map((chip) => (
+                        <li key={chip.key}>
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => apply(chip.clears)}
+                                data-testid={`chip-${chip.key}`}
                             >
-                                {category.name}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            </div>
-
-            {subcategories.length > 0 && (
-                <div>
-                    <Label htmlFor="subcategory_id">Subcategory</Label>
-                    <Select
-                        value={
-                            filters.subcategoryId
-                                ? String(filters.subcategoryId)
-                                : ANY
-                        }
-                        onValueChange={(value) =>
-                            apply({
-                                subcategory_id: value === ANY ? null : value,
-                            })
-                        }
-                    >
-                        <SelectTrigger
-                            id="subcategory_id"
-                            className="mt-1 w-full"
-                        >
-                            <SelectValue placeholder="Any" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value={ANY}>Any</SelectItem>
-                            {subcategories.map((subcategory) => (
-                                <SelectItem
-                                    key={subcategory.id}
-                                    value={String(subcategory.id)}
-                                >
-                                    {subcategory.name}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
+                                {chip.label}
+                                <X className="size-3" aria-hidden="true" />
+                                <span className="sr-only">
+                                    Remove this filter
+                                </span>
+                            </Button>
+                        </li>
+                    ))}
+                </ul>
             )}
+        </div>
+    );
+}
 
-            {options.accounts.length > 0 && (
-                <div>
-                    <Label htmlFor="account_id">Account</Label>
-                    <Select
-                        value={
-                            filters.accountId ? String(filters.accountId) : ANY
-                        }
-                        onValueChange={(value) =>
-                            apply({ account_id: value === ANY ? null : value })
-                        }
-                    >
-                        <SelectTrigger id="account_id" className="mt-1 w-full">
-                            <SelectValue placeholder="Any" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value={ANY}>Any</SelectItem>
-                            {options.accounts.map((account) => (
-                                <SelectItem
-                                    key={account.id}
-                                    value={String(account.id)}
-                                >
-                                    {account.name}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-            )}
+/**
+ * One optional choice, with "Any" as the way back out of it.
+ */
+function Choice({
+    id,
+    label,
+    value,
+    choices,
+    onChange,
+}: {
+    id: string;
+    label: string;
+    value: string | null;
+    choices: { value: string; label: string }[];
+    onChange: (value: string | null) => void;
+}) {
+    return (
+        <div className="grid gap-1">
+            <Label htmlFor={id}>{label}</Label>
 
-            <div>
-                <Label htmlFor="from">From</Label>
-                <Input
-                    id="from"
-                    name="from"
-                    type="date"
-                    className="mt-1"
-                    value={filters.from ?? ''}
-                    onChange={(event) => apply({ from: event.target.value })}
-                />
-            </div>
+            <Select
+                value={value ?? ANY}
+                onValueChange={(next) => onChange(next === ANY ? null : next)}
+            >
+                <SelectTrigger id={id} className="w-full">
+                    <SelectValue placeholder="Any" />
+                </SelectTrigger>
 
-            <div>
-                <Label htmlFor="to">To</Label>
-                <Input
-                    id="to"
-                    name="to"
-                    type="date"
-                    className="mt-1"
-                    value={filters.to ?? ''}
-                    onChange={(event) => apply({ to: event.target.value })}
-                />
-            </div>
+                <SelectContent>
+                    <SelectItem value={ANY}>Any</SelectItem>
 
-            <div>
-                <Label htmlFor="min_amount">Least</Label>
-                <Input
-                    id="min_amount"
-                    name="min_amount"
-                    inputMode="decimal"
-                    className="mt-1"
-                    defaultValue={filters.minAmount ?? ''}
-                    onBlur={(event) =>
-                        apply({ min_amount: event.target.value })
-                    }
-                />
-            </div>
-
-            <div>
-                <Label htmlFor="max_amount">Most</Label>
-                <Input
-                    id="max_amount"
-                    name="max_amount"
-                    inputMode="decimal"
-                    className="mt-1"
-                    defaultValue={filters.maxAmount ?? ''}
-                    onBlur={(event) =>
-                        apply({ max_amount: event.target.value })
-                    }
-                />
-            </div>
-
-            <div className="flex items-end gap-2 sm:col-span-2">
-                <label className="flex items-center gap-2 text-sm">
-                    <Checkbox
-                        checked={filters.onlyIssues}
-                        onCheckedChange={(checked) =>
-                            apply({ issues: checked === true ? '1' : null })
-                        }
-                        data-testid="only-issues"
-                    />
-                    Only with issues
-                </label>
-
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    className="ml-auto"
-                    onClick={() => {
-                        setSearch('');
-                        router.get(
-                            transactionsIndex.url(),
-                            {},
-                            { replace: true },
-                        );
-                    }}
-                    data-testid="clear-filters"
-                >
-                    <X className="size-4" />
-                    Clear
-                </Button>
-            </div>
+                    {choices.map((choice) => (
+                        <SelectItem key={choice.value} value={choice.value}>
+                            {choice.label}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
         </div>
     );
 }

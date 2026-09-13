@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/table';
 import { usePreferences } from '@/hooks/use-preferences';
 import AppLayout from '@/layouts/app-layout';
+import { filterQuery } from '@/lib/transaction-filters';
 import { index as transactionsIndex } from '@/routes/transactions';
 import type { BreadcrumbItem } from '@/types';
 import type {
@@ -84,31 +85,19 @@ function Pager({
     pagination: PaginationState;
     filters: Filters;
 }) {
+    const { formatAmount } = usePreferences();
+
     if (pagination.lastPage <= 1) {
         return null;
     }
 
-    const query = (page: number) => {
-        const params: Record<string, string> = { page: String(page) };
-
-        if (filters.q) {
-            params.q = filters.q;
-        }
-
-        if (filters.type) {
-            params.type = filters.type;
-        }
-
-        if (filters.categoryId) {
-            params.category_id = String(filters.categoryId);
-        }
-
-        if (filters.onlyIssues) {
-            params.issues = '1';
-        }
-
-        return transactionsIndex.url({ query: params });
-    };
+    // Every filter, not the four this used to remember: turning a page dropped the
+    // dates, the month, the subcategory, the account and the amount bounds, quietly
+    // widening the list under the user (TXL-02).
+    const query = (page: number) =>
+        transactionsIndex.url({
+            query: filterQuery(filters, formatAmount, { page }),
+        });
 
     const hasPrevious = pagination.currentPage > 1;
     const hasNext = pagination.currentPage < pagination.lastPage;
