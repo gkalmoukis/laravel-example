@@ -35,9 +35,17 @@ final readonly class CategoryPolicy
             return Response::denyAsNotFound();
         }
 
-        return $category->isSystem()
-            ? Response::deny('Built-in categories cannot be removed. You can rename them instead.')
-            : Response::allow();
+        if ($category->isSystem()) {
+            return Response::deny('Built-in categories cannot be removed. You can rename them instead.');
+        }
+
+        // A category still collecting subscription charges has to stay somewhere they can
+        // be filed (CAT-07).
+        if ($category->hasActiveSubscriptions()) {
+            return Response::deny('Stop the subscriptions using this category first.');
+        }
+
+        return Response::allow();
     }
 
     private function owns(User $user, Category $category): Response

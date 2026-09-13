@@ -125,8 +125,8 @@ final class Category extends Model
     /**
      * Whether anything depends on this category.
      *
-     * Subcategories, plan items and transactions all count, whether the category is their
-     * main one or their subcategory. Subscriptions add their clause in milestone 6.
+     * Subcategories, plan items, transactions and subscriptions all count, whether the
+     * category is their main one or their subcategory.
      *
      * This is what keeps history readable: a category something already refers to may be
      * deactivated and renamed, but never removed or repointed (CAT-03, CAT-04).
@@ -142,6 +142,23 @@ final class Category extends Model
             ->orWhere('subcategory_id', $this->id);
 
         return PlanItem::query()->where($referencesThis)->exists()
-            || Transaction::query()->where($referencesThis)->exists();
+            || Transaction::query()->where($referencesThis)->exists()
+            || Subscription::query()->where($referencesThis)->exists();
+    }
+
+    /**
+     * Whether a subscription is still being charged against this category (CAT-07).
+     *
+     * Retiring it would leave those charges with nowhere to be filed, so the category has
+     * to outlive them.
+     */
+    public function hasActiveSubscriptions(): bool
+    {
+        return Subscription::query()
+            ->where('is_active', true)
+            ->where(fn (Builder $query): Builder => $query
+                ->where('category_id', $this->id)
+                ->orWhere('subcategory_id', $this->id))
+            ->exists();
     }
 }

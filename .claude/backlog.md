@@ -350,7 +350,7 @@ Conventions for every item:
     `tests/Feature/Isolation/PolicyIsolationTest.php`
   - Commit: `feat: subscription schema and billing dates`
 
-- [ ] **m6-subscription-crud-screen** — Managing subscriptions
+- [x] **m6-subscription-crud-screen** — Managing subscriptions
   - Refs: SUB-01, SUB-02, CAT-07
   - Build: `app/Actions/{CreateSubscription,UpdateSubscription,DeactivateSubscription,ActivateSubscription}.php`
     — each creates or reuses by name a subcategory under the chosen category (SUB-02) ·

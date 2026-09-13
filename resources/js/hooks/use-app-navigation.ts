@@ -5,6 +5,7 @@ import {
     Receipt,
     Scale,
     ShieldCheck,
+    Repeat,
     Target,
     Telescope,
     Wallet2,
@@ -22,6 +23,7 @@ import { index as months } from '@/routes/months';
 import { index as netWorth } from '@/routes/net-worth';
 import { show as showPlan } from '@/routes/plan';
 import { edit as preferences } from '@/routes/preferences';
+import { index as subscriptions } from '@/routes/subscriptions';
 import { index as transactions } from '@/routes/transactions';
 import type { NavItem } from '@/types';
 
@@ -70,6 +72,12 @@ export function useAppNavigation(): NavItem[] {
             icon: Telescope,
         });
     }
+
+    items.push({
+        title: 'Subscriptions',
+        href: subscriptions(),
+        icon: Repeat,
+    });
 
     items.push({ title: 'Goals', href: goals(), icon: Target });
 

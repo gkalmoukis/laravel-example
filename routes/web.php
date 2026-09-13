@@ -29,6 +29,8 @@ use App\Http\Controllers\PreferencesController;
 use App\Http\Controllers\SalaryModelController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\SubcategoryParentController;
+use App\Http\Controllers\SubscriptionActivationController;
+use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\TransactionCategoryController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
@@ -138,6 +140,13 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::patch('goals/{goal}', [GoalController::class, 'update'])->name('goals.update');
     Route::post('goals/{goal}/archive', [GoalArchiveController::class, 'store'])->name('goal-archive.store');
     Route::delete('goals/{goal}/archive', [GoalArchiveController::class, 'destroy'])->name('goal-archive.destroy');
+
+    // Subscriptions...
+    Route::get('subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions.index');
+    Route::post('subscriptions', [SubscriptionController::class, 'store'])->name('subscriptions.store');
+    Route::patch('subscriptions/{subscription}', [SubscriptionController::class, 'update'])->name('subscriptions.update');
+    Route::post('subscriptions/{subscription}/activation', [SubscriptionActivationController::class, 'store'])->name('subscription-activation.store');
+    Route::delete('subscriptions/{subscription}/activation', [SubscriptionActivationController::class, 'destroy'])->name('subscription-activation.destroy');
 
     // Net worth...
     Route::get('net-worth', [NetWorthController::class, 'index'])->name('net-worth.index');
