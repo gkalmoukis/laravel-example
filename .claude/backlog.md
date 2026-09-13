@@ -435,7 +435,7 @@ Conventions for every item:
   - Tests: `tests/Feature/DemoSeederTest.php` smoke test
   - Commit: `feat: local demo dataset`
 
-- [ ] **m7-golden-dataset-complete** — Dashboard figures and alerts in the fixture
+- [x] **m7-golden-dataset-complete** — Dashboard figures and alerts in the fixture
   - Refs: TST-02
   - Build: extend `tests/Fixtures/GoldenYear.php`
   - Tests: `tests/Feature/GoldenDataset/DashboardAndAlertsTest.php` — every dashboard figure and

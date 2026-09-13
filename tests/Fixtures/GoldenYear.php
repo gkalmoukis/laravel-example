@@ -160,6 +160,54 @@ final readonly class GoldenYear
 
     public const int PURCHASE_CONTRIBUTION = 100_000;
 
+    /*
+     * The M7 half: the six dashboard figures, worked out from the same year.
+     */
+
+    /*
+     * "Actual so far" stops at today, not at the end of the recorded months (§7.3). On
+     * 15 March that cut-off does real work: the salary is paid on the 25th and the
+     * holiday on the 20th, so neither has happened yet.
+     */
+
+    /** January and February salary. March's has not been paid on the 15th. */
+    public const int ACTUAL_INCOME_SO_FAR = 400_000;
+
+    /** Housing 2.100,00 on the 1st + Food 1.240,00 on the 12th. The holiday is later. */
+    public const int ACTUAL_EXPENSE_SO_FAR = 334_000;
+
+    public const int ACTUAL_SAVINGS_SO_FAR = 66_000;
+
+    public const int PLANNED_SAVINGS_ANNUAL = 1_080_000;
+
+    public const int COMPLETED_MONTHS = 2;
+
+    /**
+     * How far the forecast has drifted from the plan. Measured against the live plan
+     * because this year never captured a baseline (FC-06).
+     */
+    public const int DEVIATION = -94_000;
+
+    /*
+     * The alerting variant: the same year with enough wrong to raise all seven alerts,
+     * read on 15 May rather than 15 March (§8.19).
+     */
+
+    /** A monthly cost large enough to push the forecast under water by July. */
+    public const int TROUBLE_MONTHLY = 200_000;
+
+    public const string TROUBLE_TODAY = '2027-05-15';
+
+    public const string TROUBLE_NEGATIVE_MONTH = 'July';
+
+    public const string TROUBLE_LOWEST_MONTH = 'December';
+
+    public const string TROUBLE_OVERSPENT_CATEGORY = 'Holidays';
+
+    public const string TROUBLE_UNFINISHED_MONTH = 'March';
+
+    public const string TROUBLE_GOAL = 'New car';
+
     /**
      * Builds the year. Returns the user and the financial year, both fully populated.
      *
@@ -179,6 +227,52 @@ final readonly class GoldenYear
         self::completeMonths($year);
         self::holdings($user, $year);
         self::goals($user, $year);
+
+        return [$user, $year];
+    }
+
+    /**
+     * The same year, with enough wrong with it to raise every alert at once (§8.19).
+     *
+     * Built on top of the ordinary year rather than beside it, so the figures the other
+     * tests pin stay exactly where they are and only the additions can be blamed for a
+     * difference.
+     *
+     * @return array{0: User, 1: FinancialYear}
+     */
+    public static function buildWithEveryAlert(): array
+    {
+        [$user, $year] = self::build();
+
+        // A standing cost the plan cannot carry: the forecast goes under in July and
+        // keeps falling to December (ALRT-06, ALRT-07).
+        resolve(CreatePlanItem::class)->handle($year, [
+            'category_id' => self::category($user, 'Miscellaneous')->id,
+            'name' => 'Standing costs',
+            'frequency' => Frequency::Monthly,
+            'start_month' => 1,
+        ], Money::fromCents(self::TROUBLE_MONTHLY));
+
+        // Dated in a year with no plan and filed under a category that records money
+        // moving the other way: flagged twice over, and counted in neither year's figures
+        // (ALRT-01, ALRT-02).
+        Transaction::factory()->for($user)->create([
+            'type' => TransactionType::Expense,
+            'category_id' => self::category($user, 'Overtime')->id,
+            'occurred_on' => '2029-04-05',
+            'amount_cents' => 4_500,
+            'description' => 'Miscategorised receipt',
+        ]);
+
+        // Wanted by a date that has already passed with nothing going in (ALRT-05).
+        $user->goals()->create([
+            'type' => GoalType::Purchase,
+            'name' => self::TROUBLE_GOAL,
+            'target_amount_cents' => Money::fromCents(800_000),
+            'current_amount_cents' => Money::fromCents(100_000),
+            'monthly_contribution_cents' => Money::zero(),
+            'target_date' => '2027-04-30',
+        ]);
 
         return [$user, $year];
     }
