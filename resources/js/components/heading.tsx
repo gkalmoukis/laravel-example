@@ -1,10 +1,16 @@
+import type { ReactNode } from 'react';
+
+/**
+ * The description takes a node rather than a string so a screen can explain a financial
+ * term where the reader first meets it, rather than in a glossary nobody opens (UX-04).
+ */
 export default function Heading({
     title,
     description,
     variant = 'default',
 }: {
     title: string;
-    description?: string;
+    description?: ReactNode;
     variant?: 'default' | 'small';
 }) {
     return (

@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react';
-import type { PropsWithChildren } from 'react';
+import type { PropsWithChildren, ReactNode } from 'react';
 import SetupBanner from '@/components/finance/setup-banner';
 import Heading from '@/components/heading';
 import YearNav from '@/components/planning/year-nav';
@@ -36,7 +36,7 @@ export default function PlanLayout({
     tab: string;
     tabs: string[];
     title: string;
-    description: string;
+    description: ReactNode;
 }>) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: `${year.year} plan`, href: `/years/${year.year}/plan/income` },

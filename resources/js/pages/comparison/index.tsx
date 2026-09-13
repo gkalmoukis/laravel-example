@@ -1,4 +1,5 @@
 import { Head, router } from '@inertiajs/react';
+import GlossaryTerm from '@/components/finance/glossary-term';
 import { SelectedYearSetupBanner } from '@/components/finance/setup-banner';
 import VarianceRow, {
     type VarianceRowData,
@@ -66,7 +67,19 @@ export default function ComparisonIndex({
             <div className="space-y-6 px-4 py-6">
                 <Heading
                     title="Plan vs actual"
-                    description="Where the year went to plan, and where it did not."
+                    description={
+                        <>
+                            Where the{' '}
+                            <GlossaryTerm term="actual">actual</GlossaryTerm>{' '}
+                            matched the{' '}
+                            <GlossaryTerm term="plan">plan</GlossaryTerm>, and
+                            where the{' '}
+                            <GlossaryTerm term="variance">
+                                variance
+                            </GlossaryTerm>{' '}
+                            is worth a look.
+                        </>
+                    }
                 />
 
                 <SelectedYearSetupBanner />

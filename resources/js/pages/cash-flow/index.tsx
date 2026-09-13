@@ -3,6 +3,8 @@ import BalanceChart, {
     type BalancePoint,
 } from '@/components/finance/balance-chart';
 import ChartDataTable from '@/components/finance/chart-data-table';
+import GlossaryTerm from '@/components/finance/glossary-term';
+import RecordCards from '@/components/finance/record-cards';
 import { SelectedYearSetupBanner } from '@/components/finance/setup-banner';
 import Heading from '@/components/heading';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -83,7 +85,19 @@ export default function CashFlowIndex({
             <div className="space-y-6 px-4 py-6">
                 <Heading
                     title="Cash flow"
-                    description="What the balance does over the year — and whether it ever runs out."
+                    description={
+                        <>
+                            What your{' '}
+                            <GlossaryTerm term="cashFlow">
+                                cash flow
+                            </GlossaryTerm>{' '}
+                            does over the year, and whether the{' '}
+                            <GlossaryTerm term="closingBalance">
+                                closing balance
+                            </GlossaryTerm>{' '}
+                            ever runs out.
+                        </>
+                    }
                 />
 
                 <SelectedYearSetupBanner />
@@ -146,7 +160,60 @@ export default function CashFlowIndex({
                             Month by month
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="overflow-x-auto">
+                    <CardContent className="md:hidden">
+                        <RecordCards
+                            items={months.map((row) => {
+                                const line = row.actual ?? row.forecast;
+
+                                return {
+                                    key: row.month,
+                                    title: (
+                                        <>
+                                            {shortMonth(row.month)}
+                                            {!row.actual && (
+                                                <span className="ml-1 text-xs text-series-forecast">
+                                                    forecast
+                                                </span>
+                                            )}
+                                        </>
+                                    ),
+                                    fields: [
+                                        {
+                                            label: 'Opening',
+                                            value: formatAmount(
+                                                line.openingCents,
+                                            ),
+                                        },
+                                        {
+                                            label: 'In',
+                                            value: formatAmount(
+                                                line.incomeCents,
+                                            ),
+                                        },
+                                        {
+                                            label: 'Out',
+                                            value: formatAmount(
+                                                line.expenseCents,
+                                            ),
+                                        },
+                                        {
+                                            label: 'Net',
+                                            value: formatAmount(line.netCents),
+                                        },
+                                        {
+                                            label: 'Closing',
+                                            value: formatAmount(
+                                                line.closingCents,
+                                            ),
+                                        },
+                                    ],
+                                };
+                            })}
+                            testId="cash-flow-cards"
+                        />
+                    </CardContent>
+
+                    <CardContent className="hidden overflow-x-auto md:block">
                         <Table>
                             <TableHeader>
                                 <TableRow>

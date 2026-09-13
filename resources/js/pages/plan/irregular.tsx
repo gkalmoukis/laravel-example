@@ -1,3 +1,4 @@
+import GlossaryTerm from '@/components/finance/glossary-term';
 import Money from '@/components/planning/money';
 import { Badge } from '@/components/ui/badge';
 import { usePreferences } from '@/hooks/use-preferences';
@@ -47,7 +48,15 @@ export default function PlanIrregular({
             tab={tab}
             tabs={tabs}
             title="Irregular"
-            description="Costs that do not happen every month, like holidays or annual insurance."
+            description={
+                <>
+                    Every{' '}
+                    <GlossaryTerm term="irregularExpense">
+                        irregular expense
+                    </GlossaryTerm>{' '}
+                    the year expects.
+                </>
+            }
         >
             <ul className="divide-y rounded-md border">
                 {items.length === 0 && (

@@ -451,7 +451,7 @@ Conventions for every item:
   - Tests: `tests/Feature/EdgeStatesTest.php` including February in a leap and a non-leap year
   - Commit: `feat: empty and edge states`
 
-- [ ] **m7-glossary-and-accessibility** — Plain language and keyboard reach
+- [x] **m7-glossary-and-accessibility** — Plain language and keyboard reach
   - Refs: UX-04, UX-08, UX-13, NFR-04, NFR-06
   - Build: `resources/js/components/finance/glossary-term.tsx` carrying the §5.3 copy
     **verbatim**, applied on first appearance per screen · every table over four columns audited

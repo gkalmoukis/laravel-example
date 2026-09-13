@@ -16,6 +16,7 @@ import NetWorthTrendChart, {
     type NetWorthTrendPoint,
 } from '@/components/dashboard/net-worth-trend-chart';
 import AlertsPanel, { type AlertItem } from '@/components/finance/alerts-panel';
+import GlossaryTerm from '@/components/finance/glossary-term';
 import MetricCard, { MetricRows } from '@/components/finance/metric-card';
 import ProgressBar from '@/components/finance/progress-bar';
 import { SelectedYearSetupBanner } from '@/components/finance/setup-banner';
@@ -116,7 +117,21 @@ export default function Dashboard({
             <div className="space-y-6 px-4 py-6">
                 <Heading
                     title={`${year} at a glance`}
-                    description="Where the year stands, and what needs a look."
+                    description={
+                        <>
+                            Where the year stands: your{' '}
+                            <GlossaryTerm term="savings">savings</GlossaryTerm>,
+                            your{' '}
+                            <GlossaryTerm term="emergencyFund">
+                                emergency fund
+                            </GlossaryTerm>{' '}
+                            and your{' '}
+                            <GlossaryTerm term="netWorth">
+                                net worth
+                            </GlossaryTerm>
+                            .
+                        </>
+                    }
                 />
 
                 <SelectedYearSetupBanner />

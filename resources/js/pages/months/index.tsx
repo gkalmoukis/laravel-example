@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { AlertTriangle } from 'lucide-react';
+import GlossaryTerm from '@/components/finance/glossary-term';
 import MonthStatusBadge from '@/components/finance/month-status-badge';
 import { SelectedYearSetupBanner } from '@/components/finance/setup-banner';
 import Heading from '@/components/heading';
@@ -45,7 +46,15 @@ export default function MonthsIndex({
             <div className="px-4 py-6">
                 <Heading
                     title={`${year} month by month`}
-                    description="Where each month stands, and what is left to finish."
+                    description={
+                        <>
+                            The{' '}
+                            <GlossaryTerm term="monthStatus">
+                                month status
+                            </GlossaryTerm>{' '}
+                            of each month, and what is left to finish.
+                        </>
+                    }
                 />
 
                 <div className="mt-4">

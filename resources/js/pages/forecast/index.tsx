@@ -1,5 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { AlertTriangle } from 'lucide-react';
+import GlossaryTerm from '@/components/finance/glossary-term';
+import RecordCards from '@/components/finance/record-cards';
 import { SelectedYearSetupBanner } from '@/components/finance/setup-banner';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
@@ -136,7 +138,16 @@ export default function ForecastIndex({
             <div className="space-y-6 px-4 py-6">
                 <Heading
                     title="Forecast"
-                    description="Where the year ends up if the rest of it goes to plan."
+                    description={
+                        <>
+                            The{' '}
+                            <GlossaryTerm term="forecast">
+                                forecast
+                            </GlossaryTerm>{' '}
+                            for the whole year, if the rest of it goes to{' '}
+                            <GlossaryTerm term="plan">plan</GlossaryTerm>.
+                        </>
+                    }
                 />
 
                 <SelectedYearSetupBanner />
@@ -246,7 +257,49 @@ export default function ForecastIndex({
                             Month by month
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="overflow-x-auto">
+                    <CardContent className="md:hidden">
+                        <RecordCards
+                            items={months.map((month) => ({
+                                key: month.month,
+                                title: (
+                                    <span className="flex flex-wrap items-center gap-2">
+                                        {monthName(month.month)}
+                                        <Badge
+                                            variant="outline"
+                                            className={
+                                                month.needsAttention
+                                                    ? 'border-status-warning/40 text-status-warning'
+                                                    : ''
+                                            }
+                                        >
+                                            {month.source}
+                                        </Badge>
+                                    </span>
+                                ),
+                                fields: [
+                                    {
+                                        label: 'In',
+                                        value: formatAmount(month.incomeCents),
+                                    },
+                                    {
+                                        label: 'Out',
+                                        value: formatAmount(month.expenseCents),
+                                    },
+                                    {
+                                        label: 'Net',
+                                        value: formatAmount(month.netCents),
+                                    },
+                                    {
+                                        label: 'Balance',
+                                        value: formatAmount(month.closingCents),
+                                    },
+                                ],
+                            }))}
+                            testId="forecast-month-cards"
+                        />
+                    </CardContent>
+
+                    <CardContent className="hidden overflow-x-auto md:block">
                         <Table>
                             <TableHeader>
                                 <TableRow>

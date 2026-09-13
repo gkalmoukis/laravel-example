@@ -2,6 +2,7 @@ import { Head, Link, router, useForm } from '@inertiajs/react';
 import { Plus, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import { useState } from 'react';
 import ChartDataTable from '@/components/finance/chart-data-table';
+import GlossaryTerm from '@/components/finance/glossary-term';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import NetWorthChart, {
@@ -130,7 +131,15 @@ export default function NetWorthIndex({
             <div className="space-y-6 px-4 py-6">
                 <Heading
                     title="Net worth"
-                    description="Everything you own, minus everything you owe."
+                    description={
+                        <>
+                            Your{' '}
+                            <GlossaryTerm term="netWorth">
+                                net worth
+                            </GlossaryTerm>
+                            , month by month.
+                        </>
+                    }
                 />
 
                 {!hasYear || !current ? (
