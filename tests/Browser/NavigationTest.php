@@ -241,3 +241,45 @@ it('loads the dashboard charts after the figures', function (): void {
         ->assertNoJavascriptErrors()
         ->assertNoConsoleLogs();
 });
+
+it('offers seven sidebar entries and no more', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    $this->actingAs($user)
+        ->visit('/dashboard')
+        ->assertCount('@sidebar-nav-item', 7)
+        ->assertPresent('#nav-dashboard')
+        ->assertPresent('#nav-transactions')
+        ->assertPresent('#nav-plan')
+        ->assertPresent('#nav-months')
+        ->assertPresent('#nav-reports')
+        ->assertPresent('#nav-goals')
+        ->assertPresent('#nav-settings')
+        // The six that used to compete for their own place and are now tabs of a hub.
+        ->assertMissing('#nav-plan-vs-actual')
+        ->assertMissing('#nav-cash-flow')
+        ->assertMissing('#nav-forecast')
+        ->assertMissing('#nav-net-worth')
+        ->assertMissing('#nav-emergency-fund')
+        ->assertMissing('#nav-subscriptions')
+        ->assertNoJavascriptErrors();
+});
+
+it('keeps a hub lit from any of its tabs', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    $year = date('Y');
+
+    // The entry points at the first tab but owns the whole hub, so the sidebar says
+    // where you are rather than which tab you happen to have open (UX-05).
+    $this->actingAs($user)
+        ->visit('/years/'.$year.'/reports/forecast')
+        ->assertDataAttribute('#nav-reports', 'active', 'true')
+        ->navigate('/goals/net-worth')
+        ->assertDataAttribute('#nav-goals', 'active', 'true')
+        ->navigate('/subscriptions')
+        ->assertDataAttribute('#nav-plan', 'active', 'true')
+        ->navigate('/settings/categories')
+        ->assertDataAttribute('#nav-settings', 'active', 'true')
+        ->assertNoJavascriptErrors();
+});

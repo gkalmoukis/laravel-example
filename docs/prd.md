@@ -605,7 +605,7 @@ All authenticated routes use `auth` and `verified` middleware. Year-scoped route
 | Preferences | `GET /settings/preferences` | `settings/preferences` | Form |
 
 **Navigation:**
-- Desktop sidebar: Dashboard, Transactions, Months, Plan, Plan vs Actual, Forecast, Cash flow, Goals, Net worth, Subscriptions, then Settings (Categories, Accounts, Preferences, and the foundation's Profile, Password, 2FA, Invitations).
+- Desktop sidebar: Dashboard, Transactions, Plan, Months, Reports, Goals, then Settings (Categories, Accounts, Preferences, and the foundation's Profile, Password, 2FA, Invitations). Plan carries income, monthly budget, irregular, subscriptions and opening position; Reports carries plan vs actual, cash flow and forecast; Goals carries goals, the emergency fund and net worth. Each entry opens its first tab and stays lit across the rest of the hub (UX-05, UX-09).
 - Mobile: the collapsible sidebar plus the floating "+" button.
 
 ---

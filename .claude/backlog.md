@@ -70,7 +70,7 @@ Conventions for every item:
     `tests/Browser/SubscriptionsTest.php` at both widths
   - Commit: `feat: subscriptions in the plan`
 
-- [ ] **nav-sidebar-groups** — Twelve sidebar entries become seven <!-- gate -->
+- [x] **nav-sidebar-groups** — Twelve sidebar entries become seven <!-- gate -->
   - Refs: UX-05, UX-09, UX-10, NFR-06, §9 navigation
   - Build: `resources/js/hooks/use-app-navigation.ts` — Dashboard, Transactions, Plan, Months,
     Reports, Goals, then Settings; year-scoped entries still hidden while `selectedYear` is null ·
