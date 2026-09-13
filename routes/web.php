@@ -12,6 +12,7 @@ use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\InvitationResendController;
 use App\Http\Controllers\MonthCompletionController;
 use App\Http\Controllers\MonthController;
+use App\Http\Controllers\NetWorthSnapshotController;
 use App\Http\Controllers\OpeningPositionController;
 use App\Http\Controllers\PlanBaselineController;
 use App\Http\Controllers\PlanController;
@@ -118,6 +119,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::get('years/{year}/months/{month}', [MonthController::class, 'show'])->name('months.show');
     Route::post('years/{year}/months/{month}/completion', [MonthCompletionController::class, 'store'])->name('month-completion.store');
     Route::delete('years/{year}/months/{month}/completion', [MonthCompletionController::class, 'destroy'])->name('month-completion.destroy');
+    Route::patch('years/{year}/months/{month}/net-worth', [NetWorthSnapshotController::class, 'update'])->name('net-worth-snapshots.update');
 
     // Preferences...
     Route::get('settings/preferences', [PreferencesController::class, 'edit'])->name('preferences.edit');

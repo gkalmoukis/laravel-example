@@ -194,7 +194,7 @@ Conventions for every item:
   - Tests: `tests/Feature/Months/MonthCompletionTest.php`
   - Commit: `feat: complete and reopen a month`
 
-- [ ] **m4-net-worth-snapshot-entry** — Recording what you have at month end
+- [x] **m4-net-worth-snapshot-entry** — Recording what you have at month end
   - Refs: MON-06, NW-03
   - Build: `app/Actions/SaveNetWorthSnapshots.php` ·
     `app/Http/Requests/UpdateNetWorthSnapshotRequest.php` ·

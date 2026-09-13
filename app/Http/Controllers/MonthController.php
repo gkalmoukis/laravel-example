@@ -8,8 +8,10 @@ use App\Actions\CalculateCashFlow;
 use App\Actions\CalculateMonthlyFigures;
 use App\Actions\CalculateVariances;
 use App\Actions\CompleteMonth;
+use App\Actions\SaveNetWorthSnapshots;
 use App\Data\BalanceLine;
 use App\Data\Variance;
+use App\Enums\NetWorthItemKind;
 use App\Enums\TransactionIssue;
 use App\Models\Category;
 use App\Models\FinancialYear;
@@ -65,6 +67,7 @@ final readonly class MonthController
         CalculateVariances $variances,
         CalculateCashFlow $cashFlow,
         CompleteMonth $completion,
+        SaveNetWorthSnapshots $snapshots,
     ): Response {
         Gate::authorize('view', $year);
 
@@ -97,9 +100,47 @@ final readonly class MonthController
                 'hasActual' => $flow->actual instanceof BalanceLine,
             ],
             'issues' => $this->issues($year, $month),
+            'holdings' => $this->holdings($year, $month, $snapshots),
+            // What the transactions say the liquid balance should be, so a difference is
+            // visible while the user is typing rather than discovered later (MON-06).
+            'liquidClosingCents' => $balance->closingCents,
             'income' => $this->presentVariances($report->income, $breakdown),
             'expenses' => $this->presentVariances($report->expenses, $breakdown),
         ]);
+    }
+
+    /**
+     * Every active holding, with what it was last worth (MON-06).
+     *
+     * Inactive holdings are left out: they are no longer part of what the user has, and
+     * asking for their value every month would be asking about nothing.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function holdings(FinancialYear $year, int $month, SaveNetWorthSnapshots $snapshots): array
+    {
+        $prefill = $snapshots->prefill($year, $month);
+
+        $items = $year->user->netWorthItems()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
+        $holdings = [];
+
+        foreach ($items as $item) {
+            $holdings[] = [
+                'id' => $item->id,
+                'name' => $item->name,
+                'kind' => $item->kind->value,
+                'isLiquid' => in_array($item->kind, [NetWorthItemKind::Cash, NetWorthItemKind::EmergencyFund], true),
+                'isDebt' => $item->kind === NetWorthItemKind::Debt,
+                'valueCents' => $prefill[$item->id] ?? 0,
+            ];
+        }
+
+        return $holdings;
     }
 
     /**

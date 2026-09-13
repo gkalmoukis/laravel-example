@@ -6,6 +6,9 @@ import VarianceRow, {
 } from '@/components/finance/variance-row';
 import Heading from '@/components/heading';
 import CompleteMonthCard from '@/components/months/complete-month-card';
+import SnapshotForm, {
+    type Holding,
+} from '@/components/net-worth/snapshot-form';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { usePreferences } from '@/hooks/use-preferences';
@@ -66,6 +69,8 @@ export default function MonthShow({
     status,
     needsConfirmation,
     totals,
+    holdings,
+    liquidClosingCents,
     issues,
     income,
     expenses,
@@ -75,6 +80,8 @@ export default function MonthShow({
     status: string;
     needsConfirmation: boolean;
     totals: Totals;
+    holdings: Holding[];
+    liquidClosingCents: number;
     issues: Issue[];
     income: VarianceRowData[];
     expenses: VarianceRowData[];
@@ -227,6 +234,14 @@ export default function MonthShow({
                         </section>
                     </CardContent>
                 </Card>
+
+                <SnapshotForm
+                    year={year}
+                    month={month}
+                    monthName={name}
+                    holdings={holdings}
+                    liquidClosingCents={liquidClosingCents}
+                />
 
                 <CompleteMonthCard
                     year={year}
