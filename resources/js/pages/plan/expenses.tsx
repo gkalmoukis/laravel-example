@@ -1,9 +1,12 @@
-import { router } from '@inertiajs/react';
 import { TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
-import BudgetCellController from '@/actions/App/Http/Controllers/BudgetCellController';
+import {
+    BudgetCell,
+    type BudgetGrid,
+    BudgetGridStatus,
+    useBudgetGrid,
+} from '@/components/planning/budget-cell';
 import Money from '@/components/planning/money';
-import { Input } from '@/components/ui/input';
 import {
     Select,
     SelectContent,
@@ -64,12 +67,22 @@ const monthLabels = [
 
 const months = Array.from({ length: 12 }, (_, index) => index + 1);
 
-function save(year: number, categoryId: number, month: number, amount: string) {
-    router.patch(
-        BudgetCellController.update.url({ year }),
-        { category_id: categoryId, month, amount },
-        { preserveScroll: true },
-    );
+/**
+ * Move focus to the same month in the row above or below, so a column can be filled in
+ * without reaching for the mouse (NFR-06).
+ */
+function focusCell(rows: Row[], index: number, month: number): void {
+    const target = rows[index];
+
+    if (target === undefined || !target.isEditable) {
+        return;
+    }
+
+    document
+        .querySelector<HTMLInputElement>(
+            `#budget-cell-${target.categoryId}-${month}`,
+        )
+        ?.focus();
 }
 
 export default function PlanExpenses({
@@ -84,6 +97,8 @@ export default function PlanExpenses({
     // rather than scrolling sideways through twelve columns.
     const [month, setMonth] = useState(1);
 
+    const grid = useBudgetGrid(year.year);
+
     return (
         <PlanLayout
             year={year}
@@ -92,10 +107,12 @@ export default function PlanExpenses({
             title="Monthly budget"
             description="What you expect to spend, by category and month."
         >
-            <div className="space-y-6">
+            <div className="space-y-4">
+                <BudgetGridStatus grid={grid} />
+
                 <div className="md:hidden">
                     <MonthlyView
-                        year={year.year}
+                        grid={grid}
                         rows={rows}
                         month={month}
                         onMonthChange={setMonth}
@@ -104,7 +121,7 @@ export default function PlanExpenses({
 
                 <div className="hidden md:block">
                     <Grid
-                        year={year.year}
+                        grid={grid}
                         rows={rows}
                         footerMonths={footerMonths}
                         footerAnnualCents={footerAnnualCents}
@@ -116,12 +133,12 @@ export default function PlanExpenses({
 }
 
 function Grid({
-    year,
+    grid,
     rows,
     footerMonths,
     footerAnnualCents,
 }: {
-    year: number;
+    grid: BudgetGrid;
     rows: Row[];
     footerMonths: Record<number, number>;
     footerAnnualCents: number;
@@ -146,7 +163,7 @@ function Grid({
                 </TableHeader>
 
                 <TableBody>
-                    {rows.map((row) => (
+                    {rows.map((row, index) => (
                         <TableRow key={row.categoryId}>
                             <TableCell className="font-medium">
                                 {row.categoryName}
@@ -173,19 +190,18 @@ function Grid({
                             {months.map((value) => (
                                 <TableCell key={value} className="p-1">
                                     {row.isEditable ? (
-                                        <Input
-                                            aria-label={`${row.categoryName}, ${monthLabels[value - 1]}`}
-                                            inputMode="decimal"
-                                            defaultValue={formatAmount(
-                                                row.months[value] ?? 0,
-                                            )}
-                                            className="h-8 w-24 text-right tabular-nums"
-                                            onBlur={(event) =>
-                                                save(
-                                                    year,
-                                                    row.categoryId,
+                                        <BudgetCell
+                                            grid={grid}
+                                            categoryId={row.categoryId}
+                                            month={value}
+                                            label={`${row.categoryName}, ${monthLabels[value - 1]}`}
+                                            cents={row.months[value] ?? 0}
+                                            className="h-8 w-24"
+                                            onMove={(direction) =>
+                                                focusCell(
+                                                    rows,
+                                                    index + direction,
                                                     value,
-                                                    event.target.value,
                                                 )
                                             }
                                         />
@@ -230,12 +246,12 @@ function Grid({
 }
 
 function MonthlyView({
-    year,
+    grid,
     rows,
     month,
     onMonthChange,
 }: {
-    year: number;
+    grid: BudgetGrid;
     rows: Row[];
     month: number;
     onMonthChange: (month: number) => void;
@@ -276,21 +292,13 @@ function MonthlyView({
                         </span>
 
                         {row.isEditable ? (
-                            <Input
-                                aria-label={`${row.categoryName}, ${monthLabels[month - 1]}`}
-                                inputMode="decimal"
-                                defaultValue={formatAmount(
-                                    row.months[month] ?? 0,
-                                )}
-                                className="h-9 w-28 text-right tabular-nums"
-                                onBlur={(event) =>
-                                    save(
-                                        year,
-                                        row.categoryId,
-                                        month,
-                                        event.target.value,
-                                    )
-                                }
+                            <BudgetCell
+                                grid={grid}
+                                categoryId={row.categoryId}
+                                month={month}
+                                label={`${row.categoryName}, ${monthLabels[month - 1]}`}
+                                cents={row.months[month] ?? 0}
+                                className="h-9 w-28"
                             />
                         ) : (
                             <span className="w-28 pr-3 text-right text-muted-foreground tabular-nums">

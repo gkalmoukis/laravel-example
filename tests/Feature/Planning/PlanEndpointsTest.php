@@ -406,3 +406,66 @@ it('removes a plan item from the tab it is listed on', function (): void {
 
     expect($year->planItems()->where('name', 'Holiday')->exists())->toBeFalse();
 });
+
+it('says why a cell could not be saved rather than failing silently', function (): void {
+    [$user, $year] = userWithYear();
+
+    $category = $user->categories()->where('name', 'Housing')->whereNull('parent_id')->firstOrFail();
+
+    PlanItem::factory()->count(2)->for($year, 'financialYear')->create([
+        'category_id' => $category->id,
+        'source' => PlanItemSource::Manual,
+    ]);
+
+    // The grid PATCHed on blur and dropped this on the floor; the message has to reach
+    // the page for the cell to be able to show it (BUD-03).
+    $response = $this->actingAs($user)
+        ->from(route('plan.show', ['year' => 2027, 'tab' => 'expenses']))
+        ->patch(route('budget-cell.update', ['year' => 2027]), [
+            'category_id' => $category->id,
+            'month' => 3,
+            'amount' => '450,00',
+        ]);
+
+    $response->assertSessionHasErrors('amount');
+
+    $message = session('errors')?->get('amount')[0] ?? '';
+
+    expect($message)->not->toBe('');
+});
+
+it('refuses an amount that is not a number and says so', function (): void {
+    [$user] = userWithYear();
+
+    $category = $user->categories()->where('name', 'Housing')->whereNull('parent_id')->firstOrFail();
+
+    $this->actingAs($user)
+        ->from(route('plan.show', ['year' => 2027, 'tab' => 'expenses']))
+        ->patch(route('budget-cell.update', ['year' => 2027]), [
+            'category_id' => $category->id,
+            'month' => 3,
+            'amount' => 'not a number',
+        ])
+        ->assertSessionHasErrors('amount');
+});
+
+it('marks a row with several planned items as one the grid cannot edit', function (): void {
+    [$user, $year] = userWithYear();
+
+    $category = $user->categories()->where('name', 'Housing')->whereNull('parent_id')->firstOrFail();
+
+    PlanItem::factory()->count(2)->for($year, 'financialYear')->create([
+        'category_id' => $category->id,
+        'source' => PlanItemSource::Manual,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('plan.show', ['year' => 2027, 'tab' => 'expenses']))
+        ->assertInertia(function ($page) use ($category): void {
+            $row = collect($page->toArray()['props']['rows'])
+                ->firstWhere('categoryId', $category->id);
+
+            expect($row['isEditable'])->toBeFalse()
+                ->and($row['itemCount'])->toBe(2);
+        });
+});

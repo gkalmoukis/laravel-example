@@ -156,7 +156,7 @@ Conventions for every item:
     from the tabs at 1280px and 375px
   - Commit: `feat: edit plan items in place`
 
-- [ ] **plan-budget-grid** — The grid says what it saved
+- [x] **plan-budget-grid** — The grid says what it saved
   - Refs: BUD-02, BUD-03, BUD-04, UX-13, EDGE-03
   - Build: `pages/plan/expenses.tsx` — the grid PATCHes `budget-cell.update` on every blur today
     with no saved state, no error surface and no undo. Add a per-cell saving and saved indicator,

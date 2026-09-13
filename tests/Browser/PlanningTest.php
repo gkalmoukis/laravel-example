@@ -240,3 +240,66 @@ it('plans an irregular cost on a phone', function (): void {
         ->assertNoJavascriptErrors()
         ->assertNoConsoleLogs();
 });
+
+it('says that a budget cell saved, and offers it back', function (): void {
+    [$user] = userWithYear(2027);
+
+    // The grid wrote on blur and said nothing at all, so there was no way to tell a
+    // saved number from a typo (BUD-02).
+    $page = $this->actingAs($user)->visit('/years/2027/plan/expenses');
+
+    // Enter commits without leaving the page; clicking the tab would navigate.
+    $page->fill('@cell-housing-mar', '450,00')
+        ->keys('@cell-housing-mar', 'Enter')
+        ->assertSee('Undo')
+        ->assertNoJavascriptErrors();
+
+    // The number is really there on a fresh load, not just on screen.
+    $this->actingAs($user)
+        ->visit('/years/2027/plan/expenses')
+        ->assertSee('450,00')
+        ->assertNoJavascriptErrors();
+});
+
+it('puts a budget cell back when the write is undone', function (): void {
+    [$user] = userWithYear(2027);
+
+    $page = $this->actingAs($user)->visit('/years/2027/plan/expenses');
+
+    $page->fill('@cell-housing-mar', '450,00')
+        ->keys('@cell-housing-mar', 'Enter')
+        ->assertSee('Undo')
+        ->click('@undo-budget-cell')
+        ->assertNoJavascriptErrors();
+
+    $this->actingAs($user)
+        ->visit('/years/2027/plan/expenses')
+        ->assertDontSee('450,00')
+        ->assertNoJavascriptErrors();
+});
+
+it('surfaces a budget cell the server refuses', function (): void {
+    [$user] = userWithYear(2027);
+
+    // An amount that cannot be parsed is the refusal a user can actually provoke; the
+    // ambiguous-category path takes the input away entirely instead (BUD-03, EDGE-03).
+    $this->actingAs($user)
+        ->visit('/years/2027/plan/expenses')
+        ->fill('@cell-housing-mar', 'lots')
+        ->keys('@cell-housing-mar', 'Enter')
+        ->assertSee('Enter an amount like')
+        ->assertNoJavascriptErrors();
+});
+
+it('edits the budget one month at a time on a phone', function (): void {
+    [$user] = userWithYear(2027);
+
+    $this->actingAs($user)
+        ->visit('/years/2027/plan/expenses')
+        ->on()->mobile()
+        ->fill('@cell-housing-jan', '300,00')
+        ->keys('@cell-housing-jan', 'Enter')
+        ->assertSee('Undo')
+        ->assertNoJavascriptErrors()
+        ->assertNoConsoleLogs();
+});
