@@ -2,13 +2,19 @@
 
 declare(strict_types=1);
 
+use App\Models\SalaryModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 
 arch()->preset()->php();
 arch()->preset()->strict();
-arch()->preset()->laravel();
+// SalaryModel is exempt from the no-"Model"-suffix rule. The suffix is not redundant
+// there: a "salary model" is the domain's own term for the arrangement of payments
+// across the year, and the table is named for it too.
+arch()->preset()->laravel()->ignoring([
+    SalaryModel::class,
+]);
 arch()->preset()->security()->ignoring([
     'assert',
 ]);
@@ -36,8 +42,9 @@ arch('models do not reach into the request lifecycle')
     ->not->toUse([Request::class, Auth::class]);
 
 it('exposes only resource methods on controllers', function (): void {
-    // The seven resource methods (ARCH-02), plus Laravel's own HasMiddleware hook.
-    $allowed = ['index', 'create', 'store', 'show', 'edit', 'update', 'destroy', 'middleware'];
+    // The seven resource methods (ARCH-02), plus Laravel's own HasMiddleware hook and
+    // the constructor, which is how dependencies arrive rather than an exposed action.
+    $allowed = ['index', 'create', 'store', 'show', 'edit', 'update', 'destroy', 'middleware', '__construct'];
 
     $controllers = collect(File::allFiles(app_path('Http/Controllers')))
         ->map(fn (SplFileInfo $file): string => 'App\\Http\\Controllers\\'.$file->getFilenameWithoutExtension());

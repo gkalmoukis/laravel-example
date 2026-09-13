@@ -3,12 +3,19 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\BudgetCellController;
 use App\Http\Controllers\CategoryActivationController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\FinancialYearController;
 use App\Http\Controllers\InvitationAcceptanceController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\InvitationResendController;
+use App\Http\Controllers\OpeningPositionController;
+use App\Http\Controllers\PlanBaselineController;
+use App\Http\Controllers\PlanController;
+use App\Http\Controllers\PlanItemController;
 use App\Http\Controllers\PreferencesController;
+use App\Http\Controllers\SalaryModelController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\SubcategoryParentController;
 use App\Http\Controllers\UserController;
@@ -18,6 +25,8 @@ use App\Http\Controllers\UserEmailVerificationNotificationController;
 use App\Http\Controllers\UserPasswordController;
 use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\UserTwoFactorAuthenticationController;
+use App\Http\Controllers\YearSetupCompletionController;
+use App\Http\Controllers\YearSetupController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -55,6 +64,26 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::post('settings/accounts', [AccountController::class, 'store'])->name('accounts.store');
     Route::patch('settings/accounts/{account}', [AccountController::class, 'update'])->name('accounts.update');
     Route::delete('settings/accounts/{account}', [AccountController::class, 'destroy'])->name('accounts.destroy');
+
+    // Financial years. {year} binds by the calendar year rather than the id, so the
+    // selected year is legible in the address bar (YEAR-07).
+    Route::get('years/create', [FinancialYearController::class, 'create'])->name('financial-years.create');
+    Route::post('years', [FinancialYearController::class, 'store'])->name('financial-years.store');
+
+    // Setup wizard...
+    Route::get('years/{year}/setup/{step}', [YearSetupController::class, 'show'])->name('year-setup.show');
+    Route::post('years/{year}/setup/completion', [YearSetupCompletionController::class, 'store'])->name('year-setup-completion.store');
+
+    // Plan...
+    Route::patch('years/{year}/opening-position', [OpeningPositionController::class, 'update'])->name('opening-position.update');
+    Route::patch('years/{year}/salary', [SalaryModelController::class, 'update'])->name('salary-model.update');
+    Route::delete('years/{year}/salary', [SalaryModelController::class, 'destroy'])->name('salary-model.destroy');
+    Route::post('years/{year}/baseline', [PlanBaselineController::class, 'store'])->name('plan-baseline.store');
+    Route::get('years/{year}/plan/{tab}', [PlanController::class, 'show'])->name('plan.show');
+    Route::post('years/{year}/plan-items', [PlanItemController::class, 'store'])->name('plan-items.store');
+    Route::patch('years/{year}/plan-items/{planItem}', [PlanItemController::class, 'update'])->name('plan-items.update');
+    Route::delete('years/{year}/plan-items/{planItem}', [PlanItemController::class, 'destroy'])->name('plan-items.destroy');
+    Route::patch('years/{year}/budget-cell', [BudgetCellController::class, 'update'])->name('budget-cell.update');
 
     // Preferences...
     Route::get('settings/preferences', [PreferencesController::class, 'edit'])->name('preferences.edit');

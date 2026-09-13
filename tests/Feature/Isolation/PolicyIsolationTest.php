@@ -1,9 +1,11 @@
 <?php
 
 declare(strict_types=1);
+
 use App\Models\Account;
 use App\Models\Category;
 use App\Models\Goal;
+use App\Models\NetWorthItem;
 use App\Models\User;
 use App\Models\UserPreference;
 use Illuminate\Support\Facades\Gate;
@@ -77,3 +79,23 @@ it('refuses to remove records that must always exist', function (): void {
         ->and($goalResponse->allowed())->toBeFalse()
         ->and($goalResponse->status())->not->toBe(404);
 });
+
+it("hides another user's holding behind a 404", function (string $ability): void {
+    $owner = User::factory()->create();
+    $intruder = User::factory()->admin()->create();
+
+    $holding = NetWorthItem::factory()->for($owner)->create();
+
+    $response = Gate::forUser($intruder)->inspect($ability, $holding);
+
+    expect($response->allowed())->toBeFalse()
+        ->and($response->status())->toBe(404);
+})->with(['view', 'update', 'delete']);
+
+it('lets the owner manage their own holding', function (string $ability): void {
+    $owner = User::factory()->create();
+
+    $holding = NetWorthItem::factory()->for($owner)->create();
+
+    expect(Gate::forUser($owner)->allows($ability, $holding))->toBeTrue();
+})->with(['view', 'update', 'delete']);

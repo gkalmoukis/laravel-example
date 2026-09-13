@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * @property-read int $id
  * @property-read string $user_id
+ * @property-read int|null $financial_year_id
  * @property-read GoalType $type
  * @property-read string $name
  * @property-read Money|null $target_amount_cents
@@ -28,8 +29,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read CarbonInterface $created_at
  * @property-read CarbonInterface $updated_at
  * @property-read User $user
+ * @property-read FinancialYear|null $financialYear
  */
 #[Fillable([
+    'financial_year_id',
     'type',
     'name',
     'target_amount_cents',
@@ -50,6 +53,7 @@ final class Goal extends Model
     {
         return [
             'user_id' => 'string',
+            'financial_year_id' => 'integer',
             'type' => GoalType::class,
             'name' => 'string',
             'target_amount_cents' => MoneyCast::class,
@@ -69,5 +73,16 @@ final class Goal extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Set only for year-end-balance goals, which target a specific year's closing
+     * position.
+     *
+     * @return BelongsTo<FinancialYear, $this>
+     */
+    public function financialYear(): BelongsTo
+    {
+        return $this->belongsTo(FinancialYear::class);
     }
 }
