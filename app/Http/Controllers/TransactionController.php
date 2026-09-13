@@ -35,7 +35,7 @@ final readonly class TransactionController
     public function index(IndexTransactionRequest $request, #[CurrentUser] User $user): Response
     {
         $page = Transaction::withIssues($this->filtered($request, $user))
-            ->with(['category', 'subcategory', 'account'])
+            ->with(['category', 'subcategory', 'account', 'subscription'])
             ->latest('occurred_on')
             ->orderByDesc('id')
             ->paginate(self::PER_PAGE)
@@ -194,6 +194,8 @@ final readonly class TransactionController
             'subcategoryName' => $transaction->subcategory?->name,
             'accountId' => $transaction->account_id,
             'accountName' => $transaction->account?->name,
+            // Says what this charge was for without the user having to remember (SUB-06).
+            'subscriptionName' => $transaction->subscription?->name,
             'issues' => array_map(
                 fn (TransactionIssue $issue): array => [
                     'key' => $issue->value,

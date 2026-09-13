@@ -1,4 +1,4 @@
-import { CalendarClock } from 'lucide-react';
+import { CalendarClock, Repeat } from 'lucide-react';
 import IssueBadge from '@/components/transactions/issue-badge';
 import TransactionActions from '@/components/transactions/transaction-actions';
 import { Badge } from '@/components/ui/badge';
@@ -41,6 +41,16 @@ function Meta({ row, today }: { row: Row; today: string }) {
                 <Badge variant="secondary" className="gap-1">
                     <CalendarClock className="size-3" aria-hidden="true" />
                     Future date
+                </Badge>
+            )}
+            {row.subscriptionName !== null && (
+                <Badge
+                    variant="outline"
+                    className="gap-1"
+                    data-testid={`subscription-badge-${row.id}`}
+                >
+                    <Repeat className="size-3" aria-hidden="true" />
+                    {row.subscriptionName}
                 </Badge>
             )}
             <IssueBadge issues={row.issues} />

@@ -17,7 +17,10 @@ use Illuminate\Support\Facades\DB;
  */
 final readonly class UpdateTransaction
 {
-    public function __construct(private AllowChangeInMonth $allowChange) {}
+    public function __construct(
+        private AllowChangeInMonth $allowChange,
+        private ResolveTransactionSubscription $subscription,
+    ) {}
 
     /**
      * @param  array<string, mixed>  $attributes
@@ -33,10 +36,16 @@ final readonly class UpdateTransaction
                 $this->allowChange->handle($user, $occurredOn, $reopenMonth);
             }
 
+            $subcategoryId = $attributes['subcategory_id'] ?? null;
+
             $transaction->update([
                 ...$attributes,
                 'occurred_on' => $occurredOn,
                 'amount_cents' => $amount,
+                'subscription_id' => $this->subscription->handle(
+                    $user,
+                    is_numeric($subcategoryId) ? (int) $subcategoryId : null,
+                ),
             ]);
 
             return $transaction;

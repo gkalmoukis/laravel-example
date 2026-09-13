@@ -16,6 +16,7 @@ export type TransactionRow = {
     subcategoryName: string | null;
     accountId: number | null;
     accountName: string | null;
+    subscriptionName: string | null;
     issues: TransactionIssue[];
 };
 

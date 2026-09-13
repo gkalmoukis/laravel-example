@@ -380,7 +380,7 @@ Conventions for every item:
   - Tests: `tests/Feature/Subscriptions/SyncSubscriptionPlanItemsTest.php`
   - Commit: `feat: sync subscription plan items`
 
-- [ ] **m6-subscription-transaction-link** — Linking a transaction to its subscription <!-- gate -->
+- [x] **m6-subscription-transaction-link** — Linking a transaction to its subscription <!-- gate -->
   - Refs: SUB-06, TST-04 (subscription slice)
   - Build: `CreateTransaction` / `UpdateTransaction` set `subscription_id` when the chosen
     subcategory belongs to an active subscription · surface it in the transaction row

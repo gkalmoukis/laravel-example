@@ -18,7 +18,10 @@ use Illuminate\Support\Facades\DB;
  */
 final readonly class CreateTransaction
 {
-    public function __construct(private AllowChangeInMonth $allowChange) {}
+    public function __construct(
+        private AllowChangeInMonth $allowChange,
+        private ResolveTransactionSubscription $subscription,
+    ) {}
 
     /**
      * @param  array<string, mixed>  $attributes
@@ -28,10 +31,16 @@ final readonly class CreateTransaction
         return DB::transaction(function () use ($user, $attributes, $amount, $occurredOn, $reopenMonth): Transaction {
             $this->allowChange->handle($user, $occurredOn, $reopenMonth);
 
+            $subcategoryId = $attributes['subcategory_id'] ?? null;
+
             return $user->transactions()->create([
                 ...$attributes,
                 'occurred_on' => $occurredOn,
                 'amount_cents' => $amount,
+                'subscription_id' => $this->subscription->handle(
+                    $user,
+                    is_numeric($subcategoryId) ? (int) $subcategoryId : null,
+                ),
             ]);
         });
     }
