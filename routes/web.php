@@ -114,6 +114,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
 
     // Months...
     Route::get('years/{year}/months', [MonthController::class, 'index'])->name('months.index');
+    Route::get('years/{year}/months/{month}', [MonthController::class, 'show'])->name('months.show');
 
     // Preferences...
     Route::get('settings/preferences', [PreferencesController::class, 'edit'])->name('preferences.edit');

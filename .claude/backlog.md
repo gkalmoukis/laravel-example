@@ -173,7 +173,7 @@ Conventions for every item:
   - Tests: `tests/Feature/Months/MonthIndexTest.php`
   - Commit: `feat: month status overview`
 
-- [ ] **m4-month-review** — The month review screen
+- [x] **m4-month-review** — The month review screen
   - Refs: MON-03 (steps 1–3), CMP-01, CMP-02, EDGE-01, UX-08
   - Build: `MonthController@show` (404 when `{month}` is outside 1–12) · route `months.show` ·
     `resources/js/pages/months/show.tsx` ·

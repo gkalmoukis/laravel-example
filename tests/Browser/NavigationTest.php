@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Enums\TransactionType;
 use App\Models\MonthClosure;
+use App\Models\Transaction;
 
 /*
  * Browser tests assert through the interface. The application runs in a separate process,
@@ -87,6 +89,60 @@ it('reads the month cards on a phone', function (): void {
         ->visit('/years/'.date('Y').'/months')
         ->on()->mobile()
         ->assertSee('month by month')
+        ->assertNoJavascriptErrors()
+        ->assertNoConsoleLogs();
+});
+
+it('opens a month and reads how it went', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    $housing = $user->categories()->where('name', 'Housing')->whereNull('parent_id')->firstOrFail();
+
+    Transaction::factory()->for($user)->create([
+        'type' => TransactionType::Expense,
+        'category_id' => $housing->id,
+        'occurred_on' => date('Y-m-05'),
+        'amount_cents' => 45_000,
+        'description' => 'Rent',
+    ]);
+
+    $this->actingAs($user)
+        ->visit('/years/'.date('Y').'/months/'.(int) date('n'))
+        ->assertSee('Totals')
+        ->assertSee('Anything to fix')
+        ->assertSee('Where it went against the plan')
+        ->assertSee('450,00')
+        ->assertNoJavascriptErrors();
+});
+
+it('expands a category to see what it was spent on', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    $food = $user->categories()->where('name', 'Food & Groceries')->whereNull('parent_id')->firstOrFail();
+    $supermarket = $user->categories()->where('name', 'Supermarket')->firstOrFail();
+
+    Transaction::factory()->for($user)->create([
+        'type' => TransactionType::Expense,
+        'category_id' => $food->id,
+        'subcategory_id' => $supermarket->id,
+        'occurred_on' => date('Y-m-05'),
+        'amount_cents' => 3_000,
+    ]);
+
+    $this->actingAs($user)
+        ->visit('/years/'.date('Y').'/months/'.(int) date('n'))
+        ->click('Food & Groceries')
+        ->assertSee('Supermarket')
+        ->assertNoJavascriptErrors();
+});
+
+it('reviews a month on a phone', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    $this->actingAs($user)
+        ->visit('/years/'.date('Y').'/months/'.(int) date('n'))
+        ->on()->mobile()
+        ->assertSee('Totals')
         ->assertNoJavascriptErrors()
         ->assertNoConsoleLogs();
 });
