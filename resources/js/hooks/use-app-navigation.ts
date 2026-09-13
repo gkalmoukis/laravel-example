@@ -4,6 +4,7 @@ import {
     LayoutGrid,
     Receipt,
     Scale,
+    ShieldCheck,
     Telescope,
     TrendingUp,
     Settings,
@@ -12,6 +13,7 @@ import {
 import { dashboard } from '@/routes';
 import { index as cashFlow } from '@/routes/cash-flow';
 import { index as comparison } from '@/routes/comparison';
+import { show as emergencyFund } from '@/routes/emergency-fund';
 import { index as forecast } from '@/routes/forecast';
 import { index as months } from '@/routes/months';
 import { show as showPlan } from '@/routes/plan';
@@ -64,6 +66,12 @@ export function useAppNavigation(): NavItem[] {
             icon: Telescope,
         });
     }
+
+    items.push({
+        title: 'Emergency fund',
+        href: emergencyFund(),
+        icon: ShieldCheck,
+    });
 
     items.push({ title: 'Settings', href: preferences(), icon: Settings });
 

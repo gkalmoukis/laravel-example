@@ -268,7 +268,7 @@ Conventions for every item:
   - Tests: `tests/Unit/Actions/CalculateEmergencyFundTest.php`
   - Commit: `feat: emergency fund calculation`
 
-- [ ] **m5-emergency-fund-screen** — The emergency fund screen
+- [x] **m5-emergency-fund-screen** — The emergency fund screen
   - Refs: EF-01, EF-02, EF-03
   - Build: `app/Actions/UpdateEmergencyFundSettings.php` — writes `emergency_fund_months`,
     `categories.is_essential`, the goal's contribution and custom target in one

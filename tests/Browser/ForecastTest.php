@@ -60,3 +60,39 @@ it('reads the forecast on a phone', function (): void {
         ->assertNoJavascriptErrors()
         ->assertNoConsoleLogs();
 });
+
+it('sets up the emergency fund', function (): void {
+    [$user, $year] = userWithYear((int) date('Y'));
+
+    resolve(CreatePlanItem::class)->handle($year, [
+        'category_id' => $user->categories()->where('name', 'Housing')->whereNull('parent_id')->firstOrFail()->id,
+        'name' => 'Rent',
+        'frequency' => Frequency::Monthly,
+        'start_month' => 1,
+    ], Money::fromCents(100_000));
+
+    $page = $this->actingAs($user)->visit('/goals/emergency-fund');
+
+    // Six months of 1.000,00 essentials.
+    $page->assertSee('Emergency fund')
+        ->assertSee('6.000,00')
+        ->assertSee('6 months ×')
+        ->assertSee('Not reachable with the current plan')
+        ->assertNoJavascriptErrors();
+
+    $page->fill('monthly_contribution', '500,00')
+        ->click('@save-emergency-fund')
+        ->assertSee('On track for')
+        ->assertNoJavascriptErrors();
+});
+
+it('reads the emergency fund on a phone', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    $this->actingAs($user)
+        ->visit('/goals/emergency-fund')
+        ->on()->mobile()
+        ->assertSee('Emergency fund')
+        ->assertNoJavascriptErrors()
+        ->assertNoConsoleLogs();
+});

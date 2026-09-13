@@ -8,6 +8,7 @@ use App\Http\Controllers\CashFlowController;
 use App\Http\Controllers\CategoryActivationController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ComparisonController;
+use App\Http\Controllers\EmergencyFundController;
 use App\Http\Controllers\FinancialYearController;
 use App\Http\Controllers\ForecastController;
 use App\Http\Controllers\InvitationAcceptanceController;
@@ -123,6 +124,11 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::post('years/{year}/months/{month}/completion', [MonthCompletionController::class, 'store'])->name('month-completion.store');
     Route::delete('years/{year}/months/{month}/completion', [MonthCompletionController::class, 'destroy'])->name('month-completion.destroy');
     Route::patch('years/{year}/months/{month}/net-worth', [NetWorthSnapshotController::class, 'update'])->name('net-worth-snapshots.update');
+
+    // Goals. The emergency fund has its own path and is registered before any
+    // /goals/{goal} route, so the word is never read as an id (EF-01).
+    Route::get('goals/emergency-fund', [EmergencyFundController::class, 'show'])->name('emergency-fund.show');
+    Route::patch('goals/emergency-fund', [EmergencyFundController::class, 'update'])->name('emergency-fund.update');
 
     // Reports...
     Route::get('years/{year}/comparison', [ComparisonController::class, 'index'])->name('comparison.index');
