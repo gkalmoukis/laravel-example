@@ -314,3 +314,54 @@ it('reads the reports summary on a phone', function (): void {
         ->assertNoJavascriptErrors()
         ->assertNoConsoleLogs();
 });
+
+it('charts plan against actual by category', function (): void {
+    [$user, $year] = userWithYear((int) date('Y'));
+
+    $housing = $user->categories()->where('name', 'Housing')->whereNull('parent_id')->firstOrFail();
+
+    Transaction::factory()->for($user)->create([
+        'type' => TransactionType::Expense,
+        'category_id' => $housing->id,
+        'occurred_on' => date('Y').'-01-15',
+        'amount_cents' => 80_000,
+    ]);
+
+    MonthClosure::factory()->for($year)->create([
+        'month' => 1,
+        'completed_at' => now(),
+    ]);
+
+    // Plan vs actual was a list of rows with no picture of the shape (CMP-01).
+    $this->actingAs($user)
+        ->visit('/years/'.date('Y').'/reports/comparison?mode=month&month=1')
+        ->assertSee('Expenses')
+        ->assertSee('View as table')
+        ->assertNoJavascriptErrors()
+        ->assertNoConsoleLogs();
+});
+
+it('charts plan against actual on a phone', function (): void {
+    [$user, $year] = userWithYear((int) date('Y'));
+
+    $housing = $user->categories()->where('name', 'Housing')->whereNull('parent_id')->firstOrFail();
+
+    Transaction::factory()->for($user)->create([
+        'type' => TransactionType::Expense,
+        'category_id' => $housing->id,
+        'occurred_on' => date('Y').'-01-15',
+        'amount_cents' => 40_000,
+    ]);
+
+    MonthClosure::factory()->for($year)->create([
+        'month' => 1,
+        'completed_at' => now(),
+    ]);
+
+    $this->actingAs($user)
+        ->visit('/years/'.date('Y').'/reports/comparison?mode=month&month=1')
+        ->on()->mobile()
+        ->assertSee('Expenses')
+        ->assertNoJavascriptErrors()
+        ->assertNoConsoleLogs();
+});

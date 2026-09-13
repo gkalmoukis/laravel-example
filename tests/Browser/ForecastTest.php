@@ -96,3 +96,30 @@ it('reads the emergency fund on a phone', function (): void {
         ->assertNoJavascriptErrors()
         ->assertNoConsoleLogs();
 });
+
+it('draws where the balance is heading, and reads it as a table', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    // The forecast had no picture at all; the balance crossing zero is the one thing it
+    // most needs to show (FC-02, §5.2).
+    $this->actingAs($user)
+        ->visit('/years/'.date('Y').'/reports/forecast')
+        ->assertSee('Where the balance is heading')
+        // Every chart can be read as a table (NFR-04).
+        ->click('@toggle-chart-table')
+        ->assertSee('View as chart')
+        ->assertSee('Forecast balance')
+        ->assertNoJavascriptErrors()
+        ->assertNoConsoleLogs();
+});
+
+it('draws the forecast on a phone', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    $this->actingAs($user)
+        ->visit('/years/'.date('Y').'/reports/forecast')
+        ->on()->mobile()
+        ->assertSee('Where the balance is heading')
+        ->assertNoJavascriptErrors()
+        ->assertNoConsoleLogs();
+});

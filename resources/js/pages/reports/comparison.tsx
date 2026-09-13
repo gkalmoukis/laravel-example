@@ -1,5 +1,6 @@
 import { router } from '@inertiajs/react';
 import GlossaryTerm from '@/components/finance/glossary-term';
+import VarianceChart from '@/components/finance/variance-chart';
 import VarianceRow, {
     type VarianceRowData,
 } from '@/components/finance/variance-row';
@@ -143,7 +144,9 @@ export default function ComparisonIndex({
                     <CardHeader>
                         <CardTitle className="text-base">Expenses</CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="space-y-4">
+                        <VarianceChart rows={expenses} label="Expenses" />
+
                         {expenses.map((row) => (
                             <VarianceRow
                                 key={row.categoryId}
@@ -159,7 +162,9 @@ export default function ComparisonIndex({
                     <CardHeader>
                         <CardTitle className="text-base">Income</CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="space-y-4">
+                        <VarianceChart rows={income} label="Income" />
+
                         {income.map((row) => (
                             <VarianceRow
                                 key={row.categoryId}

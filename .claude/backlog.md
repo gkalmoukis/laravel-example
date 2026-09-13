@@ -268,7 +268,7 @@ Conventions for every item:
     untouched and green · `tests/Browser/NavigationTest.php`
   - Commit: `feat: reports summary tab`
 
-- [ ] **reports-charts** — Plan vs actual and forecast get a picture
+- [x] **reports-charts** — Plan vs actual and forecast get a picture
   - Refs: CMP-01, CMP-03, CMP-04, FC-02, FC-05, §5.2, UX-08
   - Build: a plan-against-actual bar chart on `pages/reports/comparison.tsx` and a forecast line
     chart on `pages/reports/forecast.tsx` — both on recharts through `components/ui/chart.tsx`,

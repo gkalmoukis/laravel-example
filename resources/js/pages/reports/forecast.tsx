@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { AlertTriangle } from 'lucide-react';
+import ForecastChart from '@/components/finance/forecast-chart';
 import GlossaryTerm from '@/components/finance/glossary-term';
 import RecordCards from '@/components/finance/record-cards';
 import { Stat, StatGrid } from '@/components/finance/stat-card';
@@ -221,6 +222,22 @@ export default function ForecastIndex({
                         </Link>
                     </div>
                 )}
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-base">
+                            Where the balance is heading
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <ForecastChart
+                            points={months.map((month) => ({
+                                month: month.month,
+                                closingCents: month.closingCents,
+                            }))}
+                        />
+                    </CardContent>
+                </Card>
 
                 <Card>
                     <CardHeader>
