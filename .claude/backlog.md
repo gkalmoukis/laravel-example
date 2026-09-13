@@ -155,7 +155,7 @@ Conventions for every item:
     `tests/Unit/Actions/CalculateAnnualSummaryTest.php`
   - Commit: `feat: cash flow and annual summary figures`
 
-- [ ] **m4-variance-calculation** — Variance, thresholds and severity ordering
+- [x] **m4-variance-calculation** — Variance, thresholds and severity ordering
   - Refs: §7.4, CMP-05, CMP-06
   - Build: `app/Data/{Variance,VarianceReport}.php` · `app/Actions/CalculateVariances.php` —
     uses `budget_warning_threshold_percent`, the expense and income tables, `NoPlan` when

@@ -112,3 +112,18 @@ portals outside the dialog, where the dialog's own `pointer-events: none` guard 
 Anything bulk or selection-related needs its own control in the mobile card list. The
 desktop table header is hidden below 768px, so a control that lives only there — select-all
 was the first — quietly becomes desktop-only.
+
+## Percentage thresholds are compared by multiplying, not dividing
+
+The budget warning threshold is a percentage, so the obvious test for "more than 10% over"
+is `actual > planned * (1 + t)`. That divides money, which invites a rounding argument at
+exactly the boundary the threshold exists to define — and `round()` is banned inside
+`app/` by the NFR-02 architecture test anyway.
+
+Both sides are multiplied by 100 instead: `actual * 100` against `planned * (100 + t)`.
+Same answer, exactly, in integers. The tests pin each boundary to the penny — 77.000 is a
+warning, 77.001 is over — so a future rewrite cannot quietly move the line.
+
+Percentages themselves are never computed in PHP. The figures cross the wire as cents and
+the interface divides, which is what "computed at full precision and rounded half-up to one
+decimal only for display" asks for.

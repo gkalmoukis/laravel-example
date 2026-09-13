@@ -58,6 +58,12 @@ final class UserPreference extends Model
     public const string DEFAULT_TIMEZONE = 'Europe/Athens';
 
     /**
+     * How far over plan a category may go before it is called a warning rather than fine
+     * (§7.4). The user can change it; this is what they start with.
+     */
+    public const int DEFAULT_WARNING_THRESHOLD = 10;
+
+    /**
      * Mirrors the column defaults, so a row created without explicit values carries them
      * in memory too rather than only after a reload.
      *
@@ -69,7 +75,7 @@ final class UserPreference extends Model
         'timezone' => self::DEFAULT_TIMEZONE,
         'salary_payments' => 14,
         'emergency_fund_months' => 6,
-        'budget_warning_threshold_percent' => 10,
+        'budget_warning_threshold_percent' => self::DEFAULT_WARNING_THRESHOLD,
     ];
 
     /**
