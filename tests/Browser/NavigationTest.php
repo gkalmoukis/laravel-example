@@ -146,3 +146,32 @@ it('reviews a month on a phone', function (): void {
         ->assertNoJavascriptErrors()
         ->assertNoConsoleLogs();
 });
+
+it('switches the comparison between one month and the year so far', function (): void {
+    [$user, $year] = userWithYear((int) date('Y'));
+
+    MonthClosure::factory()->for($year)->create([
+        'month' => 1,
+        'completed_at' => now(),
+    ]);
+
+    $this->actingAs($user)
+        ->visit('/years/'.date('Y').'/comparison')
+        ->assertSee('Plan vs actual')
+        ->click('@mode-ytd')
+        ->assertSee('Based on 1 completed month')
+        ->click('@mode-month')
+        ->assertSee('Expenses')
+        ->assertNoJavascriptErrors();
+});
+
+it('compares plan and actual on a phone', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    $this->actingAs($user)
+        ->visit('/years/'.date('Y').'/comparison')
+        ->on()->mobile()
+        ->assertSee('Plan vs actual')
+        ->assertNoJavascriptErrors()
+        ->assertNoConsoleLogs();
+});

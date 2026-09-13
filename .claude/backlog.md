@@ -205,7 +205,7 @@ Conventions for every item:
   - Tests: `tests/Feature/Months/NetWorthSnapshotTest.php`
   - Commit: `feat: month end net worth snapshots`
 
-- [ ] **m4-comparison-screen** — Plan vs Actual
+- [x] **m4-comparison-screen** — Plan vs Actual
   - Refs: CMP-03, CMP-04, CMP-05, CMP-06, CAT-08
   - Build: `app/Http/Controllers/ComparisonController.php@index` · route `comparison.index` ·
     `resources/js/pages/comparison/index.tsx` — month mode (default: latest Complete month,

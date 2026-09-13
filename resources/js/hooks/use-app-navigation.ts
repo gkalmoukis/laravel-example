@@ -3,10 +3,12 @@ import {
     CalendarDays,
     LayoutGrid,
     Receipt,
+    Scale,
     Settings,
     Wallet,
 } from 'lucide-react';
 import { dashboard } from '@/routes';
+import { index as comparison } from '@/routes/comparison';
 import { index as months } from '@/routes/months';
 import { show as showPlan } from '@/routes/plan';
 import { edit as preferences } from '@/routes/preferences';
@@ -38,6 +40,12 @@ export function useAppNavigation(): NavItem[] {
             title: 'Plan',
             href: showPlan({ year: selectedYear, tab: 'income' }),
             icon: Wallet,
+        });
+
+        items.push({
+            title: 'Plan vs actual',
+            href: comparison({ year: selectedYear }),
+            icon: Scale,
         });
     }
 

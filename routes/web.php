@@ -6,6 +6,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\BudgetCellController;
 use App\Http\Controllers\CategoryActivationController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ComparisonController;
 use App\Http\Controllers\FinancialYearController;
 use App\Http\Controllers\InvitationAcceptanceController;
 use App\Http\Controllers\InvitationController;
@@ -120,6 +121,9 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::post('years/{year}/months/{month}/completion', [MonthCompletionController::class, 'store'])->name('month-completion.store');
     Route::delete('years/{year}/months/{month}/completion', [MonthCompletionController::class, 'destroy'])->name('month-completion.destroy');
     Route::patch('years/{year}/months/{month}/net-worth', [NetWorthSnapshotController::class, 'update'])->name('net-worth-snapshots.update');
+
+    // Reports...
+    Route::get('years/{year}/comparison', [ComparisonController::class, 'index'])->name('comparison.index');
 
     // Preferences...
     Route::get('settings/preferences', [PreferencesController::class, 'edit'])->name('preferences.edit');
