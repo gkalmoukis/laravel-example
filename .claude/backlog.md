@@ -312,7 +312,7 @@ Conventions for every item:
   - Tests: `tests/Unit/Actions/CalculateNetWorthTest.php`
   - Commit: `feat: net worth calculation`
 
-- [ ] **m5-net-worth-screen** — Net worth and its holdings
+- [x] **m5-net-worth-screen** — Net worth and its holdings
   - Refs: NW-01, NW-02, NW-03, NW-04
   - Build: `app/Actions/{CreateNetWorthItem,UpdateNetWorthItem,DeactivateNetWorthItem}.php` ·
     `app/Http/Requests/{Store,Update}NetWorthItemRequest.php` ·

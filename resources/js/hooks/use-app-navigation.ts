@@ -7,6 +7,7 @@ import {
     ShieldCheck,
     Target,
     Telescope,
+    Wallet2,
     TrendingUp,
     Settings,
     Wallet,
@@ -18,6 +19,7 @@ import { show as emergencyFund } from '@/routes/emergency-fund';
 import { index as forecast } from '@/routes/forecast';
 import { index as goals } from '@/routes/goals';
 import { index as months } from '@/routes/months';
+import { index as netWorth } from '@/routes/net-worth';
 import { show as showPlan } from '@/routes/plan';
 import { edit as preferences } from '@/routes/preferences';
 import { index as transactions } from '@/routes/transactions';
@@ -70,6 +72,8 @@ export function useAppNavigation(): NavItem[] {
     }
 
     items.push({ title: 'Goals', href: goals(), icon: Target });
+
+    items.push({ title: 'Net worth', href: netWorth(), icon: Wallet2 });
 
     items.push({
         title: 'Emergency fund',

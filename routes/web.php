@@ -18,6 +18,8 @@ use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\InvitationResendController;
 use App\Http\Controllers\MonthCompletionController;
 use App\Http\Controllers\MonthController;
+use App\Http\Controllers\NetWorthController;
+use App\Http\Controllers\NetWorthItemController;
 use App\Http\Controllers\NetWorthSnapshotController;
 use App\Http\Controllers\OpeningPositionController;
 use App\Http\Controllers\PlanBaselineController;
@@ -136,6 +138,12 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::patch('goals/{goal}', [GoalController::class, 'update'])->name('goals.update');
     Route::post('goals/{goal}/archive', [GoalArchiveController::class, 'store'])->name('goal-archive.store');
     Route::delete('goals/{goal}/archive', [GoalArchiveController::class, 'destroy'])->name('goal-archive.destroy');
+
+    // Net worth...
+    Route::get('net-worth', [NetWorthController::class, 'index'])->name('net-worth.index');
+    Route::post('net-worth/items', [NetWorthItemController::class, 'store'])->name('net-worth-items.store');
+    Route::patch('net-worth/items/{netWorthItem}', [NetWorthItemController::class, 'update'])->name('net-worth-items.update');
+    Route::delete('net-worth/items/{netWorthItem}', [NetWorthItemController::class, 'destroy'])->name('net-worth-items.destroy');
 
     // Reports...
     Route::get('years/{year}/comparison', [ComparisonController::class, 'index'])->name('comparison.index');
