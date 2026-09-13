@@ -1,8 +1,7 @@
-import { Head, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { Plus, RefreshCw, Repeat } from 'lucide-react';
 import { useState } from 'react';
 import EmptyState from '@/components/finance/empty-state';
-import Heading from '@/components/heading';
 import SubscriptionForm, {
     type AccountOption,
     type CategoryOption,
@@ -13,17 +12,15 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { usePreferences } from '@/hooks/use-preferences';
-import AppLayout from '@/layouts/app-layout';
+import PlanLayout from '@/pages/plan/layout';
 import {
     store as restartSubscription,
     destroy as stopSubscription,
 } from '@/routes/subscription-activation';
 import {
-    index as subscriptionsIndex,
     store as storeSubscription,
     update as updateSubscription,
 } from '@/routes/subscriptions';
-import type { BreadcrumbItem } from '@/types';
 
 type Subscription = {
     id: number;
@@ -43,10 +40,6 @@ type Subscription = {
     deactivatedOn: string | null;
     notes: string | null;
 };
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Subscriptions', href: subscriptionsIndex() },
-];
 
 export default function SubscriptionsIndex({
     subscriptions,
@@ -97,25 +90,21 @@ export default function SubscriptionsIndex({
         frequency;
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Subscriptions" />
-
-            <div className="space-y-6 px-4 py-6">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                    <Heading
-                        title="Subscriptions"
-                        description="What leaves your account on a schedule."
-                    />
-
-                    <Button
-                        onClick={() => setOpen(open === 'new' ? null : 'new')}
-                        data-testid="add-subscription"
-                    >
-                        <Plus className="size-4" />
-                        New subscription
-                    </Button>
-                </div>
-
+        <PlanLayout
+            tab="subscriptions"
+            title="Subscriptions"
+            description="What leaves your account on a schedule. A subscription is not tied to one year — it is planned into every year it bills in."
+            action={
+                <Button
+                    onClick={() => setOpen(open === 'new' ? null : 'new')}
+                    data-testid="add-subscription"
+                >
+                    <Plus className="size-4" />
+                    New subscription
+                </Button>
+            }
+        >
+            <div className="space-y-6">
                 <div className="grid gap-4 sm:grid-cols-2">
                     <Card>
                         <CardHeader className="pb-2">
@@ -353,6 +342,6 @@ export default function SubscriptionsIndex({
                     </ul>
                 )}
             </div>
-        </AppLayout>
+        </PlanLayout>
     );
 }

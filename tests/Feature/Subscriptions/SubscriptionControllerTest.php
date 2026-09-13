@@ -405,3 +405,15 @@ it('counts a subscription as a use of its category', function (): void {
 
     expect($spare->refresh()->isInUse())->toBeTrue();
 });
+
+it('renders as a tab of the plan', function (): void {
+    [$user] = userWithYear();
+
+    // The address does not change — a subscription is not year-scoped — but the page it
+    // renders now sits inside the plan, where its effect on the budget is visible.
+    expect(route('subscriptions.index', absolute: false))->toBe('/subscriptions');
+
+    $this->actingAs($user)
+        ->get(route('subscriptions.index'))
+        ->assertInertia(fn ($page) => $page->component('plan/subscriptions'));
+});

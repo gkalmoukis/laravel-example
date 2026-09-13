@@ -65,7 +65,7 @@ final readonly class SubscriptionController
             ];
         }
 
-        return Inertia::render('subscriptions/index', [
+        return Inertia::render('plan/subscriptions', [
             'subscriptions' => $rows,
             'monthlyTotalCents' => $monthlyTotal,
             'annualTotalCents' => $annualTotal,

@@ -599,7 +599,7 @@ All authenticated routes use `auth` and `verified` middleware. Year-scoped route
 | Goals | `GET /goals` | `goals/index` | Goal cards |
 | Emergency fund | `GET /goals/emergency-fund` | `goals/emergency-fund` | Progress |
 | Net worth | `GET /goals/net-worth` | `goals/net-worth` | Current NW + change |
-| Subscriptions | `GET /subscriptions` | `subscriptions/index` | Monthly total |
+| Subscriptions | `GET /subscriptions` | `plan/subscriptions` | Monthly total |
 | Categories | `GET /settings/categories` | `settings/categories` | Tree |
 | Accounts | `GET /settings/accounts` | `settings/accounts` | List |
 | Preferences | `GET /settings/preferences` | `settings/preferences` | Form |

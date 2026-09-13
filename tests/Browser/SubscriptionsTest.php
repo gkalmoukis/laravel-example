@@ -78,3 +78,30 @@ it('manages subscriptions on a phone', function (): void {
         ->assertNoJavascriptErrors()
         ->assertNoConsoleLogs();
 });
+
+it('reaches subscriptions from the plan tabs and back', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    $year = date('Y');
+
+    $this->actingAs($user)
+        ->visit('/years/'.$year.'/plan/income')
+        ->assertSee($year.' plan')
+        ->click('@tab-subscriptions')
+        ->assertPathIs('/subscriptions')
+        ->assertSee('Subscriptions')
+        ->click('@tab-expenses')
+        ->assertPathIs('/years/'.$year.'/plan/expenses')
+        ->assertNoJavascriptErrors();
+});
+
+it('reads the subscriptions tab on a phone', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    $this->actingAs($user)
+        ->visit('/subscriptions')
+        ->on()->mobile()
+        ->assertSee('Subscriptions')
+        ->assertNoJavascriptErrors()
+        ->assertNoConsoleLogs();
+});

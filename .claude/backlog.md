@@ -56,7 +56,7 @@ Conventions for every item:
     `tests/Browser/{NetWorthTest,GoalsTest,NavigationTest}.php`
   - Commit: `feat: goals hub`
 
-- [ ] **nav-plan-subscriptions** — Subscriptions become a tab of the plan
+- [x] **nav-plan-subscriptions** — Subscriptions become a tab of the plan
   - Refs: SUB-01, SUB-02, SUB-04, SUB-06, §9
   - Build: `SubscriptionController@index` renders `plan/subscriptions` instead of
     `subscriptions/index` — URI and route name unchanged · page moves to
