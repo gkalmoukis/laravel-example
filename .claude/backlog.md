@@ -391,7 +391,7 @@ Conventions for every item:
 
 ## M7 — Dashboard, alerts, polish
 
-- [ ] **m7-alerts** — Derived in-app alerts
+- [x] **m7-alerts** — Derived in-app alerts
   - Refs: ALRT-01, ALRT-02, ALRT-03, ALRT-04, ALRT-05, ALRT-06, ALRT-07
   - Build: `app/Data/Alert.php` · `app/Actions/BuildAlerts.php` composing
     `CalculateMonthlyFigures`, `CalculateVariances`, `CalculateCashFlow`,
