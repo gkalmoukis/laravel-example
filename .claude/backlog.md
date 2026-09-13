@@ -281,7 +281,7 @@ Conventions for every item:
   - Tests: `tests/Feature/Goals/EmergencyFundTest.php`
   - Commit: `feat: emergency fund screen`
 
-- [ ] **m5-goal-progress-calculation** — Goal progress and the off-track rule
+- [x] **m5-goal-progress-calculation** — Goal progress and the off-track rule
   - Refs: §7.7
   - Build: `app/Data/GoalProgress.php` · `app/Actions/CalculateGoalProgress.php` — current by
     type (EmergencyFund from §7.6, YearEndBalance from C_F(12), others from
