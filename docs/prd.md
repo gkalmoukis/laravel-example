@@ -711,9 +711,10 @@ These return `final readonly` DTOs from `app/Data`: `CalculateMonthlyFigures` (P
 - preferences with defaults (6.3);
 - the EmergencyFund goal (computed target, no contribution).
 
-### 12.2 Local demo seeder
+### 12.2 Demo dataset (test fixture)
 
-Seeds the known local admin (foundation DB-07) with a realistic 2027:
+`Tests\Fixtures\DemoYear` builds an admin with a realistic 2027. It is a test fixture, not a
+seeder — no environment is ever seeded with it:
 - a salary model at 1.800,00 € net with 14 payments;
 - a budget across all essential categories;
 - 3 irregular items, one of them Spread;
@@ -722,7 +723,7 @@ Seeds the known local admin (foundation DB-07) with a realistic 2027:
 - about 60 transactions per month for January–June, with January–April Complete, May InProgress, June InProgress with one flagged transaction;
 - net worth snapshots for months 0–4.
 
-This dataset is also the browser-test fixture.
+This is the dataset the browser tests walk.
 
 ---
 
@@ -770,7 +771,7 @@ Each milestone ends with `sail composer test` green, updated browser tests, a PR
 | M4 | Actuals, months, comparison, cash flow | MON-01…07, CMP-01…06, CF-01…02, 7.1–7.4 | Month close flow end to end; golden dataset part 1 (actuals, variances, balances) passes |
 | M5 | Forecast, goals, emergency fund, net worth | FC-01…06, GOAL-01…04, EF-01…03, NW-01…04, 7.6–7.8 | Golden dataset part 2 (forecast, EF, goals, NW) passes |
 | M6 | Subscriptions | SUB-01…07 | Subscription plan items sync across years; no double counting |
-| M7 | Dashboard, alerts, polish | DASH-01…06, ALRT-01…07, UX-01…14, NFR-01…06, EDGE-01…05, TST-04…06, §12.2 demo seeder | §2.2 criteria demonstrably met on the demo dataset, at both viewport sizes |
+| M7 | Dashboard, alerts, polish | DASH-01…06, ALRT-01…07, UX-01…14, NFR-01…06, EDGE-01…05, TST-04…06, §12.2 demo dataset | §2.2 criteria demonstrably met on the demo dataset, at both viewport sizes |
 
 ---
 

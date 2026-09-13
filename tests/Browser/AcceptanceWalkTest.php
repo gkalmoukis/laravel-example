@@ -2,28 +2,21 @@
 
 declare(strict_types=1);
 
-use App\Models\User;
-use Database\Seeders\DatabaseSeeder;
-use Database\Seeders\DemoSeeder;
+use Tests\Fixtures\DemoYear;
 
 /*
- * §2.2: what v1 has to let someone do, walked end to end over the demo dataset — the same
- * year a person would see on a fresh install (§12.2).
+ * §2.2: what v1 has to let someone do, walked end to end over the demo dataset.
  *
  * Browser tests assert through the interface. The application runs in a separate process,
  * so a model re-read here would return a stale snapshot.
  */
 
 beforeEach(function (): void {
-    $this->seed(DatabaseSeeder::class);
-
-    $this->user = User::query()
-        ->where('email', DatabaseSeeder::ADMIN_EMAIL)
-        ->sole();
+    [$this->user] = DemoYear::build();
 });
 
 it('walks the acceptance criteria over the demo year', function (): void {
-    $year = DemoSeeder::YEAR;
+    $year = DemoYear::YEAR;
 
     $page = $this->actingAs($this->user)->visit('/dashboard?year='.$year);
 
@@ -64,7 +57,7 @@ it('walks the acceptance criteria over the demo year', function (): void {
         ->assertSee('Forecast')
         ->assertNoJavascriptErrors();
 
-    // "Complete and reopen a month." January was signed off by the seeder.
+    // "Complete and reopen a month." January was signed off by the fixture.
     $page->navigate('/years/'.$year.'/months')
         ->assertSee('Complete')
         ->assertNoJavascriptErrors();
@@ -78,14 +71,14 @@ it('walks the acceptance criteria over the demo year', function (): void {
         ->assertSee('Net worth')
         ->assertNoJavascriptErrors();
 
-    // "Find incorrect or incomplete transactions." The seeder leaves exactly one.
+    // "Find incorrect or incomplete transactions." The fixture leaves exactly one.
     $page->navigate('/transactions?year='.$year.'&issues=1')
         ->assertSee('Miscategorised receipt')
         ->assertNoJavascriptErrors();
 });
 
 it('walks the same criteria on a phone', function (): void {
-    $year = DemoSeeder::YEAR;
+    $year = DemoYear::YEAR;
 
     $page = $this->actingAs($this->user)
         ->visit('/dashboard?year='.$year)
@@ -109,7 +102,7 @@ it('walks the same criteria on a phone', function (): void {
 });
 
 it('reopens a finished month and closes it again', function (): void {
-    $year = DemoSeeder::YEAR;
+    $year = DemoYear::YEAR;
 
     // MON-04, MON-05: a month the user signed off can be put back into progress and
     // finished again, which is what makes a correction possible after the fact.
@@ -132,7 +125,7 @@ it('reopens a finished month and closes it again', function (): void {
  */
 function everyAuthenticatedPage(): array
 {
-    $year = DemoSeeder::YEAR;
+    $year = DemoYear::YEAR;
 
     $paths = [
         '/dashboard',
@@ -188,8 +181,8 @@ it('renders every authenticated page at 375px without errors', function (string 
 /**
  * Every authenticated screen, at the two widths the product promises (UX-10).
  *
- * The seeded demo year is used rather than an empty account, so each page is exercised
- * with real figures in it — an empty screen renders far less than a full one.
+ * The demo year is used rather than an empty account, so each page is exercised with real
+ * figures in it — an empty screen renders far less than a full one.
  */
 it('renders every screen at both widths without errors', function (string $path): void {
     $page = $this->actingAs($this->user)->visit($path);
@@ -206,7 +199,7 @@ it('renders every screen at both widths without errors', function (string $path)
         'document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1',
     );
 })->with(function (): array {
-    $year = DemoSeeder::YEAR;
+    $year = DemoYear::YEAR;
 
     return [
         '/dashboard',

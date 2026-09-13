@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\DB;
  * a starting set of categories, somewhere to record cash, and an emergency fund goal
  * (USR-04).
  *
- * Runs inside the invitation acceptance transaction, and is idempotent so seeders and
+ * Runs inside the invitation acceptance transaction, and is idempotent so fixtures and
  * repeated runs are harmless.
  */
 final readonly class ProvisionUserDefaults

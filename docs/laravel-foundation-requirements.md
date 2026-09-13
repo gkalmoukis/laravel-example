@@ -132,7 +132,7 @@ docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd):/var/www/html" -w /var/www/htm
 ./vendor/bin/sail build                       # includes Playwright (ENV-14)
 sail up -d
 sail composer setup                           # key (if empty), migrate, bun install, build
-sail artisan db:seed                          # local admin user (DB-07)
+sail artisan app:invite you@example.com --admin   # first admin account (DB-07)
 sail composer dev                             # queue + logs + Vite+ HMR
 # App: http://localhost   Mailpit: http://localhost:8025
 ```
@@ -211,7 +211,7 @@ Quality scripts (`lint`, `test:lint`, `test:type-coverage`, `test:types`, `test:
 | DB-04 | Parallel testing works against MySQL (per-process `testing_test_N` databases); verify the `sail` user's privileges on `testing%`. | MUST |
 | DB-05 | Migrations via `sail artisan make:migration`; FKs via `foreignId()->constrained()` with an explicit delete behaviour; FKs and hot filter/sort columns indexed; merged migrations never edited. | MUST |
 | DB-06 | All timestamps stored in UTC; conversion only at the presentation layer (FE-18). | MUST |
-| DB-07 | Every model has a factory with useful states and seeder coverage. `DatabaseSeeder` creates a known local **admin** user (credentials documented in the README, local only) plus sample pending invitations. | MUST |
+| DB-07 | Every model has a factory with useful states. There are no seeders in any environment: the first **admin** account is created with `sail artisan app:invite {email} --admin`, and demo data lives in test fixtures rather than in `database/`. | MUST |
 | DB-08 | Agents inspect the schema with Boost's `database-schema` tool and use `database-query` for read-only queries. | SHOULD |
 
 ### 5.2 Redis

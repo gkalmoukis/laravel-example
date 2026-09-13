@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Models\User;
-use Database\Seeders\DatabaseSeeder;
-use Database\Seeders\DemoSeeder;
+use Tests\Fixtures\DemoYear;
 
 /*
  * Every authenticated screen, checked against axe (NFR-06).
@@ -19,14 +17,13 @@ use Database\Seeders\DemoSeeder;
  */
 
 beforeEach(function (): void {
-    $this->seed(DatabaseSeeder::class);
-    $this->user = User::query()->where('email', DatabaseSeeder::ADMIN_EMAIL)->sole();
+    [$this->user] = DemoYear::build();
 });
 
 it('has no accessibility issues on any screen', function (string $path): void {
     $this->actingAs($this->user)->visit($path)->assertNoAccessibilityIssues();
 })->with(function (): array {
-    $year = DemoSeeder::YEAR;
+    $year = DemoYear::YEAR;
 
     return [
         '/dashboard', '/transactions', '/subscriptions', '/goals',

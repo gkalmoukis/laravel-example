@@ -295,7 +295,7 @@ it('adds a year end balance with no year named at all', function (): void {
     $user = planningUser();
 
     // The request refuses this, so the Action's own fallback is reached only when it is
-    // called directly — by a command or a seeder, which have no form behind them.
+    // called directly — by a command or a fixture, which have no form behind them.
     $goal = resolve(CreateGoal::class)->handle($user, [
         'name' => 'Loose end',
         'type' => GoalType::YearEndBalance->value,

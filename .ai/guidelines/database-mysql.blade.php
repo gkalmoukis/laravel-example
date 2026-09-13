@@ -15,6 +15,7 @@ none may be reintroduced.
 - MySQL treats NULLs as distinct in unique indexes, so a unique index over a nullable column
   does not prevent duplicate rows where that column is NULL. Enforce those rules in the Action
   and add a test.
-- Every model has a factory with useful states, and seeders that use them.
+- Every model has a factory with useful states. There are no seeders: demo data is a test
+  fixture (`Tests\Fixtures\DemoYear`) and the first account comes from `app:invite`.
 - Tests run against the `testing` database and may run in parallel; never assume an empty table
   unless the test created that state.

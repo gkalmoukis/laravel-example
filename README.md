@@ -32,7 +32,7 @@ docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd):/var/www/html" -w /var/www/htm
 ./vendor/bin/sail build                       # includes Playwright's Chromium
 sail up -d
 sail composer setup                           # key, migrate, bun install, build
-sail artisan db:seed                          # local admin + sample invitations
+sail artisan app:invite you@example.com --admin   # your first account; prints the link
 sail composer dev                             # queue + logs + Vite with HMR
 ```
 
@@ -42,18 +42,10 @@ The app is at <http://localhost> and every outgoing email is captured by Mailpit
 Add `alias sail='sh $([ -f sail ] && echo sail || echo vendor/bin/sail)'` to your shell so the
 commands below work as written.
 
-### Local sign-in
-
-The seeder creates one account. **Local only** — the seeder refuses to run in production.
-
-| Email | Password |
-|---|---|
-| `admin@fin.test` | `Password1234` |
-
 ### Inviting people
 
-There is no public registration; `/register` does not exist. The first account in any
-environment is created from the console:
+There is no public registration; `/register` does not exist, and there is no seeded account
+in any environment. The first account is created from the console:
 
 ```bash
 sail artisan app:invite someone@example.com --admin
