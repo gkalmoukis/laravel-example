@@ -227,7 +227,7 @@ Conventions for every item:
   - Tests: `tests/Feature/Reports/CashFlowTest.php`
   - Commit: `feat: cash flow table and balance chart`
 
-- [ ] **m4-golden-dataset-part-1** — The fixture year, actuals half
+- [x] **m4-golden-dataset-part-1** — The fixture year, actuals half
   - Refs: TST-01, TST-02 (part)
   - Build: `tests/Fixtures/GoldenYear.php` — a synthetic fully-specified year (Q-07 default)
     with hand-computed expectations
