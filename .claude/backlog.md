@@ -303,7 +303,7 @@ Conventions for every item:
     `tests/Feature/Isolation/GoalIsolationTest.php` · browser smoke at both widths
   - Commit: `feat: financial goals`
 
-- [ ] **m5-net-worth-calculation** — Net worth and carried-forward values
+- [x] **m5-net-worth-calculation** — Net worth and carried-forward values
   - Refs: §7.8
   - Build: `app/Data/{NetWorthPosition,NetWorthMonth}.php` ·
     `app/Actions/CalculateNetWorth.php` — NW(0..12) by kind, missing snapshots carrying the
