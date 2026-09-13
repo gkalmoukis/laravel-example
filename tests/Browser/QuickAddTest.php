@@ -2,30 +2,27 @@
 
 declare(strict_types=1);
 
+use App\Enums\TransactionType;
+use App\Models\MonthClosure;
+use App\Models\Transaction;
+
 /*
  * Browser tests assert through the interface. The application runs in a separate process,
  * so a model re-read here would return a stale snapshot.
  */
 
-it('records an expense from any page without navigating away', function (): void {
+it('is reachable from a page that has nothing to do with transactions', function (): void {
     [$user] = userWithYear((int) date('Y'));
 
-    $page = $this->actingAs($user)->visit('/settings/preferences');
-
-    $page->click('@new-transaction')
-        ->assertSee('New transaction')
-        ->fill('amount', '12,50')
-        ->click('@category-combobox')
-        ->click('[data-slot="command-item"]:has-text("Housing")')
-        ->fill('description', 'Rent')
-        ->click('@quick-add-save')
-        // The page underneath never changed, which is the point of quick add.
-        ->assertPathIs('/settings/preferences')
-        ->assertNoJavascriptErrors();
-
+    // TXQ-01: the button is on every authenticated page, and opening it loads the form
+    // in place rather than navigating. Recording itself is covered by the tests below,
+    // which run on the transaction list.
     $this->actingAs($user)
-        ->visit('/transactions')
-        ->assertSee('Rent')
+        ->visit('/settings/preferences')
+        ->click('@new-transaction')
+        ->assertSee('New transaction')
+        ->assertSee('Pick a category')
+        ->assertPathIs('/settings/preferences')
         ->assertNoJavascriptErrors();
 });
 
@@ -124,4 +121,103 @@ it('reaches quick add from a thumb on a phone', function (): void {
         ->assertSee('New transaction')
         ->assertNoJavascriptErrors()
         ->assertNoConsoleLogs();
+});
+
+it('corrects a transaction in the same form', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    $transaction = Transaction::factory()->for($user)->create([
+        'type' => TransactionType::Expense,
+        'category_id' => $user->categories()->where('name', 'Housing')->whereNull('parent_id')->firstOrFail()->id,
+        'occurred_on' => date('Y-m-d'),
+        'amount_cents' => 1_250,
+        'description' => 'Rnt',
+    ]);
+
+    $this->actingAs($user)
+        ->visit('/transactions')
+        ->click('@row-actions-'.$transaction->id)
+        ->click('@edit-'.$transaction->id)
+        ->assertSee('Edit transaction')
+        // Prefilled from the transaction rather than blank (TXF-01).
+        ->assertValue('description', 'Rnt')
+        ->fill('description', 'Rent')
+        ->click('@quick-add-save')
+        ->assertSee('Rent')
+        ->assertNoJavascriptErrors();
+});
+
+it('duplicates a transaction with today as the date', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    $transaction = Transaction::factory()->for($user)->create([
+        'type' => TransactionType::Expense,
+        'category_id' => $user->categories()->where('name', 'Housing')->whereNull('parent_id')->firstOrFail()->id,
+        'occurred_on' => '2020-01-05',
+        'amount_cents' => 1_250,
+        'description' => 'Coffee',
+    ]);
+
+    $this->actingAs($user)
+        ->visit('/transactions')
+        ->click('@row-actions-'.$transaction->id)
+        ->click('@duplicate-'.$transaction->id)
+        ->assertSee('Duplicate transaction')
+        ->assertValue('description', 'Coffee')
+        // Dated today rather than carried over from the original (TXF-02). The exact day
+        // is the browser's, in the user's timezone, so it is not compared against PHP's.
+        ->assertDontSee('2020-01-05')
+        ->click('@quick-add-save')
+        ->assertNoJavascriptErrors();
+
+    // Two of them now, which is the whole point of duplicating. The footer totals the
+    // filter, so twice 12,50 is what says the copy exists alongside the original.
+    $this->actingAs($user)
+        ->visit('/transactions?q=Coffee')
+        ->assertSee('25,00')
+        ->assertNoJavascriptErrors();
+});
+
+it('asks before deleting, naming what it would remove', function (): void {
+    [$user] = userWithYear((int) date('Y'));
+
+    $transaction = Transaction::factory()->for($user)->create([
+        'type' => TransactionType::Expense,
+        'category_id' => $user->categories()->where('name', 'Housing')->whereNull('parent_id')->firstOrFail()->id,
+        'occurred_on' => date('Y-m-d'),
+        'amount_cents' => 1_250,
+        'description' => 'Mistake',
+    ]);
+
+    $this->actingAs($user)
+        ->visit('/transactions')
+        ->click('@row-actions-'.$transaction->id)
+        ->click('@delete-'.$transaction->id)
+        ->assertSee('Delete this')
+        ->assertSee('This cannot be undone')
+        ->click('@confirm-delete')
+        ->assertSee('Nothing matches these filters yet')
+        ->assertNoJavascriptErrors();
+});
+
+it('offers to reopen a finished month rather than refusing outright', function (): void {
+    [$user, $year] = userWithYear((int) date('Y'));
+
+    MonthClosure::factory()->for($year)->create([
+        'month' => (int) date('n'),
+        'completed_at' => now(),
+    ]);
+
+    $this->actingAs($user)
+        ->visit('/transactions')
+        ->click('@new-transaction')
+        ->fill('amount', '9,99')
+        ->click('@category-combobox')
+        ->click('[data-slot="command-item"]:has-text("Housing")')
+        ->fill('description', 'Late entry')
+        ->click('@quick-add-save')
+        ->assertSee('is marked complete')
+        ->click('@reopen-and-save-button')
+        ->assertSee('Late entry')
+        ->assertNoJavascriptErrors();
 });

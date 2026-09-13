@@ -190,6 +190,11 @@ export default function TransactionsIndex({
                                         <TableHead className="text-right">
                                             Amount
                                         </TableHead>
+                                        <TableHead className="w-10">
+                                            <span className="sr-only">
+                                                Actions
+                                            </span>
+                                        </TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>

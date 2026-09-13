@@ -28,14 +28,18 @@ pest()->extend(TestCase::class)
     ->in('Browser', 'Feature', 'Unit');
 
 /*
- * Browser tests share one machine with the rest of the parallel suite, and each one drives
- * a real Chromium. The plugin's five-second ceiling is comfortable for a browser on its own
- * and far too tight for eight of them at once, which showed up as tests failing in the full
- * run and passing in isolation. Raising the ceiling changes no assertion: a test that is
- * genuinely wrong still fails, it just no longer fails for being queued behind seven others.
+ * Browser tests share one machine with the rest of the parallel suite, each drives a real
+ * Chromium, and the gate runs them all under Xdebug coverage, where every request is several
+ * times slower than in a bare run. The plugin's five-second ceiling is comfortable for one
+ * browser on an idle machine and nowhere near enough for that, which showed up as tests
+ * failing in the full run and passing in isolation.
+ *
+ * This is a ceiling on hangs, not a performance target: a test that is genuinely wrong still
+ * fails, it just no longer fails for being queued behind five others. The companion fix is
+ * the worker cap in composer.json — sixteen simultaneous Chromiums thrash any machine.
  */
 pest()->beforeEach(function (): void {
-    Playwright::setTimeout(30_000);
+    Playwright::setTimeout(60_000);
 })->in('Browser');
 
 expect()->extend('toBeOne', fn () => $this->toBe(1));

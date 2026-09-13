@@ -35,8 +35,11 @@ import {
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { usePreferences } from '@/hooks/use-preferences';
-import { useQuickAdd } from '@/hooks/use-quick-add';
-import { store as storeTransaction } from '@/routes/transactions';
+import { type QuickAddMode, useQuickAdd } from '@/hooks/use-quick-add';
+import {
+    store as storeTransaction,
+    update as updateTransaction,
+} from '@/routes/transactions';
 import type { CategoryChoice, QuickAddOptions } from '@/types/quick-add';
 
 type Fields = {
@@ -50,6 +53,7 @@ type Fields = {
     notes: string;
     entry_source: string;
     entry_duration_ms: number | '';
+    reopen_month: boolean;
 };
 
 /**
@@ -60,61 +64,84 @@ type Fields = {
  * for. The rest is folded away rather than removed, so the occasional transaction that
  * needs it is still one click from here (UX-07).
  */
-export default function QuickAddSheet() {
-    const { isOpen, close, openedAt } = useQuickAdd();
+export default function QuickAddSheet({
+    mode,
+    openedAt,
+}: {
+    mode: QuickAddMode;
+    openedAt: number;
+}) {
+    const { close } = useQuickAdd();
     const isMobile = useIsMobile();
-    const { today, formatMoney, formatLocale } = usePreferences();
+    const { today, formatMoney, formatAmount, formatLocale } = usePreferences();
     const { quickAdd, years } = usePage().props;
 
     const options = (quickAdd ?? null) as QuickAddOptions | null;
+    const source = mode.kind === 'create' ? null : mode.transaction;
 
-    const [choice, setChoice] = useState<CategoryChoice | null>(null);
+    const [choice, setChoice] = useState<CategoryChoice | null>(
+        source
+            ? {
+                  categoryId: source.categoryId,
+                  subcategoryId: source.subcategoryId,
+                  label: source.subcategoryName
+                      ? `${source.categoryName} › ${source.subcategoryName}`
+                      : source.categoryName,
+              }
+            : null,
+    );
     const [showMore, setShowMore] = useState(false);
     const amountRef = useRef<HTMLInputElement>(null);
 
     const form = useForm<Fields>({
-        type: 'expense',
-        amount: '',
-        category_id: '',
-        subcategory_id: '',
-        account_id: '',
-        occurred_on: today(),
-        description: '',
-        notes: '',
-        entry_source: 'quick_add',
+        type: source?.type ?? 'expense',
+        amount: source ? formatAmount(source.amountCents) : '',
+        category_id: source?.categoryId ?? '',
+        subcategory_id: source?.subcategoryId ?? '',
+        account_id: source?.accountId ?? '',
+        // A duplicate is almost always today's version of something that happened before,
+        // so the date starts at today rather than the original's (TXF-02).
+        occurred_on:
+            mode.kind === 'edit' && source ? source.occurredOn : today(),
+        description: source?.description ?? '',
+        notes: source?.notes ?? '',
+        entry_source:
+            mode.kind === 'duplicate'
+                ? 'duplicate'
+                : mode.kind === 'edit'
+                  ? 'form'
+                  : 'quick_add',
         entry_duration_ms: '',
+        reopen_month: false,
     });
 
-    // The options are only fetched when the sheet is actually opened, so most page loads
-    // never pay for them (TXQ-01).
+    // The sheet only exists while it is open, so this is the moment the options are
+    // wanted; most page loads never pay for them (TXQ-01).
     useEffect(() => {
-        if (isOpen && !options) {
+        if (!options) {
             router.reload({ only: ['quickAdd'] });
         }
-    }, [isOpen, options]);
+    }, [options]);
 
     useEffect(() => {
-        if (isOpen && options && form.data.account_id === '') {
+        if (options && mode.kind === 'create' && form.data.account_id === '') {
             form.setData('account_id', options.defaultAccountId ?? '');
         }
-    }, [isOpen, options]);
-
-    if (!isOpen) {
-        return null;
-    }
+    }, [options]);
 
     const plannedYears = years.map((year) => year.year);
     const datedYear = Number(form.data.occurred_on.slice(0, 4));
     const hasNoPlan =
         Number.isFinite(datedYear) && !plannedYears.includes(datedYear);
 
-    const submit = (again: boolean) => {
+    const submit = (again: boolean, reopenMonth = false) => {
         form.transform((data) => ({
             ...data,
-            entry_duration_ms: openedAt ? Date.now() - openedAt : '',
+            reopen_month: reopenMonth,
+            entry_duration_ms: Date.now() - openedAt,
         }));
 
-        form.post(storeTransaction.url(), {
+        const visitOptions = {
             preserveScroll: true,
             onSuccess: () => {
                 toast.success(
@@ -140,13 +167,31 @@ export default function QuickAddSheet() {
                 setChoice(null);
                 amountRef.current?.focus();
             },
-        });
+        };
+
+        if (mode.kind === 'edit' && source) {
+            form.patch(updateTransaction.url(source.id), visitOptions);
+
+            return;
+        }
+
+        form.post(storeTransaction.url(), visitOptions);
     };
 
     const onSubmit = (event: FormEvent) => {
         event.preventDefault();
         submit(false);
     };
+
+    // A finished month is refused by marking the very field that would lift the refusal,
+    // so the offer to reopen is driven by the form's own errors (TXV-02).
+    const blockedMonth = Boolean(form.errors.reopen_month);
+
+    const monthName = form.data.occurred_on
+        ? new Intl.DateTimeFormat(formatLocale, { month: 'long' }).format(
+              new Date(`${form.data.occurred_on}T00:00:00`),
+          )
+        : '';
 
     const body = (
         <form
@@ -340,23 +385,47 @@ export default function QuickAddSheet() {
                 </CollapsibleContent>
             </Collapsible>
 
+            {blockedMonth && (
+                <div
+                    className="rounded-md border border-amber-500/50 p-3 text-sm"
+                    data-testid="reopen-and-save"
+                >
+                    <p className="text-amber-700 dark:text-amber-400">
+                        {form.errors.occurred_on}
+                    </p>
+                    <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        className="mt-2"
+                        disabled={form.processing}
+                        onClick={() => submit(false, true)}
+                        data-testid="reopen-and-save-button"
+                    >
+                        Reopen {monthName} and save
+                    </Button>
+                </div>
+            )}
+
             <div className="flex flex-wrap gap-2">
                 <Button
                     type="submit"
                     disabled={form.processing}
                     data-testid="quick-add-save"
                 >
-                    Save
+                    {mode.kind === 'edit' ? 'Save changes' : 'Save'}
                 </Button>
-                <Button
-                    type="button"
-                    variant="secondary"
-                    disabled={form.processing}
-                    onClick={() => submit(true)}
-                    data-testid="quick-add-save-another"
-                >
-                    Save &amp; add another
-                </Button>
+                {mode.kind !== 'edit' && (
+                    <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={form.processing}
+                        onClick={() => submit(true)}
+                        data-testid="quick-add-save-another"
+                    >
+                        Save &amp; add another
+                    </Button>
+                )}
             </div>
 
             <p className="sr-only">
@@ -366,8 +435,17 @@ export default function QuickAddSheet() {
         </form>
     );
 
-    const title = 'New transaction';
-    const description = `Amounts are read in your ${formatLocale} format.`;
+    const title =
+        mode.kind === 'edit'
+            ? 'Edit transaction'
+            : mode.kind === 'duplicate'
+              ? 'Duplicate transaction'
+              : 'New transaction';
+
+    const description =
+        mode.kind === 'duplicate'
+            ? 'Same details, dated today. Change anything that differs.'
+            : `Amounts are read in your ${formatLocale} format.`;
 
     if (isMobile) {
         return (

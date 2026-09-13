@@ -90,7 +90,7 @@ Conventions for every item:
     default account, the optional prop resolving)
   - Commit: `feat: quick add transactions`
 
-- [ ] **m3-transaction-edit-duplicate-delete** — Editing, duplicating and deleting from the list
+- [x] **m3-transaction-edit-duplicate-delete** — Editing, duplicating and deleting from the list
   - Refs: TXF-01, TXF-02, TXF-03, TXV-02, CMP-02
   - Build: reuse `quick-add-sheet.tsx` in edit and duplicate modes (duplicate prefills the
     original's fields with **today's** date and saves with `entry_source = Duplicate`) ·

@@ -125,7 +125,11 @@ One line, nothing else:
   `tests/Browser/Screenshots` before changing the selector** — it usually shows the real cause.
 - **A Radix Popover inside the quick-add Dialog needs `modal`**, or it portals outside the
   dialog and the dialog's `pointer-events: none` leaves its options visible but unclickable.
-- The browser timeout is raised to 30s in `tests/Pest.php`. If browser tests start failing in
-  the full run but passing alone, that is parallel contention, not a regression.
+- **Browser flakiness is almost always contention.** If a browser test fails in the full run
+  but passes alone — especially if a *different* one fails each run — lower
+  `PEST_PROCESSES` (default 3) rather than touching the test. Never raise a timeout or weaken
+  an assertion to chase it.
+- The full gate is slow enough to exceed Composer's 300s process timeout; run it as
+  `vendor/bin/sail exec -e COMPOSER_PROCESS_TIMEOUT=0 laravel.test composer test:unit`.
 - **Three failed attempts** at getting a check green → mark the item `[!]` with the failure
   summarised in one line, commit only that backlog edit as `chore: block <id>`, and stop.

@@ -1,5 +1,6 @@
 import { CalendarClock } from 'lucide-react';
 import IssueBadge from '@/components/transactions/issue-badge';
+import TransactionActions from '@/components/transactions/transaction-actions';
 import { Badge } from '@/components/ui/badge';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { usePreferences } from '@/hooks/use-preferences';
@@ -76,6 +77,9 @@ export function TransactionTableRow({
             <TableCell className="text-right">
                 <Amount row={row} />
             </TableCell>
+            <TableCell className="w-10">
+                <TransactionActions row={row} />
+            </TableCell>
         </TableRow>
     );
 }
@@ -91,7 +95,10 @@ export function TransactionCard({ row, today }: { row: Row; today: string }) {
         <div className="rounded-lg border p-3" data-testid="transaction-card">
             <div className="flex items-start justify-between gap-3">
                 <span className="font-medium">{row.description}</span>
-                <Amount row={row} />
+                <div className="flex items-center gap-1">
+                    <Amount row={row} />
+                    <TransactionActions row={row} />
+                </div>
             </div>
 
             <div className="mt-1 text-sm text-muted-foreground">

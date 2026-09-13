@@ -18,8 +18,10 @@ use Illuminate\Validation\ValidationException;
  * would change underneath them. Refusing outright would be a dead end, so the caller may
  * ask to reopen, and the reopening and the change then happen in one transaction.
  *
- * The refusal carries `month_complete` alongside the field error: the field message
- * explains what happened, and the month number is what lets the form offer to reopen it.
+ * The refusal marks `reopen_month` as well as the date: the date message explains what
+ * happened, and the flag on the field that would lift the refusal is what lets the form
+ * offer to reopen. It rides on a real field on purpose — a key the form does not know
+ * about never reaches its typed errors.
  */
 final readonly class AllowChangeInMonth
 {
@@ -46,7 +48,7 @@ final readonly class AllowChangeInMonth
                     $date->format('F'),
                     $date->year,
                 ),
-                'month_complete' => (string) $date->month,
+                'reopen_month' => (string) $date->month,
             ]);
         }
 

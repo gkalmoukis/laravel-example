@@ -82,3 +82,20 @@ its requirement IDs, build, test, commit, tick. The last item of each milestone 
 Pest plus `test:lint` and `test:types`.
 
 All of it stays local on one branch. The loop never pushes and never opens a pull request.
+
+## The test suite runs three workers, and browser tests get a minute
+
+`pest --parallel` defaults to one worker per core. On a sixteen-core machine that means
+sixteen simultaneous Chromium instances under Xdebug coverage, which thrashes the box: the
+suite took 216 seconds and failed two browser tests, each of which passed on its own. The
+failures moved between runs, which is what contention looks like rather than a bug.
+
+`composer test:unit` therefore pins `--processes=${PEST_PROCESSES:-3}` and `tests/Pest.php`
+raises the browser timeout to sixty seconds for the `Browser` suite. Same suite, same
+assertions, 60 seconds and green. Neither is a quality threshold: coverage stays at exactly
+100%, and a genuinely broken test still fails — it just no longer fails for being queued
+behind five others. Override the worker count with `PEST_PROCESSES` where a different
+machine wants a different number.
+
+Expect to revisit this as browser tests grow. If flakiness returns, lower the worker count
+before touching any assertion.

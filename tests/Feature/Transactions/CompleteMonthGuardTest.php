@@ -49,7 +49,7 @@ it('refuses a new transaction dated in a finished month', function (): void {
         ->post(route('transactions.store'), marchPayload($user))
         ->assertSessionHasErrors([
             'occurred_on' => 'March 2027 is marked complete. Reopen it to save this change.',
-            'month_complete' => '3',
+            'reopen_month' => '3',
         ]);
 
     expect($user->transactions()->count())->toBe(0);
@@ -174,4 +174,24 @@ it('knows whether a closure means the month is finished', function (): void {
 
     expect($open->isComplete())->toBeFalse()
         ->and($finished->isComplete())->toBeTrue();
+});
+
+it('marks the field that would lift the refusal', function (): void {
+    [$user, $year] = userWithYear();
+
+    closeMonth($year, 3);
+
+    $this->actingAs($user)
+        ->from(route('transactions.index'))
+        ->post(route('transactions.store'), marchPayload($user))
+        ->assertRedirect(route('transactions.index'));
+
+    // The page the user lands back on must carry both: the date message explains what
+    // happened, and the flag on reopen_month is what the form keys its offer to reopen
+    // off, because that is a field the form actually declares (TXV-02).
+    $this->actingAs($user)
+        ->get(route('transactions.index'))
+        ->assertInertia(fn ($page) => $page
+            ->where('errors.reopen_month', '3')
+            ->where('errors.occurred_on', 'March 2027 is marked complete. Reopen it to save this change.'));
 });

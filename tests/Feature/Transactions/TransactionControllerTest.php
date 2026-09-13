@@ -339,3 +339,110 @@ it('refuses an edit to an amount beyond what it can hold', function (): void {
         ->patch(route('transactions.update', $transaction), validTransaction($user, ['amount' => '99.999.999.999,00']))
         ->assertSessionHasErrors(['amount' => 'That amount is too large.']);
 });
+
+it('duplicates a transaction as a new one dated today', function (): void {
+    [$user] = userWithYear();
+
+    $original = Transaction::factory()->for($user)->create([
+        'type' => TransactionType::Expense,
+        'category_id' => txCategory($user)->id,
+        'occurred_on' => '2027-03-03',
+        'amount_cents' => 1_250,
+        'description' => 'Weekly shop',
+    ]);
+
+    $this->actingAs($user)->post(route('transactions.store'), validTransaction($user, [
+        'amount' => '12,50',
+        'description' => 'Weekly shop',
+        'occurred_on' => '2027-06-10',
+        'entry_source' => EntrySource::Duplicate->value,
+    ]))->assertSessionHasNoErrors();
+
+    $copy = $user->transactions()->whereKeyNot($original->id)->sole();
+
+    expect($copy->entry_source)->toBe(EntrySource::Duplicate)
+        ->and($copy->description)->toBe('Weekly shop')
+        ->and($copy->occurred_on->format('Y-m-d'))->toBe('2027-06-10')
+        // The original is untouched: duplicating adds, it never moves.
+        ->and($original->refresh()->occurred_on->format('Y-m-d'))->toBe('2027-03-03');
+});
+
+it('keeps an edit from changing which account it belongs to', function (): void {
+    [$owner] = userWithYear();
+    [$intruder] = userWithYear();
+
+    $transaction = Transaction::factory()->for($owner)->create([
+        'category_id' => txCategory($owner)->id,
+        'occurred_on' => '2027-03-03',
+    ]);
+
+    $this->actingAs($intruder)
+        ->patch(route('transactions.update', $transaction), validTransaction($intruder))
+        ->assertNotFound();
+
+    expect($transaction->refresh()->user_id)->toBe($owner->id);
+});
+
+it('moves a transaction to another month', function (): void {
+    [$user] = userWithYear();
+
+    $transaction = Transaction::factory()->for($user)->create([
+        'category_id' => txCategory($user)->id,
+        'occurred_on' => '2027-03-03',
+    ]);
+
+    $this->actingAs($user)
+        ->patch(route('transactions.update', $transaction), validTransaction($user, [
+            'occurred_on' => '2027-09-09',
+        ]))
+        ->assertSessionHasNoErrors();
+
+    expect($transaction->refresh()->occurred_on->format('Y-m-d'))->toBe('2027-09-09');
+});
+
+it('changes which subcategory an edit files it under', function (): void {
+    [$user] = userWithYear();
+
+    $food = txCategory($user, 'Food & Groceries');
+    $supermarket = $user->categories()->where('name', 'Supermarket')->firstOrFail();
+    $laiki = $user->categories()->where('name', "Farmers' market (Laiki)")->firstOrFail();
+
+    $transaction = Transaction::factory()->for($user)->create([
+        'type' => TransactionType::Expense,
+        'category_id' => $food->id,
+        'subcategory_id' => $supermarket->id,
+        'occurred_on' => '2027-03-03',
+    ]);
+
+    $this->actingAs($user)
+        ->patch(route('transactions.update', $transaction), validTransaction($user, [
+            'category_id' => $food->id,
+            'subcategory_id' => $laiki->id,
+        ]))
+        ->assertSessionHasNoErrors();
+
+    expect($transaction->refresh()->subcategory_id)->toBe($laiki->id);
+});
+
+it('clears the subcategory when an edit drops it', function (): void {
+    [$user] = userWithYear();
+
+    $food = txCategory($user, 'Food & Groceries');
+    $supermarket = $user->categories()->where('name', 'Supermarket')->firstOrFail();
+
+    $transaction = Transaction::factory()->for($user)->create([
+        'type' => TransactionType::Expense,
+        'category_id' => $food->id,
+        'subcategory_id' => $supermarket->id,
+        'occurred_on' => '2027-03-03',
+    ]);
+
+    $this->actingAs($user)
+        ->patch(route('transactions.update', $transaction), validTransaction($user, [
+            'category_id' => $food->id,
+            'subcategory_id' => '',
+        ]))
+        ->assertSessionHasNoErrors();
+
+    expect($transaction->refresh()->subcategory_id)->toBeNull();
+});
